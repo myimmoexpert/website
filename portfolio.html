@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Immo.Portfolio – Demnächst</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:  #0f1c2e;
+      --navy2: #172540;
+      --gold:  #c9a84c;
+      --gold2: #e0bf74;
+      --muted: #8a97aa;
+      --white: #ffffff;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(15, 28, 46, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(201,168,76,0.15);
+    }
+
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--white);
+      text-decoration: none;
+    }
+
+    .logo span { color: var(--gold); }
+
+    nav ul { list-style: none; display: flex; gap: 36px; }
+    nav ul a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+    nav ul a:hover { color: var(--white); }
+    nav ul a.active { color: var(--gold); }
+    .nav-cta { background: var(--gold); color: var(--navy) !important; padding: 10px 22px; border-radius: 8px; font-weight: 600 !important; }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    main::before {
+      content: '';
+      position: absolute;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .content {
+      text-align: center;
+      max-width: 560px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .icon {
+      width: 80px;
+      height: 80px;
+      background: rgba(201,168,76,0.1);
+      border: 1px solid rgba(201,168,76,0.25);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 32px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(201,168,76,0.12);
+      color: var(--gold);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 50px;
+      padding: 5px 16px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+
+    h1 span { color: var(--gold); }
+
+    p {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.7;
+      margin-bottom: 40px;
+    }
+
+    .features {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 44px;
+      text-align: left;
+    }
+
+    .feature {
+      background: var(--navy2);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 0.92rem;
+    }
+
+    .feature-icon {
+      width: 36px;
+      height: 36px;
+      background: rgba(201,168,76,0.1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .feature-text strong {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .feature-text span { color: var(--muted); font-size: 0.85rem; }
+
+    .btn-primary {
+      background: var(--gold);
+      color: var(--navy);
+      border: none;
+      padding: 14px 30px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: background 0.2s, transform 0.15s;
+      margin-right: 12px;
+    }
+
+    .btn-primary:hover { background: var(--gold2); transform: translateY(-1px); }
+
+    .btn-secondary {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .btn-secondary:hover { color: var(--white); }
+
+    footer {
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding: 36px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-links { display: flex; gap: 28px; list-style: none; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; }
+    .footer-copy { color: var(--muted); font-size: 0.82rem; }
+
+    @media (max-width: 700px) {
+      nav { padding: 18px 24px; }
+      nav ul { display: none; }
+      footer { padding: 28px 24px; flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="logo">Immo<span>.Expert</span></a>
+    <ul>
+      <li><a href="finder.html">Immo.Finder</a></li>
+      <li><a href="portfolio.html" class="active">Immo.Portfolio</a></li>
+      <li><a href="login.html" class="nav-cta">Login</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="content">
+      <div class="icon">📊</div>
+      <div class="badge">Demnächst verfügbar</div>
+      <h1>Immo<span>.Portfolio</span><br />kommt bald.</h1>
+      <p>Wir arbeiten daran, Ihnen die beste Möglichkeit zu geben, Ihr Immobilienportfolio zu verwalten und im Blick zu behalten.</p>
+
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🏠</div>
+          <div class="feature-text">
+            <strong>Objekte verwalten</strong>
+            <span>Alle Ihre Immobilien an einem zentralen Ort</span>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📈</div>
+          <div class="feature-text">
+            <strong>Rendite & Kennzahlen</strong>
+            <span>Wertentwicklung und Performance auf einen Blick</span>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔗</div>
+          <div class="feature-text">
+            <strong>Immo.Finder Integration</strong>
+            <span>Analysierte Inserate direkt ins Portfolio übernehmen</span>
+          </div>
+        </div>
+      </div>
+
+      <a href="finder.html" class="btn-primary">Jetzt Immo.Finder nutzen</a>
+      <a href="index.html" class="btn-secondary">Zur Startseite</a>
+    </div>
+  </main>
+
+  <footer>
+    <a href="index.html" class="logo">Immo<span>.Expert</span></a>
+    <ul class="footer-links">
+      <li><a href="impressum.html">Impressum</a></li>
+      <li><a href="datenschutz.html">Datenschutz</a></li>
+      <li><a href="kontakt.html">Kontakt</a></li>
+    </ul>
+    <span class="footer-copy">© 2026 Immo.Expert</span>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Immo.Finder – Inserat analysieren</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:   #0f1c2e;
+      --navy2:  #172540;
+      --navy3:  #1e2f50;
+      --gold:   #c9a84c;
+      --gold2:  #e0bf74;
+      --muted:  #8a97aa;
+      --white:  #ffffff;
+      --green:  #3ecf8e;
+      --red:    #f87171;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(15, 28, 46, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(201,168,76,0.15);
+    }
+
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--white);
+      text-decoration: none;
+    }
+
+    .logo span { color: var(--gold); }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 36px;
+    }
+
+    nav ul a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    nav ul a:hover, nav ul a.active { color: var(--white); }
+    nav ul a.active { color: var(--gold); }
+
+    .nav-cta {
+      background: var(--gold);
+      color: var(--navy) !important;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-weight: 600 !important;
+    }
+
+    .nav-cta:hover { background: var(--gold2) !important; }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      padding: 60px 60px 40px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .page-header .badge {
+      display: inline-block;
+      background: rgba(201,168,76,0.12);
+      color: var(--gold);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 50px;
+      padding: 5px 16px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .page-header h1 {
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+
+    .page-header h1 span { color: var(--gold); }
+
+    .page-header p {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.65;
+      max-width: 560px;
+    }
+
+    /* ── INPUT SECTION ── */
+    .input-section {
+      padding: 0 60px 60px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .input-card {
+      background: var(--navy2);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 36px;
+    }
+
+    .input-label {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 12px;
+      display: block;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .url-input {
+      flex: 1;
+      background: var(--navy3);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      color: var(--white);
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .url-input::placeholder { color: var(--muted); }
+    .url-input:focus { border-color: var(--gold); }
+
+    .btn-analyze {
+      background: var(--gold);
+      color: var(--navy);
+      border: none;
+      padding: 14px 28px;
+      border-radius: var(--radius);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .btn-analyze:hover { background: var(--gold2); transform: translateY(-1px); }
+    .btn-analyze:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .input-hint {
+      margin-top: 10px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    /* ── LOADING ── */
+    .loading {
+      display: none;
+      padding: 0 60px 40px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .loading.visible { display: block; }
+
+    .loading-card {
+      background: var(--navy2);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 48px;
+      text-align: center;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(201,168,76,0.2);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-card p { color: var(--muted); font-size: 0.95rem; }
+    .loading-card strong { color: var(--white); display: block; margin-bottom: 6px; font-size: 1rem; }
+
+    /* ── RESULT ── */
+    .result {
+      display: none;
+      padding: 0 60px 80px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .result.visible { display: block; }
+
+    .result-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .result-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .result-subtitle {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .result-source {
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .result-source a { color: var(--gold); text-decoration: none; }
+
+    /* KPI grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: var(--navy2);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius);
+      padding: 22px 20px;
+    }
+
+    .kpi-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .kpi-value.gold { color: var(--gold); }
+    .kpi-value.green { color: var(--green); }
+    .kpi-value.red { color: var(--red); }
+
+    .kpi-sub {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* Detail sections */
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .detail-card {
+      background: var(--navy2);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius);
+      padding: 28px;
+    }
+
+    .detail-card h3 {
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--gold);
+      margin-bottom: 18px;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.9rem;
+    }
+
+    .detail-row:last-child { border-bottom: none; }
+    .detail-row .label { color: var(--muted); }
+    .detail-row .value { font-weight: 500; }
+
+    /* Description */
+    .desc-card {
+      background: var(--navy2);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+
+    .desc-card h3 {
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--gold);
+      margin-bottom: 14px;
+    }
+
+    .desc-card p {
+      font-size: 0.92rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* Bewertung */
+    .rating-card {
+      background: linear-gradient(135deg, rgba(201,168,76,0.1), rgba(201,168,76,0.03));
+      border: 1px solid rgba(201,168,76,0.25);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+
+    .rating-card h3 {
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--gold);
+      margin-bottom: 14px;
+    }
+
+    .rating-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .tag {
+      padding: 6px 14px;
+      border-radius: 50px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .tag.green { background: rgba(62,207,142,0.15); color: var(--green); border: 1px solid rgba(62,207,142,0.3); }
+    .tag.red { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+    .tag.neutral { background: rgba(255,255,255,0.07); color: var(--muted); border: 1px solid rgba(255,255,255,0.1); }
+
+    .rating-summary {
+      font-size: 0.92rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--white);
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 12px 22px;
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.4); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding: 36px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-links { display: flex; gap: 28px; list-style: none; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; }
+    .footer-copy { color: var(--muted); font-size: 0.82rem; }
+
+    @media (max-width: 700px) {
+      nav { padding: 18px 24px; }
+      nav ul { display: none; }
+      .page-header, .input-section, .loading, .result { padding-left: 20px; padding-right: 20px; }
+      .input-row { flex-direction: column; }
+      .detail-grid { grid-template-columns: 1fr; }
+      footer { padding: 28px 24px; flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="logo">Immo<span>.Expert</span></a>
+    <ul>
+      <li><a href="finder.html" class="active">Immo.Finder</a></li>
+      <li><a href="portfolio.html">Immo.Portfolio</a></li>
+      <li><a href="login.html" class="nav-cta">Login</a></li>
+    </ul>
+  </nav>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="badge">Immo.Finder</div>
+    <h1>Inserat analysieren.<br /><span>Steckbrief erhalten.</span></h1>
+    <p>Fügen Sie den Link eines ImmoScout24-Inserats ein – wir extrahieren alle relevanten Informationen und erstellen Ihnen einen übersichtlichen Steckbrief.</p>
+  </div>
+
+  <!-- INPUT -->
+  <div class="input-section">
+    <div class="input-card">
+      <label class="input-label">ImmoScout24-Link einfügen</label>
+      <div class="input-row">
+        <input
+          type="url"
+          class="url-input"
+          id="urlInput"
+          placeholder="https://www.immobilienscout24.de/expose/..."
+        />
+        <button class="btn-analyze" id="analyzeBtn" onclick="startAnalysis()">Analysieren</button>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; flex-wrap:wrap; gap:8px;">
+        <p class="input-hint">Unterstützt: Kaufangebote und Mietangebote auf ImmoScout24</p>
+        <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:50px; padding:5px 12px;">
+          <svg width="16" height="16" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M26 4C13.85 4 4 13.85 4 26s9.85 22 22 22 22-9.85 22-22S38.15 4 26 4zm0 6c4.08 0 7.82 1.4 10.78 3.72L13.72 36.78A15.93 15.93 0 0 1 10 26c0-8.84 7.16-16 16-16zm0 32c-4.08 0-7.82-1.4-10.78-3.72l23.06-23.06A15.93 15.93 0 0 1 42 26c0 8.84-7.16 16-16 16z" fill="#c9a84c"/>
+          </svg>
+          <span style="font-size:0.78rem; font-weight:600; color:#8a97aa;">Analysiert von <span style="color:#c9a84c;">Claude AI</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading" id="loading">
+    <div class="loading-card">
+      <div class="spinner"></div>
+      <strong>Inserat wird analysiert…</strong>
+      <p>Das dauert in der Regel nur wenige Sekunden.</p>
+    </div>
+  </div>
+
+  <!-- RESULT (Demo-Steckbrief) -->
+  <div class="result" id="result">
+    <div class="result-header">
+      <div>
+        <div class="result-title" id="resultTitle">–</div>
+        <div class="result-subtitle" id="resultSubtitle">–</div>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+        <div class="result-source">
+          🔗 <a href="#" id="resultLink" target="_blank">Originalinserat öffnen</a>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px; background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.2); border-radius:50px; padding:4px 12px;">
+          <svg width="14" height="14" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M26 4C13.85 4 4 13.85 4 26s9.85 22 22 22 22-9.85 22-22S38.15 4 26 4zm0 6c4.08 0 7.82 1.4 10.78 3.72L13.72 36.78A15.93 15.93 0 0 1 10 26c0-8.84 7.16-16 16-16zm0 32c-4.08 0-7.82-1.4-10.78-3.72l23.06-23.06A15.93 15.93 0 0 1 42 26c0 8.84-7.16 16-16 16z" fill="#c9a84c"/>
+          </svg>
+          <span style="font-size:0.75rem; font-weight:600; color:#c9a84c;">Powered by Claude AI</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Kaufpreis</div>
+        <div class="kpi-value gold" id="kpiPrice">–</div>
+        <div class="kpi-sub" id="kpiPricePerSqm">–</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Wohnfläche</div>
+        <div class="kpi-value" id="kpiArea">–</div>
+        <div class="kpi-sub" id="kpiRooms">–</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Baujahr</div>
+        <div class="kpi-value" id="kpiBaujahr">–</div>
+        <div class="kpi-sub" id="kpiEtage">–</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Energieklasse</div>
+        <div class="kpi-value" id="kpiEnergy">–</div>
+        <div class="kpi-sub" id="kpiEnergyVal">–</div>
+      </div>
+    </div>
+
+    <!-- Details -->
+    <div class="detail-grid">
+      <div class="detail-card">
+        <h3>Objektdetails</h3>
+        <div class="detail-row"><span class="label">Objektart</span><span class="value" id="dObjektart">–</span></div>
+        <div class="detail-row"><span class="label">Zustand</span><span class="value" id="dZustand">–</span></div>
+        <div class="detail-row"><span class="label">Stellplatz</span><span class="value" id="dStellplatz">–</span></div>
+        <div class="detail-row"><span class="label">Keller</span><span class="value" id="dKeller">–</span></div>
+        <div class="detail-row"><span class="label">Aufzug</span><span class="value" id="dAufzug">–</span></div>
+      </div>
+      <div class="detail-card">
+        <h3>Kosten</h3>
+        <div class="detail-row"><span class="label">Kaufpreis</span><span class="value" id="dKaufpreis">–</span></div>
+        <div class="detail-row"><span class="label">Nebenkosten (ca.)</span><span class="value" id="dNebenkosten">–</span></div>
+        <div class="detail-row"><span class="label">Maklerprovision</span><span class="value" id="dMakler">–</span></div>
+        <div class="detail-row"><span class="label">Hausgeld</span><span class="value" id="dHausgeld">–</span></div>
+        <div class="detail-row"><span class="label">Gesamtinvestition</span><span class="value gold" id="dGesamt">–</span></div>
+      </div>
+    </div>
+
+    <!-- Beschreibung -->
+    <div class="desc-card">
+      <h3>Beschreibung</h3>
+      <p id="dBeschreibung">–</p>
+    </div>
+
+    <!-- Bewertung -->
+    <div class="rating-card">
+      <h3>Schnellbewertung</h3>
+      <div class="rating-tags" id="ratingTags"></div>
+      <p class="rating-summary" id="ratingSummary">–</p>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn-secondary" onclick="resetForm()">Neues Inserat analysieren</button>
+      <a href="portfolio.html" class="btn-secondary">Zum Portfolio hinzufügen →</a>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <a href="index.html" class="logo">Immo<span>.Expert</span></a>
+    <ul class="footer-links">
+      <li><a href="impressum.html">Impressum</a></li>
+      <li><a href="datenschutz.html">Datenschutz</a></li>
+      <li><a href="kontakt.html">Kontakt</a></li>
+    </ul>
+    <span class="footer-copy">© 2026 Immo.Expert</span>
+  </footer>
+
+  <script>
+    // Demo-Daten – werden später durch echte API-Antwort ersetzt
+    const DEMO = {
+      title: "3-Zimmer-Wohnung in München-Schwabing",
+      subtitle: "Schwabing, München • Eigentumswohnung",
+      link: "#",
+      kpiPrice: "689.000 €",
+      kpiPricePerSqm: "8.612 €/m²",
+      kpiArea: "80 m²",
+      kpiRooms: "3 Zimmer",
+      kpiBaujahr: "1972",
+      kpiEtage: "3. Etage von 5",
+      kpiEnergy: "D",
+      kpiEnergyVal: "112 kWh/m²a",
+      dObjektart: "Eigentumswohnung",
+      dZustand: "Gepflegt",
+      dStellplatz: "Tiefgarage (inklusive)",
+      dKeller: "Ja",
+      dAufzug: "Vorhanden",
+      dKaufpreis: "689.000 €",
+      dNebenkosten: "~110.000 €",
+      dMakler: "3,57 % inkl. MwSt.",
+      dHausgeld: "420 €/Monat",
+      dGesamt: "~799.000 €",
+      dBeschreibung: "Helle und gut geschnittene 3-Zimmer-Wohnung im beliebten Münchner Stadtteil Schwabing. Die Wohnung befindet sich im 3. Obergeschoss eines gepflegten Mehrfamilienhauses aus den 1970er Jahren. Ein Tiefgaragenstellplatz ist im Kaufpreis inbegriffen. Die Wohnung ist aktuell vermietet und eignet sich als Kapitalanlage.",
+      tags: [
+        { text: "Gute Lage", type: "green" },
+        { text: "Tiefgaragenstellplatz", type: "green" },
+        { text: "Vermietet", type: "neutral" },
+        { text: "Baujahr 1972", type: "neutral" },
+        { text: "Energieklasse D", type: "red" },
+        { text: "Hoher Preis/m²", type: "red" },
+      ],
+      ratingSummary: "Das Objekt befindet sich in einer sehr gefragten Münchner Lage mit guter Infrastruktur. Der Preis von 8.612 €/m² liegt im oberen Durchschnitt für Schwabing. Die Energieklasse D sowie das Baujahr 1972 deuten auf potenziellen Sanierungsbedarf hin. Für Kapitalanleger interessant, da die Wohnung bereits vermietet ist."
+    };
+
+    function startAnalysis() {
+      const input = document.getElementById('urlInput').value.trim();
+      if (!input) {
+        document.getElementById('urlInput').focus();
+        return;
+      }
+
+      // UI in Loading-Zustand versetzen
+      document.getElementById('result').classList.remove('visible');
+      document.getElementById('loading').classList.add('visible');
+      document.getElementById('analyzeBtn').disabled = true;
+
+      // Demo: nach 2 Sekunden Ergebnis anzeigen
+      // → wird später durch echten API-Call ersetzt
+      setTimeout(() => {
+        fillResult(DEMO, input);
+        document.getElementById('loading').classList.remove('visible');
+        document.getElementById('result').classList.add('visible');
+        document.getElementById('analyzeBtn').disabled = false;
+        document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 2000);
+    }
+
+    function fillResult(data, url) {
+      document.getElementById('resultTitle').textContent = data.title;
+      document.getElementById('resultSubtitle').textContent = data.subtitle;
+      document.getElementById('resultLink').href = url;
+      document.getElementById('kpiPrice').textContent = data.kpiPrice;
+      document.getElementById('kpiPricePerSqm').textContent = data.kpiPricePerSqm;
+      document.getElementById('kpiArea').textContent = data.kpiArea;
+      document.getElementById('kpiRooms').textContent = data.kpiRooms;
+      document.getElementById('kpiBaujahr').textContent = data.kpiBaujahr;
+      document.getElementById('kpiEtage').textContent = data.kpiEtage;
+      document.getElementById('kpiEnergy').textContent = data.kpiEnergy;
+      document.getElementById('kpiEnergyVal').textContent = data.kpiEnergyVal;
+      document.getElementById('dObjektart').textContent = data.dObjektart;
+      document.getElementById('dZustand').textContent = data.dZustand;
+      document.getElementById('dStellplatz').textContent = data.dStellplatz;
+      document.getElementById('dKeller').textContent = data.dKeller;
+      document.getElementById('dAufzug').textContent = data.dAufzug;
+      document.getElementById('dKaufpreis').textContent = data.dKaufpreis;
+      document.getElementById('dNebenkosten').textContent = data.dNebenkosten;
+      document.getElementById('dMakler').textContent = data.dMakler;
+      document.getElementById('dHausgeld').textContent = data.dHausgeld;
+      document.getElementById('dGesamt').textContent = data.dGesamt;
+      document.getElementById('dBeschreibung').textContent = data.dBeschreibung;
+
+      const tagsEl = document.getElementById('ratingTags');
+      tagsEl.innerHTML = '';
+      data.tags.forEach(t => {
+        const span = document.createElement('span');
+        span.className = `tag ${t.type}`;
+        span.textContent = t.text;
+        tagsEl.appendChild(span);
+      });
+
+      document.getElementById('ratingSummary').textContent = data.ratingSummary;
+    }
+
+    function resetForm() {
+      document.getElementById('urlInput').value = '';
+      document.getElementById('result').classList.remove('visible');
+      document.getElementById('urlInput').focus();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Enter-Taste im Input
+    document.getElementById('urlInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') startAnalysis();
+    });
+  </script>
+
+</body>
+</html>
