@@ -542,7 +542,7 @@
     <ul>
       <li><a href="finder.html" class="active">Immo.Finder</a></li>
       <li><a href="portfolio.html">Immo.Portfolio</a></li>
-      <li><a href="login.html" class="nav-cta">Login</a></li>
+      <li><a href="login.html" class="nav-cta" id="navAuthLink">Login</a></li>
     </ul>
   </nav>
 
@@ -711,11 +711,19 @@
 
     sb.auth.getSession().then(({ data }) => {
       session = data.session
-      if (session) loadSavedSteckbriefe()
+      if (session) {
+        loadSavedSteckbriefe()
+        const link = document.getElementById('navAuthLink')
+        if (link) { link.href = 'profil.html'; link.textContent = 'Profil' }
+      }
     })
     sb.auth.onAuthStateChange((_, s) => {
       session = s
-      if (s) loadSavedSteckbriefe()
+      if (s) {
+        loadSavedSteckbriefe()
+        const link = document.getElementById('navAuthLink')
+        if (link) { link.href = 'profil.html'; link.textContent = 'Profil' }
+      }
     })
 
     async function startAnalysis() {

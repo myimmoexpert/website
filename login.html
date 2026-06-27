@@ -243,7 +243,7 @@
 
     // Bereits eingeloggt? → weiterleiten
     sb.auth.getSession().then(({ data: { session } }) => {
-      if (session) window.location.href = 'portfolio.html'
+      if (session) window.location.href = 'profil.html'
     })
 
     function switchTab(tab) {
@@ -285,7 +285,7 @@
         showAlert('login-error', 'E-Mail oder Passwort ungültig.')
         setLoading('login', false)
       } else {
-        window.location.href = 'portfolio.html'
+        window.location.href = 'profil.html'
       }
     }
 
@@ -322,7 +322,7 @@
     async function handleGoogle() {
       const { error } = await sb.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: 'https://myimmoexpert.de/portfolio.html' }
+        options: { redirectTo: 'https://myimmoexpert.de/profil.html' }
       })
       if (error) showAlert('login-error', 'Google-Login fehlgeschlagen.')
     }

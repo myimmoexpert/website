@@ -78,7 +78,7 @@
     <ul>
       <li><a href="finder.html">Immo.Finder</a></li>
       <li><a href="portfolio.html" class="active">Immo.Portfolio</a></li>
-      <li><a href="login.html" class="nav-cta">Login</a></li>
+      <li><a href="login.html" class="nav-cta" id="navAuthLink">Login</a></li>
     </ul>
   </nav>
 
@@ -126,5 +126,20 @@
     <span class="footer-copy">© 2026 Immo.Expert</span>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    (function() {
+      const sb = window.supabase.createClient(
+        'https://awvnfocepqkkncgqgaka.supabase.co',
+        'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
+      )
+      sb.auth.getSession().then(({ data }) => {
+        if (data.session) {
+          const link = document.getElementById('navAuthLink')
+          if (link) { link.href = 'profil.html'; link.textContent = 'Profil' }
+        }
+      })
+    })()
+  </script>
 </body>
 </html>

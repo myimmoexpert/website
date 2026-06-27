@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mein Profil – Immo.Expert</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:   #0f1c2e;
+      --navy2:  #172540;
+      --navy3:  #1e2f50;
+      --gold:   #c9a84c;
+      --gold2:  #e0bf74;
+      --muted:  #8a97aa;
+      --white:  #ffffff;
+      --green:  #3ecf8e;
+      --red:    #f87171;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── NAV ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(15,28,46,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(201,168,76,0.15);
+    }
+    .logo { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; color: var(--white); text-decoration: none; }
+    .logo span { color: var(--gold); }
+    nav ul { list-style: none; display: flex; gap: 36px; }
+    nav ul a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+    nav ul a:hover { color: var(--white); }
+    nav ul a.active { color: var(--gold); }
+    .nav-cta {
+      background: var(--gold); color: var(--navy) !important;
+      padding: 10px 22px; border-radius: 8px; font-weight: 600 !important;
+    }
+    .nav-cta:hover { background: var(--gold2) !important; color: var(--navy) !important; }
+
+    /* ── TAB NAV ── */
+    .tab-header {
+      padding: 0 60px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      background: rgba(15,28,46,0.6);
+    }
+    .tab-nav {
+      display: flex;
+      gap: 0;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 18px 28px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--white); }
+    .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    /* ── TAB CONTENT ── */
+    .tab-pane { display: none; flex: 1; }
+    .tab-pane.active { display: block; }
+
+    /* ── PROFIL TAB ── */
+    .profil-wrap {
+      max-width: 700px;
+      margin: 60px auto;
+      padding: 0 60px;
+    }
+    .profil-avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--navy3));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; font-weight: 700; color: var(--navy);
+      margin-bottom: 28px;
+    }
+    .profil-name {
+      font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+    .profil-email {
+      color: var(--muted); font-size: 0.95rem; margin-bottom: 40px;
+    }
+
+    .info-card {
+      background: var(--navy2);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+    .info-card h3 {
+      font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--gold); margin-bottom: 18px;
+    }
+    .info-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.92rem;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row .lbl { color: var(--muted); }
+    .info-row .val { font-weight: 500; }
+    .info-row .val.gold { color: var(--gold); }
+
+    .btn-logout {
+      background: transparent;
+      color: var(--red);
+      border: 1px solid rgba(248,113,113,0.3);
+      padding: 12px 24px;
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .btn-logout:hover { background: rgba(248,113,113,0.08); border-color: var(--red); }
+
+    /* ── FINDER TAB (embedded) ── */
+    .finder-wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 48px 60px 80px;
+    }
+    .finder-wrap h2 {
+      font-size: 1.5rem; font-weight: 700; letter-spacing: -0.3px;
+      margin-bottom: 8px;
+    }
+    .finder-wrap h2 span { color: var(--gold); }
+    .finder-wrap .sub {
+      color: var(--muted); font-size: 0.92rem; margin-bottom: 32px;
+    }
+
+    .input-card {
+      background: var(--navy2);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+    .input-label {
+      font-size: 0.85rem; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.5px; display: block;
+      margin-bottom: 12px;
+    }
+    .input-row { display: flex; gap: 12px; }
+    .url-input {
+      flex: 1; background: var(--navy3);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius); padding: 14px 18px;
+      color: var(--white); font-size: 0.95rem; font-family: inherit;
+      outline: none; transition: border-color 0.2s;
+    }
+    .url-input::placeholder { color: var(--muted); }
+    .url-input:focus { border-color: var(--gold); }
+    .btn-analyze {
+      background: var(--gold); color: var(--navy);
+      border: none; padding: 14px 28px; border-radius: var(--radius);
+      font-size: 0.95rem; font-weight: 600; cursor: pointer;
+      font-family: inherit; white-space: nowrap;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-analyze:hover { background: var(--gold2); transform: translateY(-1px); }
+    .btn-analyze:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .input-hint { margin-top: 10px; font-size: 0.82rem; color: var(--muted); }
+
+    /* loading */
+    .f-loading { display: none; }
+    .f-loading.visible { display: block; margin-bottom: 32px; }
+    .loading-card {
+      background: var(--navy2); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px; padding: 48px; text-align: center;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid rgba(201,168,76,0.2); border-top-color: var(--gold);
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-card p { color: var(--muted); font-size: 0.95rem; }
+    .loading-card strong { color: var(--white); display: block; margin-bottom: 6px; font-size: 1rem; }
+
+    /* result */
+    .f-result { display: none; }
+    .f-result.visible { display: block; }
+    .result-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      flex-wrap: wrap; gap: 16px; margin-bottom: 28px;
+    }
+    .result-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
+    .result-subtitle { color: var(--muted); font-size: 0.88rem; }
+    .result-source { font-size: 0.8rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+    .result-source a { color: var(--gold); text-decoration: none; }
+
+    .kpi-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px; margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: var(--navy2); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius); padding: 22px 20px;
+    }
+    .kpi-label { font-size: 0.78rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .kpi-value { font-size: 1.4rem; font-weight: 700; }
+    .kpi-value.gold { color: var(--gold); }
+    .kpi-sub { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+    .detail-card {
+      background: var(--navy2); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius); padding: 28px;
+    }
+    .detail-card h3 {
+      font-size: 0.88rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--gold); margin-bottom: 18px;
+    }
+    .detail-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-row .label { color: var(--muted); }
+    .detail-row .value { font-weight: 500; }
+
+    .desc-card {
+      background: var(--navy2); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius); padding: 28px; margin-bottom: 24px;
+    }
+    .desc-card h3 { font-size: 0.88rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gold); margin-bottom: 14px; }
+    .desc-card p { font-size: 0.92rem; color: var(--muted); line-height: 1.7; }
+
+    .rating-card {
+      background: linear-gradient(135deg, rgba(201,168,76,0.1), rgba(201,168,76,0.03));
+      border: 1px solid rgba(201,168,76,0.25); border-radius: var(--radius);
+      padding: 28px; margin-bottom: 24px;
+    }
+    .rating-card h3 { font-size: 0.88rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gold); margin-bottom: 14px; }
+    .rating-tags { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+    .tag { padding: 6px 14px; border-radius: 50px; font-size: 0.82rem; font-weight: 600; }
+    .tag.green { background: rgba(62,207,142,0.15); color: var(--green); border: 1px solid rgba(62,207,142,0.3); }
+    .tag.red { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+    .tag.neutral { background: rgba(255,255,255,0.07); color: var(--muted); border: 1px solid rgba(255,255,255,0.1); }
+    .rating-summary { font-size: 0.92rem; color: var(--muted); line-height: 1.65; }
+
+    .f-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 0; }
+    .btn-secondary {
+      background: transparent; color: var(--white);
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 12px 22px; border-radius: var(--radius);
+      font-size: 0.9rem; font-weight: 500; cursor: pointer;
+      font-family: inherit; transition: border-color 0.2s;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.4); }
+    .btn-save {
+      background: var(--green); color: var(--navy);
+      border: none; padding: 12px 22px; border-radius: var(--radius);
+      font-size: 0.9rem; font-weight: 700; cursor: pointer;
+      font-family: inherit; transition: opacity 0.2s; white-space: nowrap;
+      display: none;
+    }
+    .btn-save.visible { display: inline-block; }
+    .btn-save:hover { opacity: 0.85; }
+    .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* saved steckbriefe */
+    .saved-section { display: none; margin-top: 48px; }
+    .saved-section.visible { display: block; }
+    .saved-section h2 {
+      font-size: 1.05rem; font-weight: 700; margin-bottom: 18px;
+      padding-top: 40px; border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .saved-list { display: flex; flex-direction: column; gap: 12px; }
+    .saved-item {
+      background: var(--navy2); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px; padding: 18px 22px;
+      display: flex; align-items: center; gap: 16px;
+      transition: border-color 0.2s; cursor: pointer;
+    }
+    .saved-item:hover { border-color: rgba(201,168,76,0.3); }
+    .saved-number { font-size: 1.1rem; font-weight: 700; color: var(--gold); min-width: 36px; text-align: center; }
+    .saved-info { flex: 1; min-width: 0; }
+    .saved-title { font-size: 0.92rem; font-weight: 600; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .saved-meta { font-size: 0.8rem; color: var(--muted); }
+    .saved-price { font-size: 0.92rem; font-weight: 600; color: var(--gold); white-space: nowrap; }
+    .saved-actions-col { display: flex; gap: 10px; align-items: center; }
+    .saved-link { font-size: 0.8rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .saved-link:hover { color: var(--gold); }
+    .saved-delete {
+      background: none; border: none; color: var(--muted);
+      cursor: pointer; font-size: 1rem; padding: 4px; transition: color 0.2s;
+    }
+    .saved-delete:hover { color: var(--red); }
+
+    /* ── PORTFOLIO TAB ── */
+    .portfolio-wrap {
+      display: flex; align-items: center; justify-content: center;
+      padding: 80px 60px; flex: 1;
+    }
+    .coming-soon { text-align: center; max-width: 500px; }
+    .badge {
+      display: inline-block; background: rgba(201,168,76,0.12); color: var(--gold);
+      border: 1px solid rgba(201,168,76,0.3); border-radius: 50px;
+      padding: 5px 16px; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.5px;
+      text-transform: uppercase; margin-bottom: 24px;
+    }
+    .coming-soon h2 { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 14px; }
+    .coming-soon h2 span { color: var(--gold); }
+    .coming-soon p { color: var(--muted); font-size: 0.95rem; line-height: 1.7; margin-bottom: 36px; }
+    .portfolio-features { display: flex; flex-direction: column; gap: 12px; text-align: left; }
+    .portfolio-feature {
+      display: flex; align-items: flex-start; gap: 14px;
+      background: var(--navy2); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px; padding: 16px 18px;
+    }
+    .portfolio-feature .fi { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+    .portfolio-feature strong { display: block; font-size: 0.9rem; margin-bottom: 2px; }
+    .portfolio-feature span { font-size: 0.82rem; color: var(--muted); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding: 36px 60px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 16px;
+      margin-top: auto;
+    }
+    .footer-links { display: flex; gap: 28px; list-style: none; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; }
+    .footer-copy { color: var(--muted); font-size: 0.82rem; }
+
+    /* ── AUTH GUARD OVERLAY ── */
+    #authGuard {
+      display: none; position: fixed; inset: 0;
+      background: var(--navy); z-index: 200;
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 16px; text-align: center;
+    }
+    #authGuard.visible { display: flex; }
+    #authGuard p { color: var(--muted); }
+    #authGuard a { color: var(--gold); font-weight: 600; text-decoration: none; }
+
+    @media (max-width: 700px) {
+      nav { padding: 18px 24px; }
+      nav ul { display: none; }
+      .tab-header { padding: 0 24px; }
+      .tab-btn { padding: 14px 16px; font-size: 0.82rem; }
+      .profil-wrap, .finder-wrap, .portfolio-wrap { padding-left: 20px; padding-right: 20px; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .input-row { flex-direction: column; }
+      footer { padding: 28px 24px; flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Auth Guard (shown briefly if not logged in) -->
+  <div id="authGuard">
+    <div style="font-size:2rem;">🔒</div>
+    <p>Diese Seite ist nur für angemeldete Nutzer.</p>
+    <a href="login.html">Jetzt einloggen →</a>
+  </div>
+
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="logo">Immo<span>.Expert</span></a>
+    <ul>
+      <li><a href="finder.html">Immo.Finder</a></li>
+      <li><a href="portfolio.html">Immo.Portfolio</a></li>
+      <li><a href="profil.html" class="nav-cta active">Profil</a></li>
+    </ul>
+  </nav>
+
+  <!-- TAB NAVIGATION -->
+  <div class="tab-header">
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('profil')">Profil</button>
+      <button class="tab-btn" onclick="switchTab('finder')">Immo.Finder</button>
+      <button class="tab-btn" onclick="switchTab('portfolio')">Immo.Portfolio</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       TAB 1: PROFIL
+  ════════════════════════════════════════ -->
+  <div class="tab-pane active" id="pane-profil">
+    <div class="profil-wrap">
+      <div class="profil-avatar" id="avatarInitials">?</div>
+      <div class="profil-name" id="profilName">–</div>
+      <div class="profil-email" id="profilEmail">–</div>
+
+      <div class="info-card">
+        <h3>Kontoinformationen</h3>
+        <div class="info-row"><span class="lbl">Vorname</span><span class="val" id="infoVorname">–</span></div>
+        <div class="info-row"><span class="lbl">Nachname</span><span class="val" id="infoNachname">–</span></div>
+        <div class="info-row"><span class="lbl">E-Mail</span><span class="val" id="infoEmail">–</span></div>
+        <div class="info-row"><span class="lbl">Mitglied seit</span><span class="val" id="infoSince">–</span></div>
+      </div>
+
+      <div class="info-card">
+        <h3>Aktivität</h3>
+        <div class="info-row">
+          <span class="lbl">Gespeicherte Steckbriefe</span>
+          <span class="val gold" id="infoCount">–</span>
+        </div>
+      </div>
+
+      <button class="btn-logout" onclick="logout()">Abmelden</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       TAB 2: IMMO.FINDER
+  ════════════════════════════════════════ -->
+  <div class="tab-pane" id="pane-finder">
+    <div class="finder-wrap">
+      <h2>Immo.<span>Finder</span></h2>
+      <p class="sub">ImmoScout24-Link einfügen – KI erstellt den Steckbrief in Sekunden.</p>
+
+      <!-- Input -->
+      <div class="input-card">
+        <label class="input-label">ImmoScout24-Link einfügen</label>
+        <div class="input-row">
+          <input
+            type="url"
+            class="url-input"
+            id="fUrlInput"
+            placeholder="https://www.immobilienscout24.de/expose/..."
+          />
+          <button class="btn-analyze" id="fAnalyzeBtn" onclick="startAnalysis()">Analysieren</button>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; flex-wrap:wrap; gap:8px;">
+          <p class="input-hint">Unterstützt: Kaufangebote und Mietangebote auf ImmoScout24</p>
+          <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:50px; padding:5px 12px;">
+            <svg width="14" height="14" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M26 4C13.85 4 4 13.85 4 26s9.85 22 22 22 22-9.85 22-22S38.15 4 26 4zm0 6c4.08 0 7.82 1.4 10.78 3.72L13.72 36.78A15.93 15.93 0 0 1 10 26c0-8.84 7.16-16 16-16zm0 32c-4.08 0-7.82-1.4-10.78-3.72l23.06-23.06A15.93 15.93 0 0 1 42 26c0 8.84-7.16 16-16 16z" fill="#c9a84c"/>
+            </svg>
+            <span style="font-size:0.78rem; font-weight:600; color:#8a97aa;">Analysiert von <span style="color:#c9a84c;">Claude AI</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div class="f-loading" id="fLoading">
+        <div class="loading-card">
+          <div class="spinner"></div>
+          <strong>Inserat wird analysiert…</strong>
+          <p>Das dauert in der Regel nur wenige Sekunden.</p>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div class="f-result" id="fResult">
+        <div class="result-header">
+          <div>
+            <div class="result-title" id="fTitle">–</div>
+            <div class="result-subtitle" id="fSubtitle">–</div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+            <div class="result-source">🔗 <a href="#" id="fLink" target="_blank">Originalinserat öffnen</a></div>
+            <div style="display:flex; align-items:center; gap:6px; background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.2); border-radius:50px; padding:4px 12px;">
+              <svg width="13" height="13" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M26 4C13.85 4 4 13.85 4 26s9.85 22 22 22 22-9.85 22-22S38.15 4 26 4zm0 6c4.08 0 7.82 1.4 10.78 3.72L13.72 36.78A15.93 15.93 0 0 1 10 26c0-8.84 7.16-16 16-16zm0 32c-4.08 0-7.82-1.4-10.78-3.72l23.06-23.06A15.93 15.93 0 0 1 42 26c0 8.84-7.16 16-16 16z" fill="#c9a84c"/>
+              </svg>
+              <span style="font-size:0.75rem; font-weight:600; color:#c9a84c;">Powered by Claude AI</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Kaufpreis</div><div class="kpi-value gold" id="fKpiPrice">–</div><div class="kpi-sub" id="fKpiPricePerSqm">–</div></div>
+          <div class="kpi-card"><div class="kpi-label">Wohnfläche</div><div class="kpi-value" id="fKpiArea">–</div><div class="kpi-sub" id="fKpiRooms">–</div></div>
+          <div class="kpi-card"><div class="kpi-label">Baujahr</div><div class="kpi-value" id="fKpiBaujahr">–</div><div class="kpi-sub" id="fKpiEtage">–</div></div>
+          <div class="kpi-card"><div class="kpi-label">Energieklasse</div><div class="kpi-value" id="fKpiEnergy">–</div><div class="kpi-sub" id="fKpiEnergyVal">–</div></div>
+        </div>
+
+        <!-- Details -->
+        <div class="detail-grid">
+          <div class="detail-card">
+            <h3>Objektdetails</h3>
+            <div class="detail-row"><span class="label">Objektart</span><span class="value" id="fObjektart">–</span></div>
+            <div class="detail-row"><span class="label">Zustand</span><span class="value" id="fZustand">–</span></div>
+            <div class="detail-row"><span class="label">Stellplatz</span><span class="value" id="fStellplatz">–</span></div>
+            <div class="detail-row"><span class="label">Keller</span><span class="value" id="fKeller">–</span></div>
+            <div class="detail-row"><span class="label">Aufzug</span><span class="value" id="fAufzug">–</span></div>
+          </div>
+          <div class="detail-card">
+            <h3>Kosten</h3>
+            <div class="detail-row"><span class="label">Kaufpreis</span><span class="value" id="fKaufpreis">–</span></div>
+            <div class="detail-row"><span class="label">Nebenkosten (ca.)</span><span class="value" id="fNebenkosten">–</span></div>
+            <div class="detail-row"><span class="label">Maklerprovision</span><span class="value" id="fMakler">–</span></div>
+            <div class="detail-row"><span class="label">Hausgeld</span><span class="value" id="fHausgeld">–</span></div>
+            <div class="detail-row"><span class="label">Gesamtinvestition</span><span class="value gold" id="fGesamt">–</span></div>
+          </div>
+        </div>
+
+        <!-- Beschreibung -->
+        <div class="desc-card">
+          <h3>Beschreibung</h3>
+          <p id="fBeschreibung">–</p>
+        </div>
+
+        <!-- Bewertung -->
+        <div class="rating-card">
+          <h3>Schnellbewertung</h3>
+          <div class="rating-tags" id="fRatingTags"></div>
+          <p class="rating-summary" id="fRatingSummary">–</p>
+        </div>
+
+        <!-- Actions -->
+        <div class="f-actions">
+          <button class="btn-secondary" onclick="resetFinder()">Neues Inserat analysieren</button>
+          <button class="btn-save" id="fSaveBtn" onclick="saveSteckbrief()">Steckbrief speichern</button>
+        </div>
+      </div>
+
+      <!-- Saved Steckbriefe -->
+      <div class="saved-section" id="fSavedSection">
+        <h2>Gespeicherte Steckbriefe</h2>
+        <div class="saved-list" id="fSavedList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       TAB 3: IMMO.PORTFOLIO
+  ════════════════════════════════════════ -->
+  <div class="tab-pane" id="pane-portfolio">
+    <div class="portfolio-wrap">
+      <div class="coming-soon">
+        <div class="badge">Demnächst verfügbar</div>
+        <h2>Immo.<span>Portfolio</span></h2>
+        <p>Verwalten Sie Ihre Immobilien-Investments an einem Ort – mit Renditeberechnung, Marktvergleichen und automatischen Bewertungs-Updates.</p>
+        <div class="portfolio-features">
+          <div class="portfolio-feature">
+            <div class="fi">📊</div>
+            <div>
+              <strong>Portfolio-Übersicht</strong>
+              <span>Alle Objekte auf einen Blick – Wert, Rendite, Entwicklung</span>
+            </div>
+          </div>
+          <div class="portfolio-feature">
+            <div class="fi">📈</div>
+            <div>
+              <strong>Rendite-Rechner</strong>
+              <span>Automatische Berechnung von Mietrendite und Kaufpreisfaktor</span>
+            </div>
+          </div>
+          <div class="portfolio-feature">
+            <div class="fi">🔔</div>
+            <div>
+              <strong>Markt-Alerts</strong>
+              <span>Benachrichtigungen bei Preisveränderungen in Ihren Zielregionen</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <a href="index.html" class="logo">Immo<span>.Expert</span></a>
+    <ul class="footer-links">
+      <li><a href="impressum.html">Impressum</a></li>
+      <li><a href="datenschutz.html">Datenschutz</a></li>
+      <li><a href="kontakt.html">Kontakt</a></li>
+    </ul>
+    <span class="footer-copy">© 2026 Immo.Expert</span>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    const SUPABASE_URL = 'https://awvnfocepqkkncgqgaka.supabase.co'
+    const SUPABASE_KEY = 'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
+    const EDGE_FN_URL  = SUPABASE_URL + '/functions/v1/analyze-listing'
+
+    const { createClient } = window.supabase
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+    let session     = null
+    let currentData = null
+    let currentUrl  = null
+
+    // ── AUTH GUARD ──────────────────────────────────────
+    sb.auth.getSession().then(({ data }) => {
+      session = data.session
+      if (!session) {
+        document.getElementById('authGuard').classList.add('visible')
+        setTimeout(() => { window.location.href = 'login.html' }, 1500)
+        return
+      }
+      initProfile(session.user)
+      loadSavedSteckbriefe()
+    })
+
+    sb.auth.onAuthStateChange((_, s) => {
+      session = s
+      if (s) {
+        document.getElementById('authGuard').classList.remove('visible')
+        initProfile(s.user)
+        loadSavedSteckbriefe()
+      }
+    })
+
+    // ── PROFIL DATA ─────────────────────────────────────
+    async function initProfile(user) {
+      const meta = user.user_metadata || {}
+      const firstName  = meta.first_name  || meta.given_name  || ''
+      const lastName   = meta.last_name   || meta.family_name || ''
+      const fullName   = [firstName, lastName].filter(Boolean).join(' ') || user.email.split('@')[0]
+      const initials   = [firstName[0], lastName[0]].filter(Boolean).join('').toUpperCase() || fullName[0].toUpperCase()
+      const since      = new Date(user.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })
+
+      document.getElementById('avatarInitials').textContent = initials
+      document.getElementById('profilName').textContent     = fullName
+      document.getElementById('profilEmail').textContent    = user.email
+      document.getElementById('infoVorname').textContent    = firstName || '–'
+      document.getElementById('infoNachname').textContent   = lastName  || '–'
+      document.getElementById('infoEmail').textContent      = user.email
+      document.getElementById('infoSince').textContent      = since
+
+      // Steckbrief-Anzahl
+      const { count } = await sb.from('steckbriefe').select('*', { count: 'exact', head: true })
+      document.getElementById('infoCount').textContent = count || 0
+    }
+
+    // ── TAB SWITCHING ────────────────────────────────────
+    function switchTab(name) {
+      document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+        const tabs = ['profil', 'finder', 'portfolio']
+        btn.classList.toggle('active', tabs[i] === name)
+      })
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'))
+      document.getElementById('pane-' + name).classList.add('active')
+    }
+
+    // ── FINDER LOGIC ─────────────────────────────────────
+    async function startAnalysis() {
+      const url = document.getElementById('fUrlInput').value.trim()
+      if (!url) { document.getElementById('fUrlInput').focus(); return }
+
+      document.getElementById('fResult').classList.remove('visible')
+      document.getElementById('fSaveBtn').classList.remove('visible')
+      document.getElementById('fLoading').classList.add('visible')
+      document.getElementById('fAnalyzeBtn').disabled = true
+
+      try {
+        const headers = {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + session.access_token
+        }
+
+        const res  = await fetch(EDGE_FN_URL, { method: 'POST', headers, body: JSON.stringify({ url }) })
+        const data = await res.json()
+        if (data.error) throw new Error(data.error)
+
+        currentData = data
+        currentUrl  = url
+
+        fillResult(data, url)
+        document.getElementById('fLoading').classList.remove('visible')
+        document.getElementById('fResult').classList.add('visible')
+
+        const btn = document.getElementById('fSaveBtn')
+        btn.textContent = 'Steckbrief speichern'
+        btn.disabled = false
+        btn.classList.add('visible')
+
+        document.getElementById('fResult').scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+      } catch (err) {
+        document.getElementById('fLoading').classList.remove('visible')
+        alert('Fehler bei der Analyse: ' + err.message)
+      } finally {
+        document.getElementById('fAnalyzeBtn').disabled = false
+      }
+    }
+
+    async function saveSteckbrief() {
+      if (!session || !currentData) return
+      const btn = document.getElementById('fSaveBtn')
+      btn.disabled = true
+      btn.textContent = 'Speichern…'
+
+      const { count } = await sb.from('steckbriefe').select('*', { count: 'exact', head: true })
+      const number = (count || 0) + 1
+
+      const { error } = await sb.from('steckbriefe').insert({
+        user_id:  session.user.id,
+        url:      currentUrl,
+        title:    currentData.title,
+        subtitle: currentData.subtitle,
+        data:     { ...currentData, number }
+      })
+
+      if (error) {
+        btn.disabled = false
+        btn.textContent = 'Steckbrief speichern'
+        alert('Fehler beim Speichern: ' + error.message)
+      } else {
+        btn.textContent = '✓ Gespeichert als #' + number
+        setTimeout(() => btn.classList.remove('visible'), 3000)
+        await loadSavedSteckbriefe()
+        // Steckbrief-Anzahl im Profil aktualisieren
+        document.getElementById('infoCount').textContent = number
+      }
+    }
+
+    async function loadSavedSteckbriefe() {
+      if (!session) return
+      const { data, error } = await sb
+        .from('steckbriefe')
+        .select('*')
+        .order('created_at', { ascending: true })
+
+      const section = document.getElementById('fSavedSection')
+      if (error || !data || data.length === 0) { section.classList.remove('visible'); return }
+
+      const list = document.getElementById('fSavedList')
+      list.innerHTML = ''
+
+      data.forEach((item, idx) => {
+        const d      = item.data
+        const number = d.number || (idx + 1)
+        const date   = new Date(item.created_at).toLocaleDateString('de-DE')
+        const el     = document.createElement('div')
+        el.className = 'saved-item'
+        el.innerHTML = `
+          <div class="saved-number">#${number}</div>
+          <div class="saved-info">
+            <div class="saved-title">${esc(d.title || '–')}</div>
+            <div class="saved-meta">${esc(d.subtitle || '')} · ${date}</div>
+          </div>
+          <div class="saved-price">${esc(d.kpiPrice || '–')}</div>
+          <div class="saved-actions-col">
+            <a href="${esc(item.url)}" target="_blank" class="saved-link">↗ Inserat</a>
+            <button class="saved-delete" onclick="event.stopPropagation(); deleteSaved('${item.id}')" title="Löschen">✕</button>
+          </div>
+        `
+        list.appendChild(el)
+      })
+
+      section.classList.add('visible')
+    }
+
+    async function deleteSaved(id) {
+      if (!confirm('Steckbrief löschen?')) return
+      await sb.from('steckbriefe').delete().eq('id', id)
+      await loadSavedSteckbriefe()
+      // Anzahl im Profil aktualisieren
+      const { count } = await sb.from('steckbriefe').select('*', { count: 'exact', head: true })
+      document.getElementById('infoCount').textContent = count || 0
+    }
+
+    function fillResult(data, url) {
+      document.getElementById('fTitle').textContent         = data.title
+      document.getElementById('fSubtitle').textContent      = data.subtitle
+      document.getElementById('fLink').href                 = url
+      document.getElementById('fKpiPrice').textContent      = data.kpiPrice
+      document.getElementById('fKpiPricePerSqm').textContent= data.kpiPricePerSqm
+      document.getElementById('fKpiArea').textContent       = data.kpiArea
+      document.getElementById('fKpiRooms').textContent      = data.kpiRooms
+      document.getElementById('fKpiBaujahr').textContent    = data.kpiBaujahr
+      document.getElementById('fKpiEtage').textContent      = data.kpiEtage
+      document.getElementById('fKpiEnergy').textContent     = data.kpiEnergy
+      document.getElementById('fKpiEnergyVal').textContent  = data.kpiEnergyVal
+      document.getElementById('fObjektart').textContent     = data.dObjektart
+      document.getElementById('fZustand').textContent       = data.dZustand
+      document.getElementById('fStellplatz').textContent    = data.dStellplatz
+      document.getElementById('fKeller').textContent        = data.dKeller
+      document.getElementById('fAufzug').textContent        = data.dAufzug
+      document.getElementById('fKaufpreis').textContent     = data.dKaufpreis
+      document.getElementById('fNebenkosten').textContent   = data.dNebenkosten
+      document.getElementById('fMakler').textContent        = data.dMakler
+      document.getElementById('fHausgeld').textContent      = data.dHausgeld
+      document.getElementById('fGesamt').textContent        = data.dGesamt
+      document.getElementById('fBeschreibung').textContent  = data.dBeschreibung
+      document.getElementById('fRatingSummary').textContent = data.ratingSummary
+
+      const tagsEl = document.getElementById('fRatingTags')
+      tagsEl.innerHTML = ''
+      ;(data.tags || []).forEach(t => {
+        const span = document.createElement('span')
+        span.className = `tag ${t.type}`
+        span.textContent = t.text
+        tagsEl.appendChild(span)
+      })
+    }
+
+    function resetFinder() {
+      document.getElementById('fUrlInput').value = ''
+      document.getElementById('fResult').classList.remove('visible')
+      document.getElementById('fSaveBtn').classList.remove('visible')
+      document.getElementById('pane-finder').scrollTo({ top: 0, behavior: 'smooth' })
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+    }
+
+    async function logout() {
+      await sb.auth.signOut()
+      window.location.href = 'index.html'
+    }
+
+    // URL input Enter key
+    document.getElementById('fUrlInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') startAnalysis()
+    })
+
+    // Support deep-link: profil.html?tab=finder
+    const urlParams = new URLSearchParams(window.location.search)
+    const tabParam = urlParams.get('tab')
+    if (tabParam === 'finder') switchTab('finder')
+    else if (tabParam === 'portfolio') switchTab('portfolio')
+  </script>
+
+</body>
+</html>
