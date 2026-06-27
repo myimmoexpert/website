@@ -424,6 +424,91 @@
 
     .btn-secondary:hover { border-color: rgba(255,255,255,0.4); }
 
+    /* ── FREEMIUM BANNER ── */
+    .freemium-banner {
+      display: none;
+      margin: 0 60px 32px;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+      background: linear-gradient(135deg, rgba(201,168,76,0.12), rgba(201,168,76,0.04));
+      border: 1px solid rgba(201,168,76,0.35);
+      border-radius: 14px;
+      padding: 28px 32px;
+      text-align: center;
+    }
+    .freemium-banner.visible { display: block; }
+    .freemium-banner h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+    .freemium-banner p { color: var(--muted); font-size: 0.9rem; margin-bottom: 20px; }
+    .freemium-banner .btn-gold {
+      display: inline-block; background: var(--gold); color: var(--navy);
+      padding: 12px 28px; border-radius: 10px; font-weight: 700;
+      text-decoration: none; font-size: 0.95rem; transition: background 0.2s;
+    }
+    .freemium-banner .btn-gold:hover { background: var(--gold2); }
+
+    /* Inline save button */
+    .btn-save {
+      background: var(--green);
+      color: var(--navy);
+      border: none;
+      padding: 12px 22px;
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+      display: none;
+    }
+    .btn-save.visible { display: inline-block; }
+    .btn-save:hover { opacity: 0.85; }
+    .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── GESPEICHERTE STECKBRIEFE ── */
+    .saved-section {
+      display: none;
+      padding: 0 60px 80px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .saved-section.visible { display: block; }
+    .saved-section h2 {
+      font-size: 1.1rem; font-weight: 700;
+      margin-bottom: 20px; padding-top: 48px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .saved-list { display: flex; flex-direction: column; gap: 12px; }
+    .saved-item {
+      background: var(--navy2);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: border-color 0.2s;
+    }
+    .saved-item:hover { border-color: rgba(201,168,76,0.3); }
+    .saved-number {
+      font-size: 1.1rem; font-weight: 700; color: var(--gold);
+      min-width: 36px; text-align: center;
+    }
+    .saved-info { flex: 1; min-width: 0; }
+    .saved-title { font-size: 0.92rem; font-weight: 600; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .saved-meta { font-size: 0.8rem; color: var(--muted); }
+    .saved-price { font-size: 0.92rem; font-weight: 600; color: var(--gold); white-space: nowrap; }
+    .saved-actions { display: flex; gap: 10px; align-items: center; }
+    .saved-link { font-size: 0.8rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .saved-link:hover { color: var(--gold); }
+    .saved-delete {
+      background: none; border: none; color: var(--muted);
+      cursor: pointer; font-size: 1rem; padding: 4px;
+      transition: color 0.2s;
+    }
+    .saved-delete:hover { color: var(--red); }
+
     /* ── FOOTER ── */
     footer {
       border-top: 1px solid rgba(255,255,255,0.07);
@@ -582,8 +667,21 @@
     <!-- Actions -->
     <div class="actions">
       <button class="btn-secondary" onclick="resetForm()">Neues Inserat analysieren</button>
-      <a href="portfolio.html" class="btn-secondary">Zum Portfolio hinzufügen →</a>
+      <button class="btn-save" id="saveBtn" onclick="saveSteckbrief()">Steckbrief speichern</button>
     </div>
+  </div>
+
+  <!-- FREEMIUM BANNER (nicht eingeloggt, Gratis-Analyse verbraucht) -->
+  <div class="freemium-banner" id="freemiumBanner">
+    <h3>Ihr kostenloser Steckbrief wurde erstellt</h3>
+    <p>Registrieren Sie sich kostenlos, um weitere Analysen zu erstellen und Steckbriefe zu speichern.</p>
+    <a href="login.html" class="btn-gold">Jetzt kostenlos registrieren →</a>
+  </div>
+
+  <!-- GESPEICHERTE STECKBRIEFE -->
+  <div class="saved-section" id="savedSection">
+    <h2>Gespeicherte Steckbriefe</h2>
+    <div class="saved-list" id="savedList"></div>
   </div>
 
   <!-- FOOTER -->
@@ -597,112 +695,203 @@
     <span class="footer-copy">© 2026 Immo.Expert</span>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script>
-    // Demo-Daten – werden später durch echte API-Antwort ersetzt
-    const DEMO = {
-      title: "3-Zimmer-Wohnung in München-Schwabing",
-      subtitle: "Schwabing, München • Eigentumswohnung",
-      link: "#",
-      kpiPrice: "689.000 €",
-      kpiPricePerSqm: "8.612 €/m²",
-      kpiArea: "80 m²",
-      kpiRooms: "3 Zimmer",
-      kpiBaujahr: "1972",
-      kpiEtage: "3. Etage von 5",
-      kpiEnergy: "D",
-      kpiEnergyVal: "112 kWh/m²a",
-      dObjektart: "Eigentumswohnung",
-      dZustand: "Gepflegt",
-      dStellplatz: "Tiefgarage (inklusive)",
-      dKeller: "Ja",
-      dAufzug: "Vorhanden",
-      dKaufpreis: "689.000 €",
-      dNebenkosten: "~110.000 €",
-      dMakler: "3,57 % inkl. MwSt.",
-      dHausgeld: "420 €/Monat",
-      dGesamt: "~799.000 €",
-      dBeschreibung: "Helle und gut geschnittene 3-Zimmer-Wohnung im beliebten Münchner Stadtteil Schwabing. Die Wohnung befindet sich im 3. Obergeschoss eines gepflegten Mehrfamilienhauses aus den 1970er Jahren. Ein Tiefgaragenstellplatz ist im Kaufpreis inbegriffen. Die Wohnung ist aktuell vermietet und eignet sich als Kapitalanlage.",
-      tags: [
-        { text: "Gute Lage", type: "green" },
-        { text: "Tiefgaragenstellplatz", type: "green" },
-        { text: "Vermietet", type: "neutral" },
-        { text: "Baujahr 1972", type: "neutral" },
-        { text: "Energieklasse D", type: "red" },
-        { text: "Hoher Preis/m²", type: "red" },
-      ],
-      ratingSummary: "Das Objekt befindet sich in einer sehr gefragten Münchner Lage mit guter Infrastruktur. Der Preis von 8.612 €/m² liegt im oberen Durchschnitt für Schwabing. Die Energieklasse D sowie das Baujahr 1972 deuten auf potenziellen Sanierungsbedarf hin. Für Kapitalanleger interessant, da die Wohnung bereits vermietet ist."
-    };
+    const SUPABASE_URL = 'https://awvnfocepqkkncgqgaka.supabase.co'
+    const SUPABASE_KEY = 'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
+    const EDGE_FN_URL  = SUPABASE_URL + '/functions/v1/analyze-listing'
+    const FREE_KEY     = 'immo_finder_used'
 
-    function startAnalysis() {
-      const input = document.getElementById('urlInput').value.trim();
-      if (!input) {
-        document.getElementById('urlInput').focus();
-        return;
+    const { createClient } = window.supabase
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+    let currentData = null
+    let currentUrl  = null
+    let session     = null
+
+    sb.auth.getSession().then(({ data }) => {
+      session = data.session
+      if (session) loadSavedSteckbriefe()
+    })
+    sb.auth.onAuthStateChange((_, s) => {
+      session = s
+      if (s) loadSavedSteckbriefe()
+    })
+
+    async function startAnalysis() {
+      const url = document.getElementById('urlInput').value.trim()
+      if (!url) { document.getElementById('urlInput').focus(); return }
+
+      if (!session && localStorage.getItem(FREE_KEY)) {
+        document.getElementById('freemiumBanner').classList.add('visible')
+        document.getElementById('freemiumBanner').scrollIntoView({ behavior: 'smooth' })
+        return
       }
 
-      // UI in Loading-Zustand versetzen
-      document.getElementById('result').classList.remove('visible');
-      document.getElementById('loading').classList.add('visible');
-      document.getElementById('analyzeBtn').disabled = true;
+      document.getElementById('result').classList.remove('visible')
+      document.getElementById('freemiumBanner').classList.remove('visible')
+      document.getElementById('saveBtn').classList.remove('visible')
+      document.getElementById('loading').classList.add('visible')
+      document.getElementById('analyzeBtn').disabled = true
 
-      // Demo: nach 2 Sekunden Ergebnis anzeigen
-      // → wird später durch echten API-Call ersetzt
-      setTimeout(() => {
-        fillResult(DEMO, input);
-        document.getElementById('loading').classList.remove('visible');
-        document.getElementById('result').classList.add('visible');
-        document.getElementById('analyzeBtn').disabled = false;
-        document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 2000);
+      try {
+        const headers = { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY }
+        if (session) headers['Authorization'] = 'Bearer ' + session.access_token
+
+        const res  = await fetch(EDGE_FN_URL, { method: 'POST', headers, body: JSON.stringify({ url }) })
+        const data = await res.json()
+        if (data.error) throw new Error(data.error)
+
+        currentData = data
+        currentUrl  = url
+
+        if (!session) localStorage.setItem(FREE_KEY, 'true')
+
+        fillResult(data, url)
+        document.getElementById('loading').classList.remove('visible')
+        document.getElementById('result').classList.add('visible')
+
+        if (session) {
+          const btn = document.getElementById('saveBtn')
+          btn.textContent = 'Steckbrief speichern'
+          btn.disabled = false
+          btn.classList.add('visible')
+        } else {
+          document.getElementById('freemiumBanner').classList.add('visible')
+        }
+
+        document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+      } catch (err) {
+        document.getElementById('loading').classList.remove('visible')
+        alert('Fehler bei der Analyse: ' + err.message)
+      } finally {
+        document.getElementById('analyzeBtn').disabled = false
+      }
+    }
+
+    async function saveSteckbrief() {
+      if (!session || !currentData) return
+      const btn = document.getElementById('saveBtn')
+      btn.disabled = true
+      btn.textContent = 'Speichern…'
+
+      // Nächste Nummer ermitteln
+      const { count } = await sb.from('steckbriefe').select('*', { count: 'exact', head: true })
+      const number = (count || 0) + 1
+
+      const { error } = await sb.from('steckbriefe').insert({
+        user_id:  session.user.id,
+        url:      currentUrl,
+        title:    currentData.title,
+        subtitle: currentData.subtitle,
+        data:     { ...currentData, number }
+      })
+
+      if (error) {
+        btn.disabled = false
+        btn.textContent = 'Steckbrief speichern'
+        alert('Fehler beim Speichern: ' + error.message)
+      } else {
+        btn.textContent = '✓ Gespeichert als #' + number
+        setTimeout(() => btn.classList.remove('visible'), 3000)
+        await loadSavedSteckbriefe()
+      }
+    }
+
+    async function loadSavedSteckbriefe() {
+      if (!session) return
+      const { data, error } = await sb
+        .from('steckbriefe')
+        .select('*')
+        .order('created_at', { ascending: true })
+
+      const section = document.getElementById('savedSection')
+      if (error || !data || data.length === 0) { section.classList.remove('visible'); return }
+
+      const list = document.getElementById('savedList')
+      list.innerHTML = ''
+
+      data.forEach((item, idx) => {
+        const d      = item.data
+        const number = d.number || (idx + 1)
+        const date   = new Date(item.created_at).toLocaleDateString('de-DE')
+        const el     = document.createElement('div')
+        el.className = 'saved-item'
+        el.innerHTML = `
+          <div class="saved-number">#${number}</div>
+          <div class="saved-info">
+            <div class="saved-title">${esc(d.title || '–')}</div>
+            <div class="saved-meta">${esc(d.subtitle || '')} · ${date}</div>
+          </div>
+          <div class="saved-price">${esc(d.kpiPrice || '–')}</div>
+          <div class="saved-actions">
+            <a href="${esc(item.url)}" target="_blank" class="saved-link">↗ Inserat</a>
+            <button class="saved-delete" onclick="deleteSaved('${item.id}')" title="Löschen">✕</button>
+          </div>
+        `
+        list.appendChild(el)
+      })
+
+      section.classList.add('visible')
+    }
+
+    async function deleteSaved(id) {
+      if (!confirm('Steckbrief löschen?')) return
+      await sb.from('steckbriefe').delete().eq('id', id)
+      await loadSavedSteckbriefe()
     }
 
     function fillResult(data, url) {
-      document.getElementById('resultTitle').textContent = data.title;
-      document.getElementById('resultSubtitle').textContent = data.subtitle;
-      document.getElementById('resultLink').href = url;
-      document.getElementById('kpiPrice').textContent = data.kpiPrice;
-      document.getElementById('kpiPricePerSqm').textContent = data.kpiPricePerSqm;
-      document.getElementById('kpiArea').textContent = data.kpiArea;
-      document.getElementById('kpiRooms').textContent = data.kpiRooms;
-      document.getElementById('kpiBaujahr').textContent = data.kpiBaujahr;
-      document.getElementById('kpiEtage').textContent = data.kpiEtage;
-      document.getElementById('kpiEnergy').textContent = data.kpiEnergy;
-      document.getElementById('kpiEnergyVal').textContent = data.kpiEnergyVal;
-      document.getElementById('dObjektart').textContent = data.dObjektart;
-      document.getElementById('dZustand').textContent = data.dZustand;
-      document.getElementById('dStellplatz').textContent = data.dStellplatz;
-      document.getElementById('dKeller').textContent = data.dKeller;
-      document.getElementById('dAufzug').textContent = data.dAufzug;
-      document.getElementById('dKaufpreis').textContent = data.dKaufpreis;
-      document.getElementById('dNebenkosten').textContent = data.dNebenkosten;
-      document.getElementById('dMakler').textContent = data.dMakler;
-      document.getElementById('dHausgeld').textContent = data.dHausgeld;
-      document.getElementById('dGesamt').textContent = data.dGesamt;
-      document.getElementById('dBeschreibung').textContent = data.dBeschreibung;
+      document.getElementById('resultTitle').textContent     = data.title
+      document.getElementById('resultSubtitle').textContent  = data.subtitle
+      document.getElementById('resultLink').href             = url
+      document.getElementById('kpiPrice').textContent       = data.kpiPrice
+      document.getElementById('kpiPricePerSqm').textContent = data.kpiPricePerSqm
+      document.getElementById('kpiArea').textContent        = data.kpiArea
+      document.getElementById('kpiRooms').textContent       = data.kpiRooms
+      document.getElementById('kpiBaujahr').textContent     = data.kpiBaujahr
+      document.getElementById('kpiEtage').textContent       = data.kpiEtage
+      document.getElementById('kpiEnergy').textContent      = data.kpiEnergy
+      document.getElementById('kpiEnergyVal').textContent   = data.kpiEnergyVal
+      document.getElementById('dObjektart').textContent     = data.dObjektart
+      document.getElementById('dZustand').textContent       = data.dZustand
+      document.getElementById('dStellplatz').textContent    = data.dStellplatz
+      document.getElementById('dKeller').textContent        = data.dKeller
+      document.getElementById('dAufzug').textContent        = data.dAufzug
+      document.getElementById('dKaufpreis').textContent     = data.dKaufpreis
+      document.getElementById('dNebenkosten').textContent   = data.dNebenkosten
+      document.getElementById('dMakler').textContent        = data.dMakler
+      document.getElementById('dHausgeld').textContent      = data.dHausgeld
+      document.getElementById('dGesamt').textContent        = data.dGesamt
+      document.getElementById('dBeschreibung').textContent  = data.dBeschreibung
+      document.getElementById('ratingSummary').textContent  = data.ratingSummary
 
-      const tagsEl = document.getElementById('ratingTags');
-      tagsEl.innerHTML = '';
+      const tagsEl = document.getElementById('ratingTags')
+      tagsEl.innerHTML = ''
       data.tags.forEach(t => {
-        const span = document.createElement('span');
-        span.className = `tag ${t.type}`;
-        span.textContent = t.text;
-        tagsEl.appendChild(span);
-      });
-
-      document.getElementById('ratingSummary').textContent = data.ratingSummary;
+        const span = document.createElement('span')
+        span.className = `tag ${t.type}`
+        span.textContent = t.text
+        tagsEl.appendChild(span)
+      })
     }
 
     function resetForm() {
-      document.getElementById('urlInput').value = '';
-      document.getElementById('result').classList.remove('visible');
-      document.getElementById('urlInput').focus();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.getElementById('urlInput').value = ''
+      document.getElementById('result').classList.remove('visible')
+      document.getElementById('freemiumBanner').classList.remove('visible')
+      document.getElementById('saveBtn').classList.remove('visible')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
-    // Enter-Taste im Input
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+    }
+
     document.getElementById('urlInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter') startAnalysis();
-    });
+      if (e.key === 'Enter') startAnalysis()
+    })
   </script>
 
 </body>

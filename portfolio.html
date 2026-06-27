@@ -3,208 +3,63 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Immo.Portfolio – Demnächst</title>
+  <title>Immo.Portfolio – Immo.Expert</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --navy:  #0f1c2e;
-      --navy2: #172540;
-      --gold:  #c9a84c;
-      --gold2: #e0bf74;
-      --muted: #8a97aa;
-      --white: #ffffff;
+      --navy: #0f1c2e; --navy2: #172540; --navy3: #1e2f50;
+      --gold: #c9a84c; --gold2: #e0bf74; --muted: #8a97aa; --white: #ffffff;
     }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--navy);
-      color: var(--white);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+    body { font-family: 'Inter', sans-serif; background: var(--navy); color: var(--white); min-height: 100vh; display: flex; flex-direction: column; }
 
     nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 24px 60px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(15, 28, 46, 0.92);
-      backdrop-filter: blur(12px);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 24px 60px; position: sticky; top: 0; z-index: 100;
+      background: rgba(15,28,46,0.92); backdrop-filter: blur(12px);
       border-bottom: 1px solid rgba(201,168,76,0.15);
     }
-
-    .logo {
-      font-size: 1.4rem;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      color: var(--white);
-      text-decoration: none;
-    }
-
+    .logo { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; color: var(--white); text-decoration: none; }
     .logo span { color: var(--gold); }
-
     nav ul { list-style: none; display: flex; gap: 36px; }
     nav ul a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
     nav ul a:hover { color: var(--white); }
     nav ul a.active { color: var(--gold); }
     .nav-cta { background: var(--gold); color: var(--navy) !important; padding: 10px 22px; border-radius: 8px; font-weight: 600 !important; }
 
-    main {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 80px 20px;
-      position: relative;
-      overflow: hidden;
+    main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 80px 24px; }
+    .coming-soon {
+      text-align: center; max-width: 560px;
     }
-
-    main::before {
-      content: '';
-      position: absolute;
-      width: 700px;
-      height: 700px;
-      background: radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%);
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-    }
-
-    .content {
-      text-align: center;
-      max-width: 560px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .icon {
-      width: 80px;
-      height: 80px;
-      background: rgba(201,168,76,0.1);
-      border: 1px solid rgba(201,168,76,0.25);
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2rem;
-      margin: 0 auto 32px;
-    }
-
     .badge {
-      display: inline-block;
-      background: rgba(201,168,76,0.12);
-      color: var(--gold);
-      border: 1px solid rgba(201,168,76,0.3);
-      border-radius: 50px;
-      padding: 5px 16px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      margin-bottom: 24px;
+      display: inline-block; background: rgba(201,168,76,0.12); color: var(--gold);
+      border: 1px solid rgba(201,168,76,0.3); border-radius: 50px;
+      padding: 5px 16px; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.5px;
+      text-transform: uppercase; margin-bottom: 28px;
     }
-
-    h1 {
-      font-size: clamp(1.8rem, 3vw, 2.4rem);
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      margin-bottom: 16px;
-      line-height: 1.2;
-    }
-
+    h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; letter-spacing: -1px; margin-bottom: 16px; line-height: 1.15; }
     h1 span { color: var(--gold); }
+    p { color: var(--muted); font-size: 1rem; line-height: 1.7; margin-bottom: 40px; }
 
-    p {
-      color: var(--muted);
-      font-size: 1rem;
-      line-height: 1.7;
-      margin-bottom: 40px;
-    }
-
-    .features {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 44px;
-      text-align: left;
-    }
-
+    .features { display: flex; flex-direction: column; gap: 14px; margin-bottom: 48px; text-align: left; }
     .feature {
-      background: var(--navy2);
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 12px;
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      font-size: 0.92rem;
+      display: flex; align-items: flex-start; gap: 14px;
+      background: var(--navy2); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px; padding: 18px 20px;
     }
+    .feature-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+    .feature-text strong { display: block; font-size: 0.92rem; margin-bottom: 3px; }
+    .feature-text span { font-size: 0.83rem; color: var(--muted); }
 
-    .feature-icon {
-      width: 36px;
-      height: 36px;
-      background: rgba(201,168,76,0.1);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
-      flex-shrink: 0;
+    .cta-link {
+      display: inline-block; background: var(--gold); color: var(--navy);
+      padding: 14px 32px; border-radius: 10px; font-weight: 700;
+      text-decoration: none; transition: background 0.2s;
     }
+    .cta-link:hover { background: var(--gold2); }
 
-    .feature-text strong {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 2px;
-    }
-
-    .feature-text span { color: var(--muted); font-size: 0.85rem; }
-
-    .btn-primary {
-      background: var(--gold);
-      color: var(--navy);
-      border: none;
-      padding: 14px 30px;
-      border-radius: 12px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-      transition: background 0.2s, transform 0.15s;
-      margin-right: 12px;
-    }
-
-    .btn-primary:hover { background: var(--gold2); transform: translateY(-1px); }
-
-    .btn-secondary {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 0.92rem;
-      font-weight: 500;
-      transition: color 0.2s;
-    }
-
-    .btn-secondary:hover { color: var(--white); }
-
-    footer {
-      border-top: 1px solid rgba(255,255,255,0.07);
-      padding: 36px 60px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
+    footer { border-top: 1px solid rgba(255,255,255,0.07); padding: 36px 60px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
     .footer-links { display: flex; gap: 28px; list-style: none; }
     .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; }
     .footer-copy { color: var(--muted); font-size: 0.82rem; }
@@ -228,38 +83,36 @@
   </nav>
 
   <main>
-    <div class="content">
-      <div class="icon">📊</div>
+    <div class="coming-soon">
       <div class="badge">Demnächst verfügbar</div>
-      <h1>Immo<span>.Portfolio</span><br />kommt bald.</h1>
-      <p>Wir arbeiten daran, Ihnen die beste Möglichkeit zu geben, Ihr Immobilienportfolio zu verwalten und im Blick zu behalten.</p>
+      <h1>Immo.<span>Portfolio</span></h1>
+      <p>Verwalten Sie Ihre Immobilien-Investments an einem Ort – mit Renditeberechnung, Marktvergleichen und automatischen Bewertungs-Updates.</p>
 
       <div class="features">
         <div class="feature">
-          <div class="feature-icon">🏠</div>
+          <div class="feature-icon">📊</div>
           <div class="feature-text">
-            <strong>Objekte verwalten</strong>
-            <span>Alle Ihre Immobilien an einem zentralen Ort</span>
+            <strong>Portfolio-Übersicht</strong>
+            <span>Alle Objekte auf einen Blick – Wert, Rendite, Entwicklung</span>
           </div>
         </div>
         <div class="feature">
           <div class="feature-icon">📈</div>
           <div class="feature-text">
-            <strong>Rendite & Kennzahlen</strong>
-            <span>Wertentwicklung und Performance auf einen Blick</span>
+            <strong>Rendite-Rechner</strong>
+            <span>Automatische Berechnung von Mietrendite und Kaufpreisfaktor</span>
           </div>
         </div>
         <div class="feature">
-          <div class="feature-icon">🔗</div>
+          <div class="feature-icon">🔔</div>
           <div class="feature-text">
-            <strong>Immo.Finder Integration</strong>
-            <span>Analysierte Inserate direkt ins Portfolio übernehmen</span>
+            <strong>Markt-Alerts</strong>
+            <span>Benachrichtigungen bei Preisveränderungen in Ihren Zielregionen</span>
           </div>
         </div>
       </div>
 
-      <a href="finder.html" class="btn-primary">Jetzt Immo.Finder nutzen</a>
-      <a href="index.html" class="btn-secondary">Zur Startseite</a>
+      <a href="finder.html" class="cta-link">Jetzt Immo.Finder nutzen →</a>
     </div>
   </main>
 

@@ -30,7 +30,6 @@
       flex-direction: column;
     }
 
-    /* NAV */
     nav {
       display: flex;
       align-items: center;
@@ -41,17 +40,9 @@
       border-bottom: 1px solid rgba(201,168,76,0.15);
     }
 
-    .logo {
-      font-size: 1.4rem;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      color: var(--white);
-      text-decoration: none;
-    }
-
+    .logo { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; color: var(--white); text-decoration: none; }
     .logo span { color: var(--gold); }
 
-    /* MAIN */
     main {
       flex: 1;
       display: flex;
@@ -65,11 +56,9 @@
     main::before {
       content: '';
       position: absolute;
-      width: 600px;
-      height: 600px;
+      width: 600px; height: 600px;
       background: radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%);
-      top: -100px;
-      left: 50%;
+      top: -100px; left: 50%;
       transform: translateX(-50%);
       pointer-events: none;
     }
@@ -85,186 +74,74 @@
       z-index: 1;
     }
 
-    .card-logo {
-      text-align: center;
-      font-size: 1.3rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
+    .card-logo { text-align: center; font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
     .card-logo span { color: var(--gold); }
+    .card-subtitle { text-align: center; color: var(--muted); font-size: 0.9rem; margin-bottom: 36px; }
 
-    .card-subtitle {
-      text-align: center;
-      color: var(--muted);
-      font-size: 0.9rem;
-      margin-bottom: 36px;
-    }
-
-    /* TABS */
-    .tabs {
-      display: flex;
-      background: var(--navy3);
-      border-radius: 10px;
-      padding: 4px;
-      margin-bottom: 32px;
-    }
-
+    .tabs { display: flex; background: var(--navy3); border-radius: 10px; padding: 4px; margin-bottom: 32px; }
     .tab {
-      flex: 1;
-      text-align: center;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-weight: 500;
-      cursor: pointer;
-      color: var(--muted);
-      transition: all 0.2s;
-      border: none;
-      background: transparent;
-      font-family: inherit;
+      flex: 1; text-align: center; padding: 10px; border-radius: 8px;
+      font-size: 0.9rem; font-weight: 500; cursor: pointer; color: var(--muted);
+      transition: all 0.2s; border: none; background: transparent; font-family: inherit;
     }
+    .tab.active { background: var(--navy2); color: var(--white); box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
 
-    .tab.active {
-      background: var(--navy2);
-      color: var(--white);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-    }
-
-    /* FORM */
     .form { display: none; }
     .form.active { display: block; }
 
-    .field {
-      margin-bottom: 18px;
-    }
+    .field { margin-bottom: 18px; }
+    label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
 
-    label {
-      display: block;
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 8px;
+    input[type="email"], input[type="password"], input[type="text"] {
+      width: 100%; background: var(--navy3); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; padding: 13px 16px; color: var(--white);
+      font-size: 0.95rem; font-family: inherit; outline: none; transition: border-color 0.2s;
     }
-
-    input[type="email"],
-    input[type="password"],
-    input[type="text"] {
-      width: 100%;
-      background: var(--navy3);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 10px;
-      padding: 13px 16px;
-      color: var(--white);
-      font-size: 0.95rem;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
     input:focus { border-color: var(--gold); }
     input::placeholder { color: rgba(138,151,170,0.6); }
 
-    .forgot {
-      text-align: right;
-      margin-top: -10px;
-      margin-bottom: 18px;
-    }
-
-    .forgot a {
-      font-size: 0.82rem;
-      color: var(--muted);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
+    .forgot { text-align: right; margin-top: -10px; margin-bottom: 18px; }
+    .forgot a { font-size: 0.82rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
     .forgot a:hover { color: var(--gold); }
 
     .btn-submit {
-      width: 100%;
-      background: var(--gold);
-      color: var(--navy);
-      border: none;
-      padding: 14px;
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: background 0.2s, transform 0.15s;
-      margin-top: 6px;
+      width: 100%; background: var(--gold); color: var(--navy); border: none;
+      padding: 14px; border-radius: 10px; font-size: 1rem; font-weight: 700;
+      cursor: pointer; font-family: inherit; transition: background 0.2s, transform 0.15s; margin-top: 6px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-
     .btn-submit:hover { background: var(--gold2); transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin: 24px 0;
-      color: var(--muted);
-      font-size: 0.82rem;
-    }
-
-    .divider::before, .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: rgba(255,255,255,0.08);
-    }
+    .divider { display: flex; align-items: center; gap: 14px; margin: 24px 0; color: var(--muted); font-size: 0.82rem; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.08); }
 
     .btn-google {
-      width: 100%;
-      background: transparent;
-      color: var(--white);
-      border: 1px solid rgba(255,255,255,0.15);
-      padding: 13px;
-      border-radius: 10px;
-      font-size: 0.95rem;
-      font-weight: 500;
-      cursor: pointer;
-      font-family: inherit;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      transition: border-color 0.2s;
+      width: 100%; background: transparent; color: var(--white); border: 1px solid rgba(255,255,255,0.15);
+      padding: 13px; border-radius: 10px; font-size: 0.95rem; font-weight: 500; cursor: pointer;
+      font-family: inherit; display: flex; align-items: center; justify-content: center;
+      gap: 10px; transition: border-color 0.2s;
     }
-
     .btn-google:hover { border-color: rgba(255,255,255,0.35); }
 
-    .terms {
-      font-size: 0.8rem;
-      color: var(--muted);
-      text-align: center;
-      margin-top: 20px;
-      line-height: 1.6;
-    }
-
+    .terms { font-size: 0.8rem; color: var(--muted); text-align: center; margin-top: 20px; line-height: 1.6; }
     .terms a { color: var(--gold); text-decoration: none; }
 
-    .error-msg {
-      background: rgba(248,113,113,0.1);
-      border: 1px solid rgba(248,113,113,0.3);
-      color: var(--red);
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 0.85rem;
-      margin-bottom: 18px;
-      display: none;
+    .alert {
+      border-radius: 8px; padding: 12px 14px; font-size: 0.85rem;
+      margin-bottom: 18px; display: none; line-height: 1.5;
     }
+    .alert-error { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: var(--red); }
+    .alert-success { background: rgba(62,207,142,0.1); border: 1px solid rgba(62,207,142,0.3); color: var(--green); }
 
-    /* FOOTER */
-    footer {
-      border-top: 1px solid rgba(255,255,255,0.07);
-      padding: 24px 60px;
-      display: flex;
-      justify-content: center;
-      gap: 28px;
+    .spinner-sm {
+      width: 16px; height: 16px; border: 2px solid rgba(15,28,46,0.3);
+      border-top-color: var(--navy); border-radius: 50%;
+      animation: spin 0.7s linear infinite; display: none;
     }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
+    footer { border-top: 1px solid rgba(255,255,255,0.07); padding: 24px 60px; display: flex; justify-content: center; gap: 28px; }
     footer a { color: var(--muted); text-decoration: none; font-size: 0.82rem; }
     footer a:hover { color: var(--white); }
 
@@ -286,15 +163,15 @@
       <div class="card-logo">Immo<span>.Expert</span></div>
       <div class="card-subtitle">Ihr Immobilien-Assistent</div>
 
-      <!-- TABS -->
       <div class="tabs">
         <button class="tab active" onclick="switchTab('login')">Anmelden</button>
         <button class="tab" onclick="switchTab('register')">Registrieren</button>
       </div>
 
-      <!-- LOGIN FORM -->
+      <!-- LOGIN -->
       <div class="form active" id="form-login">
-        <div class="error-msg" id="login-error">E-Mail oder Passwort ungültig.</div>
+        <div class="alert alert-error" id="login-error"></div>
+        <div class="alert alert-success" id="login-success"></div>
         <div class="field">
           <label>E-Mail</label>
           <input type="email" placeholder="ihre@email.de" id="login-email" />
@@ -303,8 +180,11 @@
           <label>Passwort</label>
           <input type="password" placeholder="••••••••" id="login-pw" />
         </div>
-        <div class="forgot"><a href="#">Passwort vergessen?</a></div>
-        <button class="btn-submit" onclick="handleLogin()">Anmelden</button>
+        <div class="forgot"><a href="#" onclick="handleForgotPassword(); return false;">Passwort vergessen?</a></div>
+        <button class="btn-submit" id="login-btn" onclick="handleLogin()">
+          <div class="spinner-sm" id="login-spinner"></div>
+          <span id="login-btn-text">Anmelden</span>
+        </button>
         <div class="divider">oder</div>
         <button class="btn-google" onclick="handleGoogle()">
           <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
@@ -312,9 +192,10 @@
         </button>
       </div>
 
-      <!-- REGISTER FORM -->
+      <!-- REGISTER -->
       <div class="form" id="form-register">
-        <div class="error-msg" id="register-error">Bitte füllen Sie alle Felder aus.</div>
+        <div class="alert alert-error" id="register-error"></div>
+        <div class="alert alert-success" id="register-success"></div>
         <div class="field">
           <label>Vorname</label>
           <input type="text" placeholder="Max" id="reg-firstname" />
@@ -331,14 +212,17 @@
           <label>Passwort</label>
           <input type="password" placeholder="Mindestens 8 Zeichen" id="reg-pw" />
         </div>
-        <button class="btn-submit" onclick="handleRegister()">Konto erstellen</button>
+        <button class="btn-submit" id="register-btn" onclick="handleRegister()">
+          <div class="spinner-sm" id="register-spinner"></div>
+          <span id="register-btn-text">Konto erstellen</span>
+        </button>
         <div class="divider">oder</div>
         <button class="btn-google" onclick="handleGoogle()">
           <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
           Mit Google registrieren
         </button>
         <p class="terms">
-          Mit der Registrierung akzeptieren Sie unsere <a href="#">AGB</a> und <a href="datenschutz.html">Datenschutzerklärung</a>.
+          Mit der Registrierung akzeptieren Sie unsere <a href="datenschutz.html">Datenschutzerklärung</a>.
         </p>
       </div>
     </div>
@@ -350,40 +234,118 @@
     <a href="index.html">Zurück zur Startseite</a>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script>
+    const SUPABASE_URL = 'https://awvnfocepqkkncgqgaka.supabase.co'
+    const SUPABASE_KEY = 'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
+    const { createClient } = window.supabase
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+    // Bereits eingeloggt? → weiterleiten
+    sb.auth.getSession().then(({ data: { session } }) => {
+      if (session) window.location.href = 'portfolio.html'
+    })
+
     function switchTab(tab) {
       document.querySelectorAll('.tab').forEach((t, i) => {
-        t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
-      });
-      document.getElementById('form-login').classList.toggle('active', tab === 'login');
-      document.getElementById('form-register').classList.toggle('active', tab === 'register');
+        t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'))
+      })
+      document.getElementById('form-login').classList.toggle('active', tab === 'login')
+      document.getElementById('form-register').classList.toggle('active', tab === 'register')
     }
 
-    function handleLogin() {
-      // Platzhalter – wird durch Supabase Auth ersetzt
-      const email = document.getElementById('login-email').value;
-      const pw = document.getElementById('login-pw').value;
-      if (!email || !pw) {
-        document.getElementById('login-error').style.display = 'block';
-        return;
+    function showAlert(id, msg) {
+      const el = document.getElementById(id)
+      el.textContent = msg
+      el.style.display = 'block'
+    }
+
+    function hideAlerts(prefix) {
+      document.getElementById(prefix + '-error').style.display = 'none'
+      document.getElementById(prefix + '-success').style.display = 'none'
+    }
+
+    function setLoading(prefix, loading) {
+      document.getElementById(prefix + '-btn').disabled = loading
+      document.getElementById(prefix + '-spinner').style.display = loading ? 'block' : 'none'
+      document.getElementById(prefix + '-btn-text').textContent = loading
+        ? (prefix === 'login' ? 'Anmelden…' : 'Konto erstellen…')
+        : (prefix === 'login' ? 'Anmelden' : 'Konto erstellen')
+    }
+
+    async function handleLogin() {
+      hideAlerts('login')
+      const email = document.getElementById('login-email').value.trim()
+      const pw = document.getElementById('login-pw').value
+      if (!email || !pw) { showAlert('login-error', 'Bitte E-Mail und Passwort eingeben.'); return }
+
+      setLoading('login', true)
+      const { error } = await sb.auth.signInWithPassword({ email, password: pw })
+      if (error) {
+        showAlert('login-error', 'E-Mail oder Passwort ungültig.')
+        setLoading('login', false)
+      } else {
+        window.location.href = 'portfolio.html'
       }
-      alert('Login-Funktion wird nach Backend-Anbindung aktiviert.');
     }
 
-    function handleRegister() {
-      // Platzhalter – wird durch Supabase Auth ersetzt
-      const fields = ['reg-firstname','reg-lastname','reg-email','reg-pw'];
-      const empty = fields.some(f => !document.getElementById(f).value);
-      if (empty) {
-        document.getElementById('register-error').style.display = 'block';
-        return;
+    async function handleRegister() {
+      hideAlerts('register')
+      const firstname = document.getElementById('reg-firstname').value.trim()
+      const lastname  = document.getElementById('reg-lastname').value.trim()
+      const email     = document.getElementById('reg-email').value.trim()
+      const pw        = document.getElementById('reg-pw').value
+
+      if (!firstname || !lastname || !email || !pw) {
+        showAlert('register-error', 'Bitte alle Felder ausfüllen.'); return
       }
-      alert('Registrierung wird nach Backend-Anbindung aktiviert.');
+      if (pw.length < 8) {
+        showAlert('register-error', 'Passwort muss mindestens 8 Zeichen haben.'); return
+      }
+
+      setLoading('register', true)
+      const { error } = await sb.auth.signUp({
+        email,
+        password: pw,
+        options: { data: { first_name: firstname, last_name: lastname } }
+      })
+
+      if (error) {
+        showAlert('register-error', error.message)
+        setLoading('register', false)
+      } else {
+        showAlert('register-success', '✓ Konto erstellt! Bitte prüfen Sie Ihre E-Mails und bestätigen Sie Ihre Adresse.')
+        setLoading('register', false)
+      }
     }
 
-    function handleGoogle() {
-      alert('Google-Login wird nach Backend-Anbindung aktiviert.');
+    async function handleGoogle() {
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: 'https://myimmoexpert.de/portfolio.html' }
+      })
+      if (error) showAlert('login-error', 'Google-Login fehlgeschlagen.')
     }
+
+    async function handleForgotPassword() {
+      const email = document.getElementById('login-email').value.trim()
+      if (!email) { showAlert('login-error', 'Bitte zuerst E-Mail eingeben.'); return }
+      const { error } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://myimmoexpert.de/login.html'
+      })
+      if (error) {
+        showAlert('login-error', 'Fehler: ' + error.message)
+      } else {
+        showAlert('login-success', '✓ Link zum Zurücksetzen wurde an Ihre E-Mail gesendet.')
+      }
+    }
+
+    // Enter-Taste
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return
+      if (document.getElementById('form-login').classList.contains('active')) handleLogin()
+      else handleRegister()
+    })
   </script>
 
 </body>
