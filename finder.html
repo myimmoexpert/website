@@ -834,9 +834,12 @@
       btn.disabled = true
       btn.textContent = 'Speichern…'
 
-      // Nächste Nummer ermitteln
-      const { count } = await sb.from('steckbriefe').select('*', { count: 'exact', head: true })
-      const number = (count || 0) + 1
+      // Nächste Nummer ermitteln (max vorhandene Nummer + 1, damit Lücken durch Löschen ignoriert werden)
+      const { data: existing } = await sb.from('steckbriefe').select('data')
+      const maxNumber = existing && existing.length > 0
+        ? Math.max(...existing.map(r => r.data?.number || 0))
+        : 0
+      const number = maxNumber + 1
 
       const { error } = await sb.from('steckbriefe').insert({
         user_id:  session.user.id,
