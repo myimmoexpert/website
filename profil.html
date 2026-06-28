@@ -172,6 +172,93 @@
     }
     .btn-gold:hover { background: var(--gold2); }
 
+    /* ── MODAL ── */
+    #steckbriefModal {
+      display: none; position: fixed; inset: 0; z-index: 300;
+      background: rgba(10,18,30,0.85); backdrop-filter: blur(6px);
+      overflow-y: auto; padding: 40px 20px 60px;
+    }
+    #steckbriefModal.visible { display: block; }
+    .modal-inner {
+      max-width: 860px; margin: 0 auto; position: relative;
+    }
+    .modal-close {
+      position: sticky; top: 0; float: right; margin-bottom: 16px;
+      background: var(--navy2); border: 1px solid rgba(255,255,255,0.12);
+      color: var(--white); font-size: 1.1rem; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; align-items: center;
+      justify-content: center; transition: background 0.2s; z-index: 10;
+    }
+    .modal-close:hover { background: var(--navy3); }
+
+    /* Modal: Result header */
+    .modal-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; clear: both; }
+    .modal-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 4px; }
+    .modal-subtitle { color: var(--muted); font-size: 0.88rem; }
+    .modal-source { font-size: 0.82rem; color: var(--muted); }
+    .modal-source a { color: var(--gold); text-decoration: none; }
+
+    /* Modal: KPI grid */
+    .m-kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 24px; }
+    .m-kpi-card { background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); padding: 18px 16px; }
+    .m-kpi-card.highlight { background: linear-gradient(135deg,rgba(201,168,76,0.12),rgba(201,168,76,0.04)); border-color: rgba(201,168,76,0.25); }
+    .m-kpi-label { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .m-kpi-value { font-size: 1.25rem; font-weight: 700; }
+    .m-kpi-value.gold { color: var(--gold); }
+    .m-kpi-value.score { font-size: 1.9rem; color: var(--gold); line-height: 1; }
+    .m-kpi-sub { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+    /* Modal: Detail grid */
+    .m-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .m-detail-card { background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); padding: 24px; }
+    .m-detail-card h3 { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gold); margin-bottom: 16px; }
+    .m-detail-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.88rem; }
+    .m-detail-row:last-child { border-bottom: none; }
+    .m-detail-row .lbl { color: var(--muted); }
+    .m-detail-row .val { font-weight: 500; }
+    .m-detail-row .val.gold { color: var(--gold); }
+
+    /* Modal: Cashflow */
+    .m-cf-card { background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
+    .m-cf-card h3 { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gold); margin-bottom: 16px; }
+    .m-cf-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.88rem; }
+    .m-cf-row:last-child { border-bottom: none; }
+    .m-cf-row .lbl { color: var(--muted); }
+    .m-cf-row .amt { font-weight: 500; }
+    .m-cf-row .amt.plus { color: var(--green); }
+    .m-cf-row .amt.minus { color: var(--muted); }
+    .m-cf-result { display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; border-radius: 10px; margin-top: 10px; font-size: 0.92rem; font-weight: 600; }
+    .m-cf-result.negative { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.25); }
+    .m-cf-result.positive { background: rgba(62,207,142,0.1);  border: 1px solid rgba(62,207,142,0.25); }
+    .m-cf-total.neg { color: var(--red); font-size: 1.05rem; }
+    .m-cf-total.pos { color: var(--green); font-size: 1.05rem; }
+    .m-cf-note { font-size: 0.76rem; color: var(--muted); margin-top: 10px; }
+
+    /* Modal: Beschreibung + Rating */
+    .m-desc-card, .m-rating-card { background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
+    .m-rating-card { background: linear-gradient(135deg,rgba(201,168,76,0.08),rgba(201,168,76,0.02)); border-color: rgba(201,168,76,0.2); }
+    .m-desc-card h3, .m-rating-card h3 { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gold); margin-bottom: 14px; }
+    .m-desc-card p { font-size: 0.9rem; color: var(--muted); line-height: 1.7; }
+    .m-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .m-tag { padding: 5px 12px; border-radius: 50px; font-size: 0.8rem; font-weight: 600; }
+    .m-tag.green   { background: rgba(62,207,142,0.15);  color: var(--green); border: 1px solid rgba(62,207,142,0.3); }
+    .m-tag.red     { background: rgba(248,113,113,0.15); color: var(--red);   border: 1px solid rgba(248,113,113,0.3); }
+    .m-tag.neutral { background: rgba(255,255,255,0.07); color: var(--muted); border: 1px solid rgba(255,255,255,0.1); }
+    .m-rating-summary { font-size: 0.9rem; color: var(--muted); line-height: 1.65; }
+
+    /* Preview card clickable */
+    .saved-item { cursor: pointer; }
+    .saved-note-badge {
+      font-size: 0.78rem; font-weight: 700; color: var(--gold);
+      background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.25);
+      border-radius: 6px; padding: 3px 8px; white-space: nowrap;
+    }
+
+    @media (max-width: 600px) {
+      .m-kpi-grid { grid-template-columns: repeat(2,1fr); }
+      .m-detail-grid { grid-template-columns: 1fr; }
+    }
+
     /* ── FOOTER ── */
     footer {
       border-top: 1px solid rgba(255,255,255,0.07);
@@ -309,6 +396,86 @@
     </div>
   </div>
 
+  <!-- ═══════════════════════════════════
+       STECKBRIEF MODAL
+  ════════════════════════════════════ -->
+  <div id="steckbriefModal" onclick="handleModalClick(event)">
+    <div class="modal-inner">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="mTitle">–</div>
+          <div class="modal-subtitle" id="mSubtitle">–</div>
+        </div>
+        <div class="modal-source">🔗 <a id="mSourceLink" href="#" target="_blank">Originalinserat öffnen</a></div>
+      </div>
+
+      <div class="m-kpi-grid">
+        <div class="m-kpi-card highlight">
+          <div class="m-kpi-label">Investment-Note</div>
+          <div class="m-kpi-value score" id="mKpiNote">–</div>
+          <div class="m-kpi-sub">Skala 1–10</div>
+        </div>
+        <div class="m-kpi-card">
+          <div class="m-kpi-label">Kaufpreis</div>
+          <div class="m-kpi-value gold" id="mKpiKaufpreis">–</div>
+          <div class="m-kpi-sub" id="mKpiProQm">–</div>
+        </div>
+        <div class="m-kpi-card">
+          <div class="m-kpi-label">Invest-Faktor</div>
+          <div class="m-kpi-value" id="mKpiFaktor">–</div>
+          <div class="m-kpi-sub">Kaufpreis / Jahresmiete</div>
+        </div>
+        <div class="m-kpi-card">
+          <div class="m-kpi-label">Nettokaltmiete</div>
+          <div class="m-kpi-value" id="mKpiMiete">–</div>
+          <div class="m-kpi-sub">pro Monat</div>
+        </div>
+      </div>
+
+      <div class="m-detail-grid">
+        <div class="m-detail-card">
+          <h3>Objektdetails</h3>
+          <div class="m-detail-row"><span class="lbl">Objektart</span><span class="val" id="mObjektart">–</span></div>
+          <div class="m-detail-row"><span class="lbl">Wohnfläche</span><span class="val" id="mWohnflaeche">–</span></div>
+          <div class="m-detail-row"><span class="lbl">Baujahr</span><span class="val" id="mBaujahr">–</span></div>
+          <div class="m-detail-row"><span class="lbl">Vermietet</span><span class="val" id="mVermietet">–</span></div>
+        </div>
+        <div class="m-detail-card">
+          <h3>Investment</h3>
+          <div class="m-detail-row"><span class="lbl">Kaufpreis</span><span class="val" id="mKaufpreis">–</span></div>
+          <div class="m-detail-row"><span class="lbl">Nebenkosten (ca.)</span><span class="val" id="mNebenkosten">–</span></div>
+          <div class="m-detail-row"><span class="lbl">Gesamtinvestitionskosten</span><span class="val gold" id="mGesamt">–</span></div>
+          <div class="m-detail-row"><span class="lbl">Abschreibung p.a. (ca.)</span><span class="val" id="mAbschreibung">–</span></div>
+        </div>
+      </div>
+
+      <div class="m-cf-card">
+        <h3>Cashflow Analyse</h3>
+        <div class="m-cf-row"><span class="lbl">Jährliche Warmmiete</span><span class="amt plus" id="mCfWarmmiete">–</span></div>
+        <div class="m-cf-row"><span class="lbl">Hausgeld</span><span class="amt minus" id="mCfHausgeld">–</span></div>
+        <div class="m-cf-row" style="border-bottom:none;"><span class="lbl">Voraussichtliche Bankrate <span style="font-size:0.76rem;">(Kaufpreis × 5 %)</span></span><span class="amt minus" id="mCfBankrate">–</span></div>
+        <div class="m-cf-result" id="mCfResult">
+          <span>Monatlicher CF <span style="font-weight:400;font-size:0.8rem;color:var(--muted);">(ohne Steuern)</span></span>
+          <span class="m-cf-total" id="mCfMonatlich">–</span>
+        </div>
+        <p class="m-cf-note">* Bankrate basiert auf 5 % des Kaufpreises p.a. · Steuern nicht berücksichtigt</p>
+      </div>
+
+      <div class="m-desc-card">
+        <h3>Beschreibung</h3>
+        <p id="mBeschreibung">–</p>
+      </div>
+
+      <div class="m-rating-card">
+        <h3>Schnellbewertung</h3>
+        <div class="m-tags" id="mTags"></div>
+        <p class="m-rating-summary" id="mRatingSummary">–</p>
+      </div>
+    </div>
+  </div>
+
   <!-- FOOTER -->
   <footer>
     <a href="index.html" class="logo">Immo<span>.Expert</span></a>
@@ -406,6 +573,7 @@
         const d      = item.data
         const number = d.number || (idx + 1)
         const date   = new Date(item.created_at).toLocaleDateString('de-DE')
+        const note   = d.kpiInvestmentNote ? `Note ${d.kpiInvestmentNote}/10` : ''
         const el     = document.createElement('div')
         el.className = 'saved-item'
         el.innerHTML = `
@@ -414,12 +582,13 @@
             <div class="saved-title">${esc(d.title || '–')}</div>
             <div class="saved-meta">${esc(d.subtitle || '')} · ${date}</div>
           </div>
+          ${note ? `<div class="saved-note-badge">${esc(note)}</div>` : ''}
           <div class="saved-price">${esc(d.kpiKaufpreis || d.kpiPrice || '–')}</div>
           <div class="saved-actions-col">
-            <a href="${esc(item.url)}" target="_blank" class="saved-link">↗ Inserat</a>
-            <button class="saved-delete" onclick="deleteSaved('${item.id}')" title="Löschen">✕</button>
+            <button class="saved-delete" onclick="event.stopPropagation(); deleteSaved('${item.id}')" title="Löschen">✕</button>
           </div>
         `
+        el.addEventListener('click', () => openSteckbrief(d, item.url))
         list.appendChild(el)
       })
 
@@ -435,6 +604,66 @@
 
     function esc(s) {
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+    }
+
+    // ── MODAL ───────────────────────────────────────
+    function openSteckbrief(d, url) {
+      document.getElementById('mTitle').textContent        = d.title    || '–'
+      document.getElementById('mSubtitle').textContent     = d.subtitle || '–'
+      const src = document.getElementById('mSourceLink')
+      src.href = url || '#'
+
+      document.getElementById('mKpiNote').textContent      = d.kpiInvestmentNote || '–'
+      document.getElementById('mKpiKaufpreis').textContent = d.kpiKaufpreis || d.kpiPrice || '–'
+      document.getElementById('mKpiProQm').textContent     = d.kpiKaufpreisProQm || '–'
+      document.getElementById('mKpiFaktor').textContent    = d.kpiInvestFaktor   || '–'
+      document.getElementById('mKpiMiete').textContent     = d.kpiNettokaltmiete || '–'
+
+      document.getElementById('mObjektart').textContent    = d.dObjektart    || '–'
+      document.getElementById('mWohnflaeche').textContent  = d.dWohnflaeche  || '–'
+      document.getElementById('mBaujahr').textContent      = d.dBaujahr      || '–'
+      document.getElementById('mVermietet').textContent    = d.dVermietet    || '–'
+      document.getElementById('mKaufpreis').textContent    = d.dKaufpreis    || '–'
+      document.getElementById('mNebenkosten').textContent  = d.dNebenkosten  || '–'
+      document.getElementById('mGesamt').textContent       = d.dGesamt       || '–'
+      document.getElementById('mAbschreibung').textContent = d.dAbschreibung || '–'
+
+      document.getElementById('mCfWarmmiete').textContent  = d.cfWarmmieteJahr || '–'
+      document.getElementById('mCfHausgeld').textContent   = d.cfHausgeldJahr  || '–'
+      document.getElementById('mCfBankrate').textContent   = d.cfBankrateJahr  || '–'
+      document.getElementById('mCfMonatlich').textContent  = d.cfMonatlich     || '–'
+      const cfRes = document.getElementById('mCfResult')
+      const cfTot = document.getElementById('mCfMonatlich')
+      cfRes.className = d.cfMonatlichPositiv ? 'm-cf-result positive' : 'm-cf-result negative'
+      cfTot.className = d.cfMonatlichPositiv ? 'm-cf-total pos'       : 'm-cf-total neg'
+
+      document.getElementById('mBeschreibung').textContent  = d.dBeschreibung  || '–'
+      document.getElementById('mRatingSummary').textContent = d.ratingSummary  || '–'
+
+      const tagsEl = document.getElementById('mTags')
+      tagsEl.innerHTML = ''
+      if (Array.isArray(d.tags)) {
+        d.tags.forEach(t => {
+          const span = document.createElement('span')
+          span.className = `m-tag ${t.type || 'neutral'}`
+          span.textContent = t.text
+          tagsEl.appendChild(span)
+        })
+      }
+
+      const modal = document.getElementById('steckbriefModal')
+      modal.classList.add('visible')
+      modal.scrollTop = 0
+      document.body.style.overflow = 'hidden'
+    }
+
+    function closeModal() {
+      document.getElementById('steckbriefModal').classList.remove('visible')
+      document.body.style.overflow = ''
+    }
+
+    function handleModalClick(e) {
+      if (e.target === document.getElementById('steckbriefModal')) closeModal()
     }
 
     async function logout() {
