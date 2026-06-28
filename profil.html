@@ -597,7 +597,7 @@
     }
 
     async function deleteSaved(id) {
-      if (!confirm('Steckbrief löschen?')) return
+      if (!confirm('Steckbrief löschen?\n\nDer Steckbrief wird vollständig gelöscht und kann nicht wiederhergestellt werden.')) return
       await sb.from('steckbriefe').delete().eq('id', id)
       await loadSteckbriefe()
     }
