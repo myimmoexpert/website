@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <script>if(sessionStorage.getItem('ie_gate')!=='1')document.documentElement.style.visibility='hidden'</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Immobilie – Immo.Expert</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #0f1c2e; --navy2: #172540; --navy3: #1e2f50;
+      --gold: #c9a84c; --gold2: #e0bf74;
+      --muted: #8a97aa; --white: #ffffff;
+      --green: #3ecf8e; --red: #f87171;
+      --radius: 12px;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--navy); color: var(--white); min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* ── NAV ── */
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 24px 60px; position: sticky; top: 0; z-index: 100; background: rgba(15,28,46,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(201,168,76,0.15); }
+    .logo { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; color: var(--white); text-decoration: none; }
+    .logo span { color: var(--gold); }
+    nav ul { list-style: none; display: flex; gap: 36px; }
+    nav ul a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+    nav ul a:hover { color: var(--white); }
+    nav ul a.active { color: var(--gold); }
+    .nav-cta { background: var(--gold); color: var(--navy) !important; padding: 10px 22px; border-radius: 8px; font-weight: 600 !important; }
+    .nav-cta:hover { background: var(--gold2) !important; }
+
+    /* ── AUTH GUARD ── */
+    #authGuard { display: none; position: fixed; inset: 0; background: var(--navy); z-index: 200; align-items: center; justify-content: center; flex-direction: column; gap: 16px; text-align: center; }
+    #authGuard.visible { display: flex; }
+    #authGuard p { color: var(--muted); }
+    #authGuard a { color: var(--gold); font-weight: 600; text-decoration: none; }
+
+    /* ── PROPERTY HEADER ── */
+    .prop-header { padding: 44px 60px 0; max-width: 980px; margin: 0 auto; width: 100%; }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); text-decoration: none; font-size: 0.85rem; margin-bottom: 28px; transition: color 0.2s; }
+    .back-link:hover { color: var(--white); }
+    .prop-meta { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; flex-wrap: wrap; }
+    .prop-icon { font-size: 1.8rem; line-height: 1; }
+    .prop-badge { background: rgba(201,168,76,0.12); color: var(--gold); border: 1px solid rgba(201,168,76,0.25); border-radius: 50px; padding: 4px 14px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .prop-name { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+    .prop-adresse { color: var(--muted); font-size: 0.95rem; }
+
+    /* ── TAB NAV ── */
+    .tab-header { padding: 0 60px; border-bottom: 1px solid rgba(255,255,255,0.07); background: rgba(15,28,46,0.6); margin-top: 32px; }
+    .tab-nav { display: flex; max-width: 980px; margin: 0 auto; overflow-x: auto; scrollbar-width: none; }
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn { background: none; border: none; color: var(--muted); font-family: inherit; font-size: 0.88rem; font-weight: 500; padding: 18px 22px; cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; }
+    .tab-btn:hover { color: var(--white); }
+    .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    /* ── TAB PANES ── */
+    .tab-pane { display: none; flex: 1; }
+    .tab-pane.active { display: block; }
+    .tab-content { max-width: 980px; margin: 0 auto; padding: 48px 60px 80px; }
+
+    /* ── ÜBERBLICK: STAMMDATEN CARDS ── */
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 32px; }
+    .detail-card { background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); padding: 28px; }
+    .detail-card h3 { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gold); margin-bottom: 18px; }
+    .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-row .lbl { color: var(--muted); }
+    .detail-row .val { font-weight: 500; }
+    .detail-row .val.gold { color: var(--gold); }
+    .detail-row .val.green { color: var(--green); }
+
+    /* ── SECTION HEADER (Überblick editable table) ── */
+    .section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .section-head h3 { font-size: 1rem; font-weight: 600; }
+    .section-head h3 span { color: var(--gold); }
+    .save-indicator { font-size: 0.76rem; }
+    .save-indicator.saving { color: var(--muted); }
+    .save-indicator.saved  { color: var(--green); }
+
+    /* ── EDITABLE TABLE (cl-table) ── */
+    .cl-table { background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; }
+    .cl-section-label { padding: 9px 20px; background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); }
+    .cl-row { display: grid; grid-template-columns: 220px 1fr 40px; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: stretch; }
+    .cl-row:last-child { border-bottom: none; }
+    .cl-fixed-label { padding: 11px 20px; font-size: 0.86rem; color: var(--muted); border-right: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; }
+    .cl-label-input { background: transparent; border: none; border-right: 1px solid rgba(255,255,255,0.05); color: var(--muted); font-family: inherit; font-size: 0.86rem; padding: 11px 20px; outline: none; width: 100%; }
+    .cl-label-input:focus { color: var(--white); background: rgba(255,255,255,0.02); }
+    .cl-label-input::placeholder { color: rgba(138,151,170,0.4); }
+    .cl-value-input { background: transparent; border: none; color: var(--white); font-family: inherit; font-size: 0.86rem; padding: 11px 16px; outline: none; width: 100%; }
+    .cl-value-input:focus { background: rgba(201,168,76,0.03); }
+    .cl-value-input::placeholder { color: rgba(138,151,170,0.35); }
+    .cl-delete { background: none; border: none; color: transparent; cursor: pointer; font-size: 0.85rem; padding: 0 12px; transition: color 0.2s; display: flex; align-items: center; justify-content: center; }
+    .cl-row:hover .cl-delete { color: var(--muted); }
+    .cl-delete:hover { color: var(--red) !important; }
+    .btn-add-row { width: 100%; background: transparent; border: 1px dashed rgba(255,255,255,0.1); border-radius: var(--radius); color: var(--muted); font-family: inherit; font-size: 0.86rem; padding: 11px; cursor: pointer; transition: border-color 0.2s, color 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 4px; }
+    .btn-add-row:hover { border-color: rgba(201,168,76,0.4); color: var(--gold); }
+
+    .actions-row { display: flex; gap: 12px; margin-top: 32px; }
+    .btn-delete { background: transparent; border: 1px solid rgba(248,113,113,0.3); color: var(--red); border-radius: var(--radius); padding: 11px 22px; font-family: inherit; font-size: 0.9rem; cursor: pointer; transition: background 0.2s; }
+    .btn-delete:hover { background: rgba(248,113,113,0.08); }
+
+    /* ── CHECKLISTE KAuf ── */
+    .checklist-card { background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; }
+    .checklist-group-label { padding: 9px 20px; background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); }
+    .ci-item { display: grid; grid-template-columns: 52px 1fr; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: start; }
+    .ci-item:last-child { border-bottom: none; }
+    .ci-check-col { display: flex; align-items: center; justify-content: center; padding: 16px 0; }
+    .ci-cb {
+      width: 18px; height: 18px; appearance: none; -webkit-appearance: none;
+      border: 2px solid rgba(255,255,255,0.2); border-radius: 4px; cursor: pointer;
+      background: transparent; transition: background 0.2s, border-color 0.2s; position: relative; flex-shrink: 0;
+    }
+    .ci-cb:checked { background: var(--green); border-color: var(--green); }
+    .ci-cb:checked::after { content: '✓'; position: absolute; top: -1px; left: 2px; color: var(--navy); font-size: 11px; font-weight: 700; }
+    .ci-content { padding: 12px 20px 12px 0; }
+    .ci-label { font-size: 0.88rem; font-weight: 500; margin-bottom: 7px; cursor: pointer; transition: color 0.2s; user-select: none; }
+    .ci-label.done { color: var(--muted); text-decoration: line-through; }
+    .ci-anmerkung { width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.07); color: var(--muted); font-family: inherit; font-size: 0.78rem; padding: 3px 0 5px; outline: none; transition: border-color 0.2s, color 0.2s; }
+    .ci-anmerkung:focus { border-color: rgba(201,168,76,0.3); color: var(--white); }
+    .ci-anmerkung::placeholder { color: rgba(138,151,170,0.35); font-style: italic; }
+
+    /* ── PLACEHOLDER TABS ── */
+    .placeholder-card { background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); padding: 60px 40px; text-align: center; }
+    .placeholder-icon { font-size: 2.5rem; margin-bottom: 16px; }
+    .placeholder-card h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; }
+    .placeholder-card p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+    .coming-badge { display: inline-block; margin-top: 20px; background: rgba(201,168,76,0.1); color: var(--gold); border: 1px solid rgba(201,168,76,0.25); border-radius: 50px; padding: 5px 16px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+
+    /* ── FOOTER ── */
+    footer { border-top: 1px solid rgba(255,255,255,0.07); padding: 36px 60px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-top: auto; }
+    .footer-links { display: flex; gap: 28px; list-style: none; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; }
+    .footer-copy { color: var(--muted); font-size: 0.82rem; }
+
+    @media (max-width: 700px) {
+      nav { padding: 18px 24px; }
+      nav ul { display: none; }
+      .prop-header, .tab-header { padding-left: 20px; padding-right: 20px; }
+      .tab-content { padding-left: 20px; padding-right: 20px; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .cl-row { grid-template-columns: 140px 1fr 36px; }
+      footer { padding: 28px 24px; flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="authGuard">
+    <div style="font-size:2rem;">🔒</div>
+    <p>Diese Seite ist nur für angemeldete Nutzer.</p>
+    <a href="login.html">Jetzt einloggen →</a>
+  </div>
+
+  <nav>
+    <a href="index.html" class="logo">Immo<span>.Expert</span></a>
+    <ul>
+      <li><a href="finder.html">Immo.Finder</a></li>
+      <li><a href="portfolio.html" class="active">Immo.Portfolio</a></li>
+      <li><a href="profil.html" class="nav-cta" id="navAuthLink">Profil</a></li>
+    </ul>
+  </nav>
+
+  <div class="prop-header">
+    <a href="portfolio.html" class="back-link">← Zurück zum Portfolio</a>
+    <div class="prop-meta">
+      <span class="prop-icon" id="propIcon">🏗️</span>
+      <span class="prop-badge" id="propBadge">–</span>
+    </div>
+    <div class="prop-name" id="propName">–</div>
+    <div class="prop-adresse" id="propAdresse">–</div>
+  </div>
+
+  <div class="tab-header">
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('uberblick')">Überblick</button>
+      <button class="tab-btn"        onclick="switchTab('checkliste')">Checkliste Kauf</button>
+      <button class="tab-btn"        onclick="switchTab('mietverhaeltnis')">Mietverhältnis</button>
+      <button class="tab-btn"        onclick="switchTab('liquiditaet')">Liquidität</button>
+      <button class="tab-btn"        onclick="switchTab('notes')">Notes</button>
+      <button class="tab-btn"        onclick="switchTab('dateien')">Dateien</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       TAB 1: ÜBERBLICK
+  ══════════════════════════════════════ -->
+  <div class="tab-pane active" id="pane-uberblick">
+    <div class="tab-content">
+
+      <!-- Stammdaten + Finanzkennzahlen -->
+      <div class="detail-grid">
+        <div class="detail-card">
+          <h3>Stammdaten</h3>
+          <div class="detail-row"><span class="lbl">Bezeichnung</span><span class="val" id="dBezeichnung">–</span></div>
+          <div class="detail-row"><span class="lbl">Objektart</span><span class="val" id="dObjektart">–</span></div>
+          <div class="detail-row"><span class="lbl">Adresse</span><span class="val" id="dAdresse">–</span></div>
+          <div class="detail-row"><span class="lbl">Kaufdatum</span><span class="val" id="dKaufdatum">–</span></div>
+        </div>
+        <div class="detail-card">
+          <h3>Finanzkennzahlen</h3>
+          <div class="detail-row"><span class="lbl">Kaufpreis</span><span class="val gold" id="dKaufpreis">–</span></div>
+          <div class="detail-row"><span class="lbl">Kaltmiete / Monat</span><span class="val green" id="dKaltmiete">–</span></div>
+          <div class="detail-row"><span class="lbl">Kaltmiete / Jahr</span><span class="val" id="dKaltmieteJahr">–</span></div>
+          <div class="detail-row"><span class="lbl">Brutto-Mietrendite</span><span class="val" id="dRendite">–</span></div>
+        </div>
+      </div>
+
+      <!-- Editierbare Detailtabelle -->
+      <div class="section-head">
+        <h3>Details &amp; <span>Kontakte</span></h3>
+        <div class="save-indicator" id="siUberblick"></div>
+      </div>
+
+      <div class="cl-table" id="clTableFixed">
+        <div class="cl-section-label">Kontakte</div>
+      </div>
+
+      <div class="cl-table" id="clTableCustom">
+        <div class="cl-section-label">Eigene Felder</div>
+      </div>
+
+      <button class="btn-add-row" onclick="addCustomRow()">+ Eigenes Feld hinzufügen</button>
+
+      <div class="actions-row">
+        <button class="btn-delete" onclick="deleteImmobilie()">Immobilie löschen</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       TAB 2: CHECKLISTE KAUF
+  ══════════════════════════════════════ -->
+  <div class="tab-pane" id="pane-checkliste">
+    <div class="tab-content">
+
+      <div class="section-head" style="margin-bottom:20px;">
+        <h3>Checkliste <span style="color:var(--gold)">Kauf</span></h3>
+        <div class="save-indicator" id="siCheckliste"></div>
+      </div>
+
+      <div class="checklist-card" id="clKaufCard">
+        <!-- Wird per JS befüllt -->
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       TAB 3: MIETVERHÄLTNIS
+  ══════════════════════════════════════ -->
+  <div class="tab-pane" id="pane-mietverhaeltnis">
+    <div class="tab-content">
+
+      <div class="section-head" style="margin-bottom:16px;">
+        <h3>Miet<span style="color:var(--gold)">verhältnis</span></h3>
+        <div class="save-indicator" id="siMiet"></div>
+      </div>
+
+      <div class="cl-table" id="clTableMiet">
+        <div class="cl-section-label">Mieterdaten</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       TAB 4: LIQUIDITÄT
+  ══════════════════════════════════════ -->
+  <div class="tab-pane" id="pane-liquiditaet">
+    <div class="tab-content">
+      <div class="placeholder-card">
+        <div class="placeholder-icon">💰</div>
+        <h3>Liquidität</h3>
+        <p>Detaillierte Cashflow-Analyse, Einnahmen, Ausgaben und monatliche Liquiditätsplanung.</p>
+        <span class="coming-badge">Kommt bald</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       TAB 5: NOTES
+  ══════════════════════════════════════ -->
+  <div class="tab-pane" id="pane-notes">
+    <div class="tab-content">
+      <div class="placeholder-card">
+        <div class="placeholder-icon">📝</div>
+        <h3>Notes</h3>
+        <p>Notizen, Erinnerungen und wichtige Informationen zu dieser Immobilie.</p>
+        <span class="coming-badge">Kommt bald</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       TAB 6: DATEIEN
+  ══════════════════════════════════════ -->
+  <div class="tab-pane" id="pane-dateien">
+    <div class="tab-content">
+      <div class="placeholder-card">
+        <div class="placeholder-icon">📁</div>
+        <h3>Dateien</h3>
+        <p>Kaufvertrag, Grundrisse, Energieausweis – alle wichtigen Dokumente an einem Ort.</p>
+        <span class="coming-badge">Kommt bald</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <a href="index.html" class="logo">Immo<span>.Expert</span></a>
+    <ul class="footer-links">
+      <li><a href="impressum.html">Impressum</a></li>
+      <li><a href="datenschutz.html">Datenschutz</a></li>
+      <li><a href="kontakt.html">Kontakt</a></li>
+    </ul>
+    <span class="footer-copy">© 2026 Immo.Expert</span>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    const SUPABASE_URL = 'https://awvnfocepqkkncgqgaka.supabase.co'
+    const SUPABASE_KEY = 'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
+    const { createClient } = window.supabase
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+    const OBJEKTART_ICONS = {
+      'Eigentumswohnung': '🏢', 'Einfamilienhaus': '🏠',
+      'Mehrfamilienhaus': '🏘️', 'Gewerbe': '🏪', 'Sonstiges': '🏗️',
+    }
+
+    const id = new URLSearchParams(window.location.search).get('id')
+    if (!id) window.location.href = 'portfolio.html'
+
+    sb.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        document.getElementById('authGuard').classList.add('visible')
+        setTimeout(() => { window.location.href = 'login.html' }, 1500)
+        return
+      }
+      loadImmobilie()
+    })
+
+    // ════════════════════════════════════════
+    // IMMOBILIE LADEN
+    // ════════════════════════════════════════
+    async function loadImmobilie() {
+      const { data, error } = await sb.from('portfolio').select('*').eq('id', id).single()
+      if (error || !data) { window.location.href = 'portfolio.html'; return }
+
+      document.title = `${data.bezeichnung} – Immo.Expert`
+      document.getElementById('propIcon').textContent    = OBJEKTART_ICONS[data.objektart] || '🏗️'
+      document.getElementById('propBadge').textContent   = data.objektart || 'Immobilie'
+      document.getElementById('propName').textContent    = data.bezeichnung || '–'
+      document.getElementById('propAdresse').textContent = data.adresse || '–'
+
+      // Stammdaten-Karten
+      document.getElementById('dBezeichnung').textContent = data.bezeichnung || '–'
+      document.getElementById('dObjektart').textContent   = data.objektart   || '–'
+      document.getElementById('dAdresse').textContent     = data.adresse     || '–'
+      document.getElementById('dKaufdatum').textContent   = data.kaufdatum
+        ? new Date(data.kaufdatum).toLocaleDateString('de-DE', { day:'2-digit', month:'long', year:'numeric' }) : '–'
+      document.getElementById('dKaufpreis').textContent     = data.kaufpreis ? formatEur(data.kaufpreis)      : '–'
+      document.getElementById('dKaltmiete').textContent     = data.kaltmiete ? formatEur(data.kaltmiete)      : '–'
+      document.getElementById('dKaltmieteJahr').textContent = data.kaltmiete ? formatEur(data.kaltmiete * 12) : '–'
+      if (data.kaufpreis && data.kaltmiete) {
+        document.getElementById('dRendite').textContent =
+          ((data.kaltmiete * 12) / data.kaufpreis * 100).toFixed(2) + ' %'
+      }
+
+      // Editierbare Tabellen
+      initUberblick(data.checkliste)
+      initKaufcheckliste(data.kaufcheckliste)
+      initMietverhaeltnis(data.mietverhaeltnis)
+    }
+
+    // ════════════════════════════════════════
+    // ÜBERBLICK – EDITIERBARE TABELLE
+    // ════════════════════════════════════════
+    const UBERBLICK_FIELDS = [
+      { key: 'verkaeufer',        label: 'Verkäufer (Kontakt)',   group: 'Kontakte' },
+      { key: 'makler',            label: 'Makler (Kontakt)',      group: 'Kontakte' },
+      { key: 'verwaltung',        label: 'Verwaltung (Kontakt)',  group: 'Kontakte' },
+      { key: 'hausmeister',       label: 'Hausmeister (Kontakt)', group: 'Kontakte' },
+      { key: 'bank',              label: 'Bank (Kontakt)',        group: 'Kontakte' },
+      { key: 'kaufpreisDetail',   label: 'Kaufpreis',            group: 'Finanzierung' },
+      { key: 'finanzierendeBank', label: 'Finanzierende Bank',   group: 'Finanzierung' },
+      { key: 'darlehenssumme',    label: 'Darlehenssumme',       group: 'Finanzierung' },
+      { key: 'annuitaet',         label: 'Darlehensannuität',    group: 'Finanzierung' },
+      { key: 'uebernahmedatum',   label: 'Übernahmedatum (wirtschaftlich)', group: 'Vertrag' },
+      { key: 'grundbuchdatum',    label: 'Datum Eintragung Grundbuch',      group: 'Vertrag' },
+      { key: 'kautionstyp',       label: 'Kautionstyp (Bürgschaft, Bar, …)', group: 'Kaution' },
+      { key: 'hoeheKaution',      label: 'Höhe Kaution',         group: 'Kaution' },
+    ]
+
+    let uberblickData = {}
+    let uTimer = null
+
+    function initUberblick(data) {
+      uberblickData = data || {}
+      renderUberblickFixed()
+      renderUberblickCustom()
+    }
+
+    function renderUberblickFixed() {
+      const table = document.getElementById('clTableFixed')
+      table.querySelectorAll('.cl-row, .cl-section-label:not(:first-child)').forEach(r => r.remove())
+
+      let currentGroup = ''
+      UBERBLICK_FIELDS.forEach(field => {
+        if (field.group !== currentGroup) {
+          currentGroup = field.group
+          if (currentGroup !== 'Kontakte') {
+            const sep = document.createElement('div')
+            sep.className = 'cl-section-label'
+            sep.textContent = currentGroup
+            table.appendChild(sep)
+          }
+        }
+        const row = document.createElement('div')
+        row.className = 'cl-row'
+        row.innerHTML = `
+          <div class="cl-fixed-label">${field.label}</div>
+          <input class="cl-value-input" type="text" placeholder="eintragen …"
+                 value="${esc(uberblickData[field.key] || '')}" data-key="${field.key}" />
+          <div></div>`
+        row.querySelector('input').addEventListener('input', () => scheduleSave('u'))
+        table.appendChild(row)
+      })
+    }
+
+    function renderUberblickCustom() {
+      const table = document.getElementById('clTableCustom')
+      table.querySelectorAll('.cl-row').forEach(r => r.remove())
+      const customs = uberblickData.custom || []
+      customs.forEach((item, idx) => table.appendChild(buildCustomRow(item, idx)))
+    }
+
+    function buildCustomRow(item, idx) {
+      const row = document.createElement('div')
+      row.className = 'cl-row'
+      row.innerHTML = `
+        <input class="cl-label-input" type="text" placeholder="Feldname …"
+               value="${esc(item.label || '')}" data-custom-label="${idx}" />
+        <input class="cl-value-input" type="text" placeholder="eintragen …"
+               value="${esc(item.value || '')}" data-custom-value="${idx}" />
+        <button class="cl-delete" onclick="deleteCustomRow(${idx})" title="Löschen">✕</button>`
+      row.querySelector('[data-custom-label]').addEventListener('input', () => scheduleSave('u'))
+      row.querySelector('[data-custom-value]').addEventListener('input',  () => scheduleSave('u'))
+      return row
+    }
+
+    function addCustomRow() {
+      if (!uberblickData.custom) uberblickData.custom = []
+      uberblickData.custom.push({ label: '', value: '' })
+      renderUberblickCustom()
+      const rows = document.querySelectorAll('#clTableCustom .cl-row')
+      if (rows.length) rows[rows.length - 1].querySelector('[data-custom-label]')?.focus()
+    }
+
+    function deleteCustomRow(idx) {
+      if (!uberblickData.custom) return
+      uberblickData.custom.splice(idx, 1)
+      renderUberblickCustom()
+      scheduleSave('u')
+    }
+
+    function collectUberblick() {
+      document.querySelectorAll('#clTableFixed .cl-value-input').forEach(inp => {
+        uberblickData[inp.dataset.key] = inp.value
+      })
+      const customs = []
+      document.querySelectorAll('#clTableCustom .cl-row').forEach(row => {
+        customs.push({
+          label: row.querySelector('[data-custom-label]')?.value || '',
+          value: row.querySelector('[data-custom-value]')?.value || '',
+        })
+      })
+      uberblickData.custom = customs
+    }
+
+    // ════════════════════════════════════════
+    // CHECKLISTE KAUF
+    // ════════════════════════════════════════
+    const KAUF_ITEMS = [
+      { key: 'kaufvertrag',      label: 'Kaufvertrag unterschrieben',                  group: 'Kaufabschluss' },
+      { key: 'verwZustimmung',   label: 'Zustimmung der Verwaltung eingeholt (Notar)', group: 'Kaufabschluss' },
+      { key: 'kaufpreisZahlen',  label: 'Kaufpreis zahlen',                            group: 'Kaufabschluss' },
+      { key: 'maklerRechnung',   label: 'Maklerrechnung zahlen',                       group: 'Kaufabschluss' },
+      { key: 'notarRechnung',    label: 'Notarrechnung zahlen',                        group: 'Kaufabschluss' },
+      { key: 'grundbuch1',       label: 'Grundbuchrechnung I zahlen',                  group: 'Kaufabschluss' },
+      { key: 'grundbuchEintrag', label: 'Eintragung im Grundbuch erfolgt',             group: 'Kaufabschluss' },
+      { key: 'grundbuch2',       label: 'Grundbuchrechnung II zahlen',                 group: 'Kaufabschluss' },
+      { key: 'grunderwerbsst',   label: 'Grunderwerbssteuer zahlen',                   group: 'Kaufabschluss' },
+      { key: 'uebergabetermin',  label: 'Übergabetermin mit Verkäufer',                group: 'Kaufabschluss' },
+      { key: 'mieterVorstellung',label: 'Vorstellung beim Mieter',                     group: 'Kaufabschluss' },
+      { key: 'buergschaft',      label: 'Bürgschaft übertragen / Kaution erhalten',    group: 'Nach Übergabe' },
+      { key: 'hausgeld',         label: 'Hausgeldzahlung aufsetzen',                   group: 'Nach Übergabe' },
+    ]
+
+    let kaufData = {}
+    let kTimer = null
+
+    function initKaufcheckliste(data) {
+      kaufData = {}
+      if (Array.isArray(data)) {
+        data.forEach(item => { kaufData[item.key] = item })
+      } else if (data && typeof data === 'object') {
+        kaufData = data
+      }
+      renderKaufcheckliste()
+    }
+
+    function renderKaufcheckliste() {
+      const card = document.getElementById('clKaufCard')
+      card.innerHTML = ''
+      let currentGroup = ''
+
+      KAUF_ITEMS.forEach(item => {
+        if (item.group !== currentGroup) {
+          currentGroup = item.group
+          const sep = document.createElement('div')
+          sep.className = 'checklist-group-label'
+          sep.textContent = currentGroup
+          card.appendChild(sep)
+        }
+        const d = kaufData[item.key] || {}
+        const row = document.createElement('div')
+        row.className = 'ci-item'
+        row.innerHTML = `
+          <div class="ci-check-col">
+            <input type="checkbox" class="ci-cb" id="ci_${item.key}" ${d.done ? 'checked' : ''} />
+          </div>
+          <div class="ci-content">
+            <label class="ci-label${d.done ? ' done' : ''}" for="ci_${item.key}">${item.label}</label>
+            <input class="ci-anmerkung" type="text" placeholder="Anmerkung …"
+                   value="${esc(d.anmerkung || '')}" data-kauf-key="${item.key}" />
+          </div>`
+        const cb  = row.querySelector('.ci-cb')
+        const lbl = row.querySelector('.ci-label')
+        const ann = row.querySelector('.ci-anmerkung')
+        cb.addEventListener('change', () => {
+          lbl.classList.toggle('done', cb.checked)
+          scheduleSave('k')
+        })
+        ann.addEventListener('input', () => scheduleSave('k'))
+        card.appendChild(row)
+      })
+    }
+
+    function collectKauf() {
+      const result = {}
+      KAUF_ITEMS.forEach(item => {
+        const cb  = document.getElementById(`ci_${item.key}`)
+        const ann = document.querySelector(`[data-kauf-key="${item.key}"]`)
+        result[item.key] = {
+          key:      item.key,
+          done:     cb?.checked || false,
+          anmerkung: ann?.value || '',
+        }
+      })
+      kaufData = result
+      return result
+    }
+
+    // ════════════════════════════════════════
+    // MIETVERHÄLTNIS
+    // ════════════════════════════════════════
+    const MIET_FIELDS = [
+      { key: 'mieter',              label: 'Mieter' },
+      { key: 'kontaktMieter',       label: 'Kontaktdetails Mieter' },
+      { key: 'letzteMieterhoehung', label: 'Letzte Mieterhöhung' },
+      { key: 'buergschaft',         label: 'Bürgschaft' },
+    ]
+
+    let mietData = {}
+    let mTimer = null
+
+    function initMietverhaeltnis(data) {
+      mietData = data || {}
+      renderMietverhaeltnis()
+    }
+
+    function renderMietverhaeltnis() {
+      const table = document.getElementById('clTableMiet')
+      table.querySelectorAll('.cl-row').forEach(r => r.remove())
+      MIET_FIELDS.forEach(field => {
+        const row = document.createElement('div')
+        row.className = 'cl-row'
+        row.innerHTML = `
+          <div class="cl-fixed-label">${field.label}</div>
+          <input class="cl-value-input" type="text" placeholder="eintragen …"
+                 value="${esc(mietData[field.key] || '')}" data-miet-key="${field.key}" />
+          <div></div>`
+        row.querySelector('input').addEventListener('input', () => scheduleSave('m'))
+        table.appendChild(row)
+      })
+    }
+
+    function collectMiet() {
+      MIET_FIELDS.forEach(field => {
+        const inp = document.querySelector(`[data-miet-key="${field.key}"]`)
+        if (inp) mietData[field.key] = inp.value
+      })
+    }
+
+    // ════════════════════════════════════════
+    // AUTO-SAVE (geteilt für alle Tabs)
+    // ════════════════════════════════════════
+    function scheduleSave(type) {
+      const indicators = { u: 'siUberblick', k: 'siCheckliste', m: 'siMiet' }
+      const timers     = { u: () => uTimer, k: () => kTimer, m: () => mTimer }
+      const ind = document.getElementById(indicators[type])
+      if (ind) { ind.textContent = 'Speichern …'; ind.className = 'save-indicator saving'; }
+      if (type === 'u') { clearTimeout(uTimer); uTimer = setTimeout(() => doSave('u'), 900) }
+      if (type === 'k') { clearTimeout(kTimer); kTimer = setTimeout(() => doSave('k'), 900) }
+      if (type === 'm') { clearTimeout(mTimer); mTimer = setTimeout(() => doSave('m'), 900) }
+    }
+
+    async function doSave(type) {
+      let col, payload
+      if (type === 'u') { collectUberblick(); col = 'checkliste';       payload = uberblickData }
+      if (type === 'k') { collectKauf();       col = 'kaufcheckliste';  payload = kaufData }
+      if (type === 'm') { collectMiet();       col = 'mietverhaeltnis'; payload = mietData }
+
+      const indicators = { u: 'siUberblick', k: 'siCheckliste', m: 'siMiet' }
+      const ind = document.getElementById(indicators[type])
+      const { error } = await sb.from('portfolio').update({ [col]: payload }).eq('id', id)
+      if (!error && ind) {
+        ind.textContent = '✓ Gespeichert'; ind.className = 'save-indicator saved'
+        setTimeout(() => { ind.textContent = ''; ind.className = 'save-indicator' }, 2500)
+      }
+    }
+
+    // ════════════════════════════════════════
+    // TABS & LÖSCHEN
+    // ════════════════════════════════════════
+    const TAB_ORDER = ['uberblick','checkliste','mietverhaeltnis','liquiditaet','notes','dateien']
+    function switchTab(name) {
+      document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', TAB_ORDER[i] === name)
+      })
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'))
+      const pane = document.getElementById('pane-' + name)
+      if (pane) pane.classList.add('active')
+    }
+
+    async function deleteImmobilie() {
+      if (!confirm('Immobilie löschen?\n\nDieser Eintrag wird vollständig gelöscht und kann nicht wiederhergestellt werden.')) return
+      await sb.from('portfolio').delete().eq('id', id)
+      window.location.href = 'portfolio.html'
+    }
+
+    function formatEur(n) {
+      return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
+    }
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+    }
+  </script>
+  <script src="password-gate.js"></script>
+</body>
+</html>
