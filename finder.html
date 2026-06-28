@@ -394,6 +394,34 @@
     .tag.red { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
     .tag.neutral { background: rgba(255,255,255,0.07); color: var(--muted); border: 1px solid rgba(255,255,255,0.1); }
 
+    /* KPI highlight + score */
+    .kpi-card.highlight {
+      background: linear-gradient(135deg, rgba(201,168,76,0.12), rgba(201,168,76,0.04));
+      border-color: rgba(201,168,76,0.25);
+    }
+    .kpi-value.score { font-size: 2rem; color: var(--gold); line-height: 1; }
+
+    /* Cashflow Karte */
+    .cashflow-card {
+      background: var(--navy2); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius); padding: 28px; margin-bottom: 24px;
+    }
+    .cashflow-card h3 { font-size: 0.88rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gold); margin-bottom: 20px; }
+    .cf-rows { display: flex; flex-direction: column; margin-bottom: 16px; }
+    .cf-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; }
+    .cf-row:last-child { border-bottom: none; }
+    .cf-row .cf-lbl { color: var(--muted); }
+    .cf-row .cf-amt { font-weight: 500; }
+    .cf-row .cf-amt.plus  { color: var(--green); }
+    .cf-row .cf-amt.minus { color: var(--muted); }
+    .cf-result { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-radius: 10px; margin-top: 8px; font-size: 0.95rem; font-weight: 600; }
+    .cf-result.negative { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.25); }
+    .cf-result.positive { background: rgba(62,207,142,0.1);  border: 1px solid rgba(62,207,142,0.25); }
+    .cf-result .cf-res-lbl { color: var(--white); }
+    .cf-result .cf-total.neg { color: var(--red); font-size: 1.1rem; }
+    .cf-result .cf-total.pos { color: var(--green); font-size: 1.1rem; }
+    .cf-note { font-size: 0.78rem; color: var(--muted); margin-top: 10px; }
+
     .rating-summary {
       font-size: 0.92rem;
       color: var(--muted);
@@ -609,25 +637,25 @@
 
     <!-- KPIs -->
     <div class="kpi-grid">
+      <div class="kpi-card highlight">
+        <div class="kpi-label">Investment-Note</div>
+        <div class="kpi-value score" id="kpiInvestmentNote">–</div>
+        <div class="kpi-sub">Skala 1–10</div>
+      </div>
       <div class="kpi-card">
         <div class="kpi-label">Kaufpreis</div>
-        <div class="kpi-value gold" id="kpiPrice">–</div>
-        <div class="kpi-sub" id="kpiPricePerSqm">–</div>
+        <div class="kpi-value gold" id="kpiKaufpreis">–</div>
+        <div class="kpi-sub" id="kpiKaufpreisProQm">–</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Wohnfläche</div>
-        <div class="kpi-value" id="kpiArea">–</div>
-        <div class="kpi-sub" id="kpiRooms">–</div>
+        <div class="kpi-label">Invest-Faktor</div>
+        <div class="kpi-value" id="kpiInvestFaktor">–</div>
+        <div class="kpi-sub">Kaufpreis / Jahresmiete</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Baujahr</div>
-        <div class="kpi-value" id="kpiBaujahr">–</div>
-        <div class="kpi-sub" id="kpiEtage">–</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Energieklasse</div>
-        <div class="kpi-value" id="kpiEnergy">–</div>
-        <div class="kpi-sub" id="kpiEnergyVal">–</div>
+        <div class="kpi-label">Nettokaltmiete</div>
+        <div class="kpi-value" id="kpiNettokaltmiete">–</div>
+        <div class="kpi-sub">pro Monat</div>
       </div>
     </div>
 
@@ -636,19 +664,41 @@
       <div class="detail-card">
         <h3>Objektdetails</h3>
         <div class="detail-row"><span class="label">Objektart</span><span class="value" id="dObjektart">–</span></div>
-        <div class="detail-row"><span class="label">Zustand</span><span class="value" id="dZustand">–</span></div>
-        <div class="detail-row"><span class="label">Stellplatz</span><span class="value" id="dStellplatz">–</span></div>
-        <div class="detail-row"><span class="label">Keller</span><span class="value" id="dKeller">–</span></div>
-        <div class="detail-row"><span class="label">Aufzug</span><span class="value" id="dAufzug">–</span></div>
+        <div class="detail-row"><span class="label">Wohnfläche</span><span class="value" id="dWohnflaeche">–</span></div>
+        <div class="detail-row"><span class="label">Baujahr</span><span class="value" id="dBaujahr">–</span></div>
+        <div class="detail-row"><span class="label">Vermietet</span><span class="value" id="dVermietet">–</span></div>
       </div>
       <div class="detail-card">
-        <h3>Kosten</h3>
+        <h3>Investment</h3>
         <div class="detail-row"><span class="label">Kaufpreis</span><span class="value" id="dKaufpreis">–</span></div>
         <div class="detail-row"><span class="label">Nebenkosten (ca.)</span><span class="value" id="dNebenkosten">–</span></div>
-        <div class="detail-row"><span class="label">Maklerprovision</span><span class="value" id="dMakler">–</span></div>
-        <div class="detail-row"><span class="label">Hausgeld</span><span class="value" id="dHausgeld">–</span></div>
-        <div class="detail-row"><span class="label">Gesamtinvestition</span><span class="value gold" id="dGesamt">–</span></div>
+        <div class="detail-row"><span class="label">Gesamtinvestitionskosten</span><span class="value gold" id="dGesamt">–</span></div>
+        <div class="detail-row"><span class="label">Abschreibung p.a. (ca.)</span><span class="value" id="dAbschreibung">–</span></div>
       </div>
+    </div>
+
+    <!-- Cashflow Analyse -->
+    <div class="cashflow-card">
+      <h3>Cashflow Analyse</h3>
+      <div class="cf-rows">
+        <div class="cf-row">
+          <span class="cf-lbl">Jährliche Warmmiete</span>
+          <span class="cf-amt plus" id="cfWarmmieteJahr">–</span>
+        </div>
+        <div class="cf-row">
+          <span class="cf-lbl">Hausgeld</span>
+          <span class="cf-amt minus" id="cfHausgeldJahr">–</span>
+        </div>
+        <div class="cf-row">
+          <span class="cf-lbl">Voraussichtliche Bankrate <span style="font-size:0.78rem;">(Kaufpreis × 5 %)</span></span>
+          <span class="cf-amt minus" id="cfBankrateJahr">–</span>
+        </div>
+      </div>
+      <div class="cf-result negative" id="cfResult">
+        <span class="cf-res-lbl">Monatlicher CF <span style="font-weight:400; font-size:0.82rem; color:var(--muted);">(ohne Steuern)</span></span>
+        <span class="cf-total neg" id="cfMonatlich">–</span>
+      </div>
+      <p class="cf-note">* Bankrate basiert auf 5 % des Kaufpreises p.a. · Steuern nicht berücksichtigt</p>
     </div>
 
     <!-- Beschreibung -->
@@ -832,7 +882,7 @@
             <div class="saved-title">${esc(d.title || '–')}</div>
             <div class="saved-meta">${esc(d.subtitle || '')} · ${date}</div>
           </div>
-          <div class="saved-price">${esc(d.kpiPrice || '–')}</div>
+          <div class="saved-price">${esc(d.kpiKaufpreis || d.kpiPrice || '–')}</div>
           <div class="saved-actions">
             <a href="${esc(item.url)}" target="_blank" class="saved-link">↗ Inserat</a>
             <button class="saved-delete" onclick="deleteSaved('${item.id}')" title="Löschen">✕</button>
@@ -851,33 +901,47 @@
     }
 
     function fillResult(data, url) {
-      document.getElementById('resultTitle').textContent     = data.title
-      document.getElementById('resultSubtitle').textContent  = data.subtitle
-      document.getElementById('resultLink').href             = url
-      document.getElementById('kpiPrice').textContent       = data.kpiPrice
-      document.getElementById('kpiPricePerSqm').textContent = data.kpiPricePerSqm
-      document.getElementById('kpiArea').textContent        = data.kpiArea
-      document.getElementById('kpiRooms').textContent       = data.kpiRooms
-      document.getElementById('kpiBaujahr').textContent     = data.kpiBaujahr
-      document.getElementById('kpiEtage').textContent       = data.kpiEtage
-      document.getElementById('kpiEnergy').textContent      = data.kpiEnergy
-      document.getElementById('kpiEnergyVal').textContent   = data.kpiEnergyVal
-      document.getElementById('dObjektart').textContent     = data.dObjektart
-      document.getElementById('dZustand').textContent       = data.dZustand
-      document.getElementById('dStellplatz').textContent    = data.dStellplatz
-      document.getElementById('dKeller').textContent        = data.dKeller
-      document.getElementById('dAufzug').textContent        = data.dAufzug
-      document.getElementById('dKaufpreis').textContent     = data.dKaufpreis
-      document.getElementById('dNebenkosten').textContent   = data.dNebenkosten
-      document.getElementById('dMakler').textContent        = data.dMakler
-      document.getElementById('dHausgeld').textContent      = data.dHausgeld
-      document.getElementById('dGesamt').textContent        = data.dGesamt
-      document.getElementById('dBeschreibung').textContent  = data.dBeschreibung
-      document.getElementById('ratingSummary').textContent  = data.ratingSummary
+      document.getElementById('resultTitle').textContent        = data.title
+      document.getElementById('resultSubtitle').textContent     = data.subtitle
+      document.getElementById('resultLink').href                = url
+      // KPIs
+      document.getElementById('kpiInvestmentNote').textContent  = data.kpiInvestmentNote
+      document.getElementById('kpiKaufpreis').textContent       = data.kpiKaufpreis
+      document.getElementById('kpiKaufpreisProQm').textContent  = data.kpiKaufpreisProQm || '–'
+      document.getElementById('kpiInvestFaktor').textContent    = data.kpiInvestFaktor   || '–'
+      document.getElementById('kpiNettokaltmiete').textContent  = data.kpiNettokaltmiete || '–'
+      // Objektdetails
+      document.getElementById('dObjektart').textContent         = data.dObjektart   || '–'
+      document.getElementById('dWohnflaeche').textContent       = data.dWohnflaeche  || '–'
+      document.getElementById('dBaujahr').textContent           = data.dBaujahr      || '–'
+      document.getElementById('dVermietet').textContent         = data.dVermietet    || '–'
+      // Investment
+      document.getElementById('dKaufpreis').textContent         = data.dKaufpreis    || '–'
+      document.getElementById('dNebenkosten').textContent       = data.dNebenkosten  || '–'
+      document.getElementById('dGesamt').textContent            = data.dGesamt       || '–'
+      document.getElementById('dAbschreibung').textContent      = data.dAbschreibung || '–'
+      // Cashflow
+      document.getElementById('cfWarmmieteJahr').textContent    = data.cfWarmmieteJahr || '–'
+      document.getElementById('cfHausgeldJahr').textContent     = data.cfHausgeldJahr  || '–'
+      document.getElementById('cfBankrateJahr').textContent     = data.cfBankrateJahr  || '–'
+      document.getElementById('cfMonatlich').textContent        = data.cfMonatlich      || '–'
+      // CF-Ergebnis einfärben
+      const cfRes = document.getElementById('cfResult')
+      const cfTot = document.getElementById('cfMonatlich')
+      if (data.cfMonatlichPositiv) {
+        cfRes.className = 'cf-result positive'
+        cfTot.className = 'cf-total pos'
+      } else {
+        cfRes.className = 'cf-result negative'
+        cfTot.className = 'cf-total neg'
+      }
+      // Beschreibung + Bewertung
+      document.getElementById('dBeschreibung').textContent      = data.dBeschreibung  || '–'
+      document.getElementById('ratingSummary').textContent      = data.ratingSummary   || '–'
 
       const tagsEl = document.getElementById('ratingTags')
       tagsEl.innerHTML = ''
-      data.tags.forEach(t => {
+      ;(data.tags || []).forEach(t => {
         const span = document.createElement('span')
         span.className = `tag ${t.type}`
         span.textContent = t.text

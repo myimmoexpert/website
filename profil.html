@@ -414,7 +414,7 @@
             <div class="saved-title">${esc(d.title || '–')}</div>
             <div class="saved-meta">${esc(d.subtitle || '')} · ${date}</div>
           </div>
-          <div class="saved-price">${esc(d.kpiPrice || '–')}</div>
+          <div class="saved-price">${esc(d.kpiKaufpreis || d.kpiPrice || '–')}</div>
           <div class="saved-actions-col">
             <a href="${esc(item.url)}" target="_blank" class="saved-link">↗ Inserat</a>
             <button class="saved-delete" onclick="deleteSaved('${item.id}')" title="Löschen">✕</button>
