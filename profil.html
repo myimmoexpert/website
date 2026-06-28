@@ -2,6 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
+  <script>if(sessionStorage.getItem('ie_gate')!=='1')document.documentElement.style.visibility='hidden'</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mein Profil – Immo.Expert</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
@@ -676,5 +677,6 @@
     if (tabParam === 'steckbriefe') switchTab('steckbriefe')
   </script>
 
+  <script src="password-gate.js"></script>
 </body>
 </html>
