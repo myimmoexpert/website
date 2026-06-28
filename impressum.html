@@ -148,7 +148,7 @@
     <ul>
       <li><a href="finder.html">Immo.Finder</a></li>
       <li><a href="portfolio.html">Immo.Portfolio</a></li>
-      <li><a href="#" class="nav-cta">Login</a></li>
+      <li><a href="login.html" class="nav-cta" id="navAuthLink">Login</a></li>
     </ul>
   </nav>
 
@@ -159,10 +159,7 @@
     <div class="section">
       <h2>Angaben gemäß § 5 TMG</h2>
       <address>
-        Philipp Rothe<br />
-        Semperstraße 15<br />
-        22303 Hamburg<br />
-        Deutschland
+        Philipp Rothe
       </address>
     </div>
 
@@ -204,5 +201,20 @@
     <span class="footer-copy">© 2026 Immo.Expert</span>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    (function() {
+      const sb = window.supabase.createClient(
+        'https://awvnfocepqkkncgqgaka.supabase.co',
+        'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
+      )
+      sb.auth.getSession().then(({ data }) => {
+        if (data.session) {
+          const link = document.getElementById('navAuthLink')
+          if (link) { link.href = 'profil.html'; link.textContent = 'Profil' }
+        }
+      })
+    })()
+  </script>
 </body>
 </html>
