@@ -139,6 +139,8 @@
     .liq-row-total td { background: rgba(201,168,76,0.06); }
     .liq-row-total .liq-label { background: #22304d; color: var(--gold); }
     .liq-yr { border-left: 2px solid rgba(201,168,76,0.25) !important; }
+    .liq-table th.liq-now { color: var(--gold); background: rgba(201,168,76,0.12); }
+    .liq-table td.liq-now { background: rgba(201,168,76,0.05); }
     .liq-cell { width: 100px; background: transparent; border: none; color: var(--white); font-family: inherit; font-size: 0.8rem; text-align: right; padding: 8px 12px; outline: none; }
     .liq-cell:focus { background: rgba(201,168,76,0.08); }
     .liq-cell.calc { color: #aebccf; }
@@ -146,9 +148,24 @@
     .liq-cell.pos { color: var(--green); }
     .liq-cell.ov { box-shadow: inset 3px 0 0 var(--gold); color: var(--gold2); }
     .liq-cell::placeholder { color: rgba(138,151,170,0.25); }
+    .liq-row-sub .liq-cell { font-size: 0.72rem; font-style: italic; color: var(--muted); }
+    .liq-table td { position: relative; }
+    .liq-table td.has-note::after { content: ''; position: absolute; top: 0; right: 0; border-top: 7px solid var(--gold); border-left: 7px solid transparent; pointer-events: none; }
+    .liq-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none; align-items: center; justify-content: center; z-index: 400; }
+    .liq-modal.open { display: flex; }
+    .liq-modal-box { background: var(--navy2); border: 1px solid rgba(255,255,255,0.12); border-radius: var(--radius); padding: 30px; width: min(460px, 92vw); text-align: center; }
+    .liq-modal-box h4 { font-size: 1.05rem; margin-bottom: 10px; }
+    .liq-modal-box p { color: var(--muted); font-size: 0.84rem; line-height: 1.55; }
+    .liq-drop { border: 2px dashed rgba(201,168,76,0.4); border-radius: var(--radius); padding: 44px 20px; margin: 20px 0; cursor: pointer; color: var(--muted); font-size: 0.9rem; transition: background 0.2s, border-color 0.2s; }
+    .liq-drop.over, .liq-drop:hover { background: rgba(201,168,76,0.07); border-color: var(--gold); color: var(--white); }
     .liq-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: var(--navy3); border: 1px solid rgba(201,168,76,0.4); border-radius: 12px; padding: 12px 18px; display: flex; gap: 14px; align-items: center; z-index: 300; font-size: 0.84rem; box-shadow: 0 8px 30px rgba(0,0,0,0.5); flex-wrap: wrap; max-width: 90vw; }
     .liq-btn-gold { border: 1px solid rgba(201,168,76,0.5); color: var(--gold); border-style: solid; }
     .liq-btn-gold:hover { background: rgba(201,168,76,0.1); }
+
+    /* ── NOTES ── */
+    .notes-area { width: 100%; min-height: 440px; background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); color: var(--white); font-family: inherit; font-size: 0.92rem; line-height: 1.65; padding: 22px; outline: none; resize: vertical; transition: border-color 0.2s; }
+    .notes-area:focus { border-color: rgba(201,168,76,0.35); }
+    .notes-area::placeholder { color: rgba(138,151,170,0.4); }
 
     /* ── PLACEHOLDER TABS ── */
     .placeholder-card { background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); padding: 60px 40px; text-align: center; }
@@ -311,11 +328,24 @@
           <input type="month" id="liqStart" onchange="liqChangeStart(this.value)" />
         </label>
         <button class="liq-btn" onclick="liqExtend()">+ 12 Monate</button>
-        <button class="liq-btn" onclick="liqFillFromUberblick()">↻ Aus Überblick übernehmen</button>
-        <span class="liq-hint">Alle Werte in € · <span style="color:var(--gold2)">gold</span> = manuell überschrieben · Zelle leeren = zurück zur Formel</span>
+        <button class="liq-btn" onclick="liqOpenImport()">⤒ Tilgungsplan importieren</button>
+        <input type="file" id="liqPdfInput" accept="application/pdf" style="display:none" onchange="liqImportPdf(this.files[0])" />
+        <span class="liq-hint">Alle Werte in € · <span style="color:var(--gold2)">gold</span> = manuell überschrieben · Zelle leeren = zurück zur Formel · Doppelklick = Notiz</span>
       </div>
 
       <div class="liq-scroll" id="liqScroll"></div>
+
+      <!-- Import-Modal -->
+      <div class="liq-modal" id="liqImportModal" onclick="if(event.target===this)liqCloseImport()">
+        <div class="liq-modal-box">
+          <h4>Tilgungsplan importieren</h4>
+          <p>PDF deiner Bank hierher ziehen oder klicken zum Auswählen.<br />Zins und Tilgung werden automatisch erkannt und nach Bestätigung übernommen.</p>
+          <div class="liq-drop" id="liqDrop" onclick="document.getElementById('liqPdfInput').click()">
+            <span id="liqDropText">📄 PDF hier ablegen oder klicken</span>
+          </div>
+          <button class="liq-btn" onclick="liqCloseImport()">Abbrechen</button>
+        </div>
+      </div>
 
     </div>
   </div>
@@ -325,12 +355,15 @@
   ══════════════════════════════════════ -->
   <div class="tab-pane" id="pane-notes">
     <div class="tab-content">
-      <div class="placeholder-card">
-        <div class="placeholder-icon">📝</div>
-        <h3>Notes</h3>
-        <p>Notizen, Erinnerungen und wichtige Informationen zu dieser Immobilie.</p>
-        <span class="coming-badge">Kommt bald</span>
+
+      <div class="section-head" style="margin-bottom:16px;">
+        <h3>No<span style="color:var(--gold)">tes</span></h3>
+        <div class="save-indicator" id="siNotes"></div>
       </div>
+
+      <textarea class="notes-area" id="notesArea"
+                placeholder="Notizen, Erinnerungen und wichtige Informationen zu dieser Immobilie …"></textarea>
+
     </div>
   </div>
 
@@ -414,6 +447,7 @@
       initKaufcheckliste(data.kaufcheckliste)
       initMietverhaeltnis(data.mietverhaeltnis)
       initLiquiditaet(data)
+      initNotes(data.notes)
     }
 
     // ════════════════════════════════════════
@@ -663,16 +697,14 @@
       { key: 'ausgabe',               label: 'Zahlung Nebenkosten',      type: 'input' },
       { key: 'weitereAusgaben',       label: 'Weitere Ausgaben',         type: 'input' },
       { key: 'nebenkostenabrechnung', label: 'Nebenkostenabrechnung',    type: 'input' },
-      { key: 'miete',        label: 'Miete',             type: 'calc',  sep: true },
-      { key: 'nkm',          label: 'davon NKM',         type: 'input', sub: true },
-      { key: 'nk',           label: 'davon NK',          type: 'input', sub: true },
+      { key: 'miete',        label: 'Miete',                    type: 'calc',  sep: true },
+      { key: 'nkm',          label: 'Nettokaltmiete',           type: 'input', sub: true },
+      { key: 'nk',           label: 'Nebenkostenvorauszahlung', type: 'input', sub: true },
       { key: 'weitereMiete', label: 'Weitere Miete',     type: 'input' },
       { key: 'grundsteuer',  label: 'Grundsteuer',       type: 'input' },
       { key: 'hausgeld',     label: 'Hausgeld',          type: 'input' },
       { key: 'zins',         label: 'Zins',              type: 'input' },
       { key: 'tilgung',      label: 'Tilgung',           type: 'input' },
-      { key: 'tilgungKum',   label: 'Tilgung kumuliert', type: 'calc' },
-      { key: 'bankrate',     label: 'Bankrate',          type: 'calc' },
       { key: 'cf',           label: 'CF Wohnung',        type: 'calc',  strong: true },
       { key: 'guthaben',     label: 'Guthaben',          type: 'calc',  total: true, sep: true },
     ]
@@ -687,6 +719,7 @@
       liqData = data.liquiditaet || liqDefaults(data)
       if (!liqData.cells)     liqData.cells = {}
       if (!liqData.overrides) liqData.overrides = {}
+      if (!liqData.notes)     liqData.notes = {}
       document.getElementById('liqStart').value = liqData.startMonth
       liqTakeSyncSnapshot()
       liqRender()
@@ -750,20 +783,26 @@
       return d
     }
 
-    // Auto-Zeilen erneut aus dem Überblick übernehmen (Button)
-    function liqFillFromUberblick() {
-      if (!confirm('Werte aus „Finanzierung und Liquidität“ (Überblick) übernehmen?\n\nKaufpreis, Einzahlung FK, NKM, NK, Weitere Miete und Hausgeld werden für alle Monate neu befüllt. Manuelle Einträge in diesen Zeilen gehen verloren.')) return
-      collectUberblick()
-      const fresh = liqDefaults(
-        { ...propData, checkliste: uberblickData, kaufdatum: liqData.startMonth + '-01' },
-        liqData.monthCount
-      )
-      ;['kaufpreis', 'einzahlungFk', 'nkm', 'nk', 'weitereMiete', 'hausgeld'].forEach(k => {
-        liqData.cells[k] = fresh.cells[k] || {}
+    // Import-Modal (Drag & Drop)
+    function liqOpenImport() {
+      document.getElementById('liqImportModal').classList.add('open')
+      document.getElementById('liqDropText').textContent = '📄 PDF hier ablegen oder klicken'
+      const drop = document.getElementById('liqDrop')
+      if (drop.dataset.wired) return
+      drop.dataset.wired = '1'
+      ;['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => {
+        e.preventDefault(); drop.classList.add('over')
+      }))
+      ;['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => {
+        e.preventDefault(); drop.classList.remove('over')
+      }))
+      drop.addEventListener('drop', e => {
+        const f = e.dataTransfer?.files?.[0]
+        if (f) liqImportPdf(f)
       })
-      liqTakeSyncSnapshot()
-      liqRender()
-      scheduleSave('l')
+    }
+    function liqCloseImport() {
+      document.getElementById('liqImportModal').classList.remove('open')
     }
 
     function liqMonthList(start, count) {
@@ -785,19 +824,16 @@
       }
       const out = {}
       LIQ_ROWS.forEach(r => { out[r.key] = {} })
-      let kum = 0, guthaben = 0
+      let guthaben = 0
       months.forEach(m => {
         LIQ_ROWS.forEach(r => { if (r.type === 'input') out[r.key][m] = inp(r.key, m) })
         const miete    = ov('miete', m)      ?? out.nkm[m] + out.nk[m]                       // Miete = NKM + NK
-        kum            = ov('tilgungKum', m) ?? kum + out.tilgung[m]                          // kumulierte Tilgung
-        const bankrate = ov('bankrate', m)   ?? out.zins[m] + out.tilgung[m]                  // Bankrate = Zins + Tilgung
         const cf       = ov('cf', m)         ?? miete + out.weitereMiete[m] + out.grundsteuer[m]
-                                               + out.hausgeld[m] + bankrate                   // CF Wohnung
+                                               + out.hausgeld[m] + out.zins[m] + out.tilgung[m] // CF Wohnung
         guthaben       = ov('guthaben', m)   ?? guthaben + out.einzahlungEk[m] + out.einzahlungFk[m]
                                                + out.kaufpreis[m] + out.ausgabe[m] + out.weitereAusgaben[m]
                                                + out.nebenkostenabrechnung[m] + cf            // Guthaben kumuliert
-        out.miete[m] = miete; out.tilgungKum[m] = kum
-        out.bankrate[m] = bankrate; out.cf[m] = cf; out.guthaben[m] = guthaben
+        out.miete[m] = miete; out.cf[m] = cf; out.guthaben[m] = guthaben
       })
       return { months, out }
     }
@@ -817,10 +853,11 @@
     // ── Rendering ──
     function liqRender() {
       const { months, out } = liqCompute()
+      const nowM = new Date().toISOString().slice(0, 7)
       const monthTh = months.map(m => {
         const [y, mo] = m.split('-').map(Number)
         const name = new Date(y, mo - 1, 1).toLocaleDateString('de-DE', { month: 'short' })
-        return `<th class="${mo === 1 ? 'liq-yr' : ''}">${name} ${String(y).slice(2)}</th>`
+        return `<th class="${mo === 1 ? 'liq-yr' : ''}${m === nowM ? ' liq-now' : ''}">${name} ${String(y).slice(2)}</th>`
       }).join('')
 
       const rows = LIQ_ROWS.map(r => {
@@ -829,7 +866,7 @@
           r.strong ? 'liq-row-strong' : '', r.total ? 'liq-row-total' : ''].filter(Boolean).join(' ')
         const tds = months.map(m => {
           const [, mo] = m.split('-').map(Number)
-          return `<td class="${mo === 1 ? 'liq-yr' : ''}">
+          return `<td class="${mo === 1 ? 'liq-yr' : ''}${m === nowM ? ' liq-now' : ''}">
             <input class="liq-cell" data-row="${r.key}" data-month="${m}" placeholder="0" />
           </td>`
         }).join('')
@@ -842,12 +879,62 @@
           <tbody>${rows}</tbody>
         </table>`
 
+      liqScrollToNow()
       document.querySelectorAll('.liq-cell').forEach(cell => {
-        cell.addEventListener('input',  () => liqOnEdit(cell))
-        cell.addEventListener('change', () => liqMaybeOfferForward(cell))
-        cell.addEventListener('blur',   () => liqRefreshCells())
+        cell.addEventListener('input',    () => liqOnEdit(cell))
+        cell.addEventListener('change',   () => liqMaybeOfferForward(cell))
+        cell.addEventListener('blur',     () => liqRefreshCells())
+        cell.addEventListener('keydown',  e  => liqKeyNav(e, cell))
+        cell.addEventListener('dblclick', () => liqEditNote(cell))
+        cell.addEventListener('focus',    () => cell.select())
+        cell.addEventListener('mouseup',  e  => e.preventDefault())
       })
       liqRefreshCells()
+    }
+
+    // Aktuellen Monat horizontal in die Mitte der Ansicht scrollen
+    function liqScrollToNow() {
+      const scroll = document.getElementById('liqScroll')
+      const th = scroll?.querySelector('th.liq-now')
+      if (!scroll || !th || !document.getElementById('pane-liquiditaet').classList.contains('active')) return
+      const labelW = scroll.querySelector('th.liq-label')?.offsetWidth || 0
+      const visible = scroll.clientWidth - labelW
+      scroll.scrollLeft = Math.max(0, th.offsetLeft - labelW - visible / 2 + th.offsetWidth / 2)
+    }
+
+    // ── Pfeiltasten-Navigation zwischen Zellen ──
+    function liqKeyNav(e, cell) {
+      if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter'].includes(e.key)) return
+      const months = liqMonths()
+      const rowKeys = LIQ_ROWS.map(r => r.key)
+      let ri = rowKeys.indexOf(cell.dataset.row)
+      let mi = months.indexOf(cell.dataset.month)
+      const len = cell.value.length
+      const fullSel = cell.selectionStart === 0 && cell.selectionEnd === len
+      if (e.key === 'ArrowUp') ri--
+      else if (e.key === 'ArrowDown' || e.key === 'Enter') ri++
+      else if (e.key === 'ArrowLeft')  { if (!fullSel && cell.selectionStart > 0) return; mi-- }
+      else if (e.key === 'ArrowRight') { if (!fullSel && cell.selectionEnd < len) return; mi++ }
+      if (ri < 0 || ri >= rowKeys.length || mi < 0 || mi >= months.length) return
+      const target = document.querySelector(`.liq-cell[data-row="${rowKeys[ri]}"][data-month="${months[mi]}"]`)
+      if (!target) return
+      e.preventDefault()
+      target.focus()
+      target.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+    }
+
+    // ── Notizen pro Zelle (Doppelklick) ──
+    function liqEditNote(cell) {
+      const { row, month } = cell.dataset
+      if (!liqData.notes) liqData.notes = {}
+      const cur = liqData.notes[row]?.[month] || ''
+      const txt = prompt('Notiz für diese Zelle (leer = löschen):', cur)
+      if (txt === null) return
+      if (!liqData.notes[row]) liqData.notes[row] = {}
+      if (txt.trim() === '') delete liqData.notes[row][month]
+      else liqData.notes[row][month] = txt.trim()
+      liqRefreshCells()
+      scheduleSave('l')
     }
 
     // ── Forward-Edit: geänderte Zelle für alle Folgemonate übernehmen ──
@@ -922,6 +1009,9 @@
         cell.classList.toggle('ov', def.type === 'calc' && hasOv)
         cell.classList.toggle('neg', val < -0.004)
         cell.classList.toggle('pos', row === 'guthaben' && val > 0.004)
+        const note = liqData.notes?.[row]?.[month]
+        cell.title = note || ''
+        cell.parentElement.classList.toggle('has-note', !!note)
       })
     }
 
@@ -967,16 +1057,162 @@
     }
 
     // ════════════════════════════════════════
+    // NOTES
+    // ════════════════════════════════════════
+    let nTimer = null
+
+    function initNotes(text) {
+      const area = document.getElementById('notesArea')
+      area.value = text || ''
+      area.addEventListener('input', () => scheduleSave('n'))
+    }
+
+    // ════════════════════════════════════════
+    // TILGUNGSPLAN-IMPORT (PDF, komplett im Browser)
+    // ════════════════════════════════════════
+    async function liqLoadPdfJs() {
+      if (window.pdfjsLib) return window.pdfjsLib
+      await new Promise((res, rej) => {
+        const s = document.createElement('script')
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'
+        s.onload = res; s.onerror = () => rej(new Error('pdf.js konnte nicht geladen werden'))
+        document.head.appendChild(s)
+      })
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+      return window.pdfjsLib
+    }
+
+    async function liqImportPdf(file) {
+      if (!file) return
+      const dropText = document.getElementById('liqDropText')
+      const resetDrop = () => { if (dropText) dropText.textContent = '📄 PDF hier ablegen oder klicken' }
+      if (dropText) dropText.textContent = '⏳ Lese PDF …'
+      try {
+        const pdfjs = await liqLoadPdfJs()
+        const buf = await file.arrayBuffer()
+        const pdf = await pdfjs.getDocument({ data: buf }).promise
+        const rows = []
+        for (let p = 1; p <= pdf.numPages; p++) {
+          const page = await pdf.getPage(p)
+          const tc = await page.getTextContent()
+          const byY = {}
+          tc.items.forEach(it => {
+            const str = it.str || ''
+            if (!str.trim()) return
+            const y = Math.round(it.transform[5])
+            const x = it.transform[4]
+            const w = it.width || 0
+            // pdf.js liefert teils ganze Zeilen als ein Item → in Tokens aufteilen,
+            // X-Position der Tokens proportional zur Zeichenposition schätzen
+            const re = /\S+/g
+            let mt
+            while ((mt = re.exec(str)) !== null) {
+              const px = x + (str.length ? (mt.index / str.length) * w : 0)
+              if (!byY[y]) byY[y] = []
+              byY[y].push({ x: px, str: mt[0] })
+            }
+          })
+          Object.keys(byY).map(Number).sort((a, b) => b - a).forEach(y => {
+            rows.push({ items: byY[y].sort((a, b) => a.x - b.x) })
+          })
+        }
+        const { entries, headerFound, skipped } = liqParseTilgungsplan(rows)
+        if (!headerFound) {
+          resetDrop()
+          alert('Im PDF wurde keine Kopfzeile mit den Spalten „Zins“ und „Tilgung“ gefunden.\n\nBitte prüfen, ob es sich um einen Tilgungsplan mit Tabellenstruktur handelt (kein Scan/Foto).')
+          return
+        }
+        if (!entries.length) {
+          resetDrop()
+          alert('Kopfzeile gefunden, aber keine Datenzeilen mit Datum, Zins und Tilgung erkannt.')
+          return
+        }
+        liqCloseImport()
+        entries.sort((a, b) => a.month < b.month ? -1 : 1)
+        const first = entries[0], last = entries[entries.length - 1]
+        const fmtM = m => { const [y, mo] = m.split('-'); return mo + '/' + y }
+        const warn = skipped > 0 ? `\n⚠ ${skipped} Zeile(n) konnten nicht zugeordnet werden.\n` : ''
+        if (!confirm(`${entries.length} Monatsraten erkannt (${fmtM(first.month)} bis ${fmtM(last.month)}).${warn}\nErste Rate ${fmtM(first.month)}: Zins ${liqFmt(first.zins)} €, Tilgung ${liqFmt(first.tilgung)} €\nLetzte Rate ${fmtM(last.month)}: Zins ${liqFmt(last.zins)} €, Tilgung ${liqFmt(last.tilgung)} €\n\nZins und Tilgung übernehmen? Bestehende Werte dieser Monate werden überschrieben.`)) return
+        if (!liqData.cells.zins)    liqData.cells.zins = {}
+        if (!liqData.cells.tilgung) liqData.cells.tilgung = {}
+        entries.forEach(e => {
+          liqData.cells.zins[e.month]    = -Math.abs(e.zins)
+          liqData.cells.tilgung[e.month] = -Math.abs(e.tilgung)
+        })
+        liqRefreshCells()
+        scheduleSave('l')
+      } catch (err) {
+        resetDrop()
+        alert('PDF konnte nicht gelesen werden: ' + err.message)
+      } finally {
+        document.getElementById('liqPdfInput').value = ''
+      }
+    }
+
+    // Erkennt Kopfzeile (Zins/Tilgung) und ordnet Zahlen den Spalten per X-Position zu
+    function liqParseTilgungsplan(rows) {
+      // Kopfzeile suchen; alle Spaltenpositionen als Anker merken
+      let zinsX = null, tilgX = null, anchors = null
+      for (const r of rows) {
+        let zx = null, tx = null
+        r.items.forEach(it => {
+          const s = it.str.toLowerCase()
+          if (zx === null && s.includes('zins') && !s.includes('satz') && !s.includes('bindung') && !s.includes('effektiv')) zx = it.x
+          if (tx === null && s.includes('tilgung') && !s.includes('satz')) tx = it.x
+        })
+        if (zx !== null && tx !== null) { zinsX = zx; tilgX = tx; anchors = r.items.map(i => i.x); break }
+      }
+      if (zinsX === null || tilgX === null) return { entries: [], headerFound: false }
+
+      const dateRe = /^(?:(\d{1,2})\.)?(\d{1,2})\.(\d{2}|\d{4})$/
+      const numRe  = /^-?\d{1,3}(\.\d{3})*(,\d+)?\s?€?$|^-?\d+(,\d+)?\s?€?$/
+      const entries = []
+      const seen = new Set()
+      let skipped = 0
+      rows.forEach(r => {
+        const dateIt = r.items.find(it => dateRe.test(it.str))
+        if (!dateIt) return
+        const nums = r.items
+          .filter(it => it !== dateIt && numRe.test(it.str))
+          .map(it => ({ x: it.x, val: liqParse(it.str) }))
+          .filter(n => n.val !== null)
+        if (nums.length < 2) return
+        const md = dateIt.str.match(dateRe)
+        const yr = md[3].length === 2 ? '20' + md[3] : md[3]
+        const mo = md[2].padStart(2, '0')   // TT.MM.JJJJ → md[2]=Monat; MM.JJJJ → md[2]=Monat
+        const month = `${yr}-${mo}`
+        if (Number(mo) < 1 || Number(mo) > 12 || seen.has(month)) return
+        // Jede Zahl ihrem nächstgelegenen Spaltenanker zuordnen (pro Anker die nächste Zahl)
+        const assign = {}
+        nums.forEach(n => {
+          let best = null, bd = Infinity
+          anchors.forEach(a => { const dd = Math.abs(n.x - a); if (dd < bd) { bd = dd; best = a } })
+          if (!(best in assign) || Math.abs(assign[best].x - best) > bd) assign[best] = n
+        })
+        const zn = assign[zinsX], tn = assign[tilgX]
+        if (!zn || !tn || zn === tn) { skipped++; return }
+        const zins = Math.abs(zn.val), tilgung = Math.abs(tn.val)
+        if (zins === 0 && tilgung === 0) return   // Saldo-/Infozeilen (z. B. Sparkasse) überspringen
+        if (zins > 100000 || tilgung > 100000) { skipped++; return }  // vermutlich Kontostand erwischt
+        seen.add(month)
+        entries.push({ month, zins, tilgung })
+      })
+      return { entries, headerFound: true, skipped }
+    }
+
+    // ════════════════════════════════════════
     // AUTO-SAVE (geteilt für alle Tabs)
     // ════════════════════════════════════════
     function scheduleSave(type) {
-      const indicators = { u: 'siUberblick', k: 'siCheckliste', m: 'siMiet', l: 'siLiq' }
+      const indicators = { u: 'siUberblick', k: 'siCheckliste', m: 'siMiet', l: 'siLiq', n: 'siNotes' }
       const ind = document.getElementById(indicators[type])
       if (ind) { ind.textContent = 'Speichern …'; ind.className = 'save-indicator saving'; }
       if (type === 'u') { clearTimeout(uTimer); uTimer = setTimeout(() => doSave('u'), 900) }
       if (type === 'k') { clearTimeout(kTimer); kTimer = setTimeout(() => doSave('k'), 900) }
       if (type === 'm') { clearTimeout(mTimer); mTimer = setTimeout(() => doSave('m'), 900) }
       if (type === 'l') { clearTimeout(lTimer); lTimer = setTimeout(() => doSave('l'), 900) }
+      if (type === 'n') { clearTimeout(nTimer); nTimer = setTimeout(() => doSave('n'), 900) }
     }
 
     async function doSave(type) {
@@ -985,8 +1221,9 @@
       if (type === 'k') { collectKauf();       col = 'kaufcheckliste';  payload = kaufData }
       if (type === 'm') { collectMiet();       col = 'mietverhaeltnis'; payload = mietData }
       if (type === 'l') {                      col = 'liquiditaet';     payload = liqData }
+      if (type === 'n') { col = 'notes'; payload = document.getElementById('notesArea').value }
 
-      const indicators = { u: 'siUberblick', k: 'siCheckliste', m: 'siMiet', l: 'siLiq' }
+      const indicators = { u: 'siUberblick', k: 'siCheckliste', m: 'siMiet', l: 'siLiq', n: 'siNotes' }
       const ind = document.getElementById(indicators[type])
       const { error } = await sb.from('portfolio').update({ [col]: payload }).eq('id', id)
       if (!ind) return
@@ -1010,6 +1247,7 @@
       document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'))
       const pane = document.getElementById('pane-' + name)
       if (pane) pane.classList.add('active')
+      if (name === 'liquiditaet') liqScrollToNow()
     }
 
     async function deleteImmobilie() {
