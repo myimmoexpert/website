@@ -146,6 +146,9 @@
     .liq-cell.pos { color: var(--green); }
     .liq-cell.ov { box-shadow: inset 3px 0 0 var(--gold); color: var(--gold2); }
     .liq-cell::placeholder { color: rgba(138,151,170,0.25); }
+    .liq-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: var(--navy3); border: 1px solid rgba(201,168,76,0.4); border-radius: 12px; padding: 12px 18px; display: flex; gap: 14px; align-items: center; z-index: 300; font-size: 0.84rem; box-shadow: 0 8px 30px rgba(0,0,0,0.5); flex-wrap: wrap; max-width: 90vw; }
+    .liq-btn-gold { border: 1px solid rgba(201,168,76,0.5); color: var(--gold); border-style: solid; }
+    .liq-btn-gold:hover { background: rgba(201,168,76,0.1); }
 
     /* ── PLACEHOLDER TABS ── */
     .placeholder-card { background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); padding: 60px 40px; text-align: center; }
@@ -654,14 +657,17 @@
     // Zeilen wie in der Excel-Vorlage.
     // type 'input' = manuelle Eingabe, type 'calc' = berechnet (überschreibbar).
     const LIQ_ROWS = [
-      { key: 'einzahlungFk', label: 'Einzahlung FK',     type: 'input' },
-      { key: 'kaufpreis',    label: 'Kaufpreis',         type: 'input' },
-      { key: 'einzahlungEk', label: 'Einzahlung EK',     type: 'input', sep: true },
-      { key: 'ausgabe',      label: 'Ausgabe',           type: 'input' },
+      { key: 'einzahlungEk',          label: 'Einzahlung Eigenkapital',  type: 'input' },
+      { key: 'einzahlungFk',          label: 'Valutierung Fremdkapital', type: 'input' },
+      { key: 'kaufpreis',             label: 'Zahlung Kaufpreis',        type: 'input' },
+      { key: 'ausgabe',               label: 'Zahlung Nebenkosten',      type: 'input' },
+      { key: 'weitereAusgaben',       label: 'Weitere Ausgaben',         type: 'input' },
+      { key: 'nebenkostenabrechnung', label: 'Nebenkostenabrechnung',    type: 'input' },
       { key: 'miete',        label: 'Miete',             type: 'calc',  sep: true },
       { key: 'nkm',          label: 'davon NKM',         type: 'input', sub: true },
       { key: 'nk',           label: 'davon NK',          type: 'input', sub: true },
       { key: 'weitereMiete', label: 'Weitere Miete',     type: 'input' },
+      { key: 'grundsteuer',  label: 'Grundsteuer',       type: 'input' },
       { key: 'hausgeld',     label: 'Hausgeld',          type: 'input' },
       { key: 'zins',         label: 'Zins',              type: 'input' },
       { key: 'tilgung',      label: 'Tilgung',           type: 'input' },
@@ -785,9 +791,11 @@
         const miete    = ov('miete', m)      ?? out.nkm[m] + out.nk[m]                       // Miete = NKM + NK
         kum            = ov('tilgungKum', m) ?? kum + out.tilgung[m]                          // kumulierte Tilgung
         const bankrate = ov('bankrate', m)   ?? out.zins[m] + out.tilgung[m]                  // Bankrate = Zins + Tilgung
-        const cf       = ov('cf', m)         ?? miete + out.weitereMiete[m] + out.hausgeld[m] + bankrate // CF Wohnung
-        guthaben       = ov('guthaben', m)   ?? guthaben + out.einzahlungFk[m] + out.kaufpreis[m]
-                                               + out.einzahlungEk[m] + out.ausgabe[m] + cf    // Guthaben kumuliert
+        const cf       = ov('cf', m)         ?? miete + out.weitereMiete[m] + out.grundsteuer[m]
+                                               + out.hausgeld[m] + bankrate                   // CF Wohnung
+        guthaben       = ov('guthaben', m)   ?? guthaben + out.einzahlungEk[m] + out.einzahlungFk[m]
+                                               + out.kaufpreis[m] + out.ausgabe[m] + out.weitereAusgaben[m]
+                                               + out.nebenkostenabrechnung[m] + cf            // Guthaben kumuliert
         out.miete[m] = miete; out.tilgungKum[m] = kum
         out.bankrate[m] = bankrate; out.cf[m] = cf; out.guthaben[m] = guthaben
       })
@@ -835,10 +843,63 @@
         </table>`
 
       document.querySelectorAll('.liq-cell').forEach(cell => {
-        cell.addEventListener('input', () => liqOnEdit(cell))
-        cell.addEventListener('blur',  () => liqRefreshCells())
+        cell.addEventListener('input',  () => liqOnEdit(cell))
+        cell.addEventListener('change', () => liqMaybeOfferForward(cell))
+        cell.addEventListener('blur',   () => liqRefreshCells())
       })
       liqRefreshCells()
+    }
+
+    // ── Forward-Edit: geänderte Zelle für alle Folgemonate übernehmen ──
+    const LIQ_FORWARD_ROWS = ['miete', 'nkm', 'nk', 'weitereMiete', 'grundsteuer', 'hausgeld']
+    let liqToastTimer = null
+
+    function liqMaybeOfferForward(cell) {
+      const { row, month } = cell.dataset
+      if (!LIQ_FORWARD_ROWS.includes(row)) return
+      const months = liqMonths()
+      if (month === months[months.length - 1]) return   // letzter Monat: nichts fortzuschreiben
+      const def = LIQ_ROWS.find(r => r.key === row)
+      const store = def.type === 'input' ? liqData.cells : liqData.overrides
+      const val = store[row]?.[month]
+      if (val === undefined) return                      // Zelle wurde geleert
+      liqShowToast(row, month, val)
+    }
+
+    function liqShowToast(row, month, val) {
+      liqHideToast()
+      const def = LIQ_ROWS.find(r => r.key === row)
+      const [y, mo] = month.split('-').map(Number)
+      const name = new Date(y, mo - 1, 1).toLocaleDateString('de-DE', { month: 'short', year: '2-digit' })
+      const el = document.createElement('div')
+      el.className = 'liq-toast'
+      el.id = 'liqToast'
+      el.innerHTML = `
+        <span>${def.label} <strong>${liqFmt(val)} €</strong> auch für alle Folgemonate übernehmen?</span>
+        <button class="liq-btn liq-btn-gold" onclick="liqApplyForward('${row}','${month}')">Ab ${name} fortschreiben</button>
+        <button class="liq-btn" onclick="liqHideToast()">Nur ${name}</button>`
+      document.body.appendChild(el)
+      clearTimeout(liqToastTimer)
+      liqToastTimer = setTimeout(liqHideToast, 12000)
+    }
+
+    function liqHideToast() {
+      clearTimeout(liqToastTimer)
+      document.getElementById('liqToast')?.remove()
+    }
+
+    function liqApplyForward(row, month) {
+      const def = LIQ_ROWS.find(r => r.key === row)
+      const store = def.type === 'input' ? liqData.cells : liqData.overrides
+      const val = store[row]?.[month]
+      liqHideToast()
+      if (val === undefined) return
+      liqMonths().filter(m => m > month).forEach(m => {
+        if (!store[row]) store[row] = {}
+        store[row][m] = val
+      })
+      liqRefreshCells()
+      scheduleSave('l')
     }
 
     // Alle Zellwerte aus dem Modell in die Inputs schreiben (fokussierte Zelle bleibt unangetastet)
@@ -894,7 +955,7 @@
       const last = months[months.length - 1]
       liqData.monthCount += 12
       // wiederkehrende Zeilen in die neuen Monate fortschreiben
-      const carry = ['nkm', 'nk', 'weitereMiete', 'hausgeld']
+      const carry = ['nkm', 'nk', 'weitereMiete', 'grundsteuer', 'hausgeld']
       liqMonths().slice(-12).forEach(m => {
         carry.forEach(k => {
           const lastVal = liqData.cells[k]?.[last]
