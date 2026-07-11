@@ -149,7 +149,7 @@
     .liq-cell.ov { box-shadow: inset 3px 0 0 var(--gold); color: var(--gold2); }
     .liq-cell::placeholder { color: rgba(138,151,170,0.25); }
     .liq-row-sub .liq-cell { font-size: 0.72rem; font-style: italic; color: var(--muted); }
-    .liq-table td { position: relative; }
+    .liq-table td:not(.liq-label) { position: relative; }
     .liq-table td.has-note::after { content: ''; position: absolute; top: 0; right: 0; border-top: 7px solid var(--gold); border-left: 7px solid transparent; pointer-events: none; }
     .liq-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none; align-items: center; justify-content: center; z-index: 400; }
     .liq-modal.open { display: flex; }
@@ -161,6 +161,16 @@
     .liq-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: var(--navy3); border: 1px solid rgba(201,168,76,0.4); border-radius: 12px; padding: 12px 18px; display: flex; gap: 14px; align-items: center; z-index: 300; font-size: 0.84rem; box-shadow: 0 8px 30px rgba(0,0,0,0.5); flex-wrap: wrap; max-width: 90vw; }
     .liq-btn-gold { border: 1px solid rgba(201,168,76,0.5); color: var(--gold); border-style: solid; }
     .liq-btn-gold:hover { background: rgba(201,168,76,0.1); }
+
+    /* ── MIETVERHÄLTNIS-ARCHIV ── */
+    .miet-archiv-head { margin: 28px 0 4px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+    .miet-archiv { margin-top: 8px; }
+    .miet-archiv summary { cursor: pointer; color: var(--muted); font-size: 0.86rem; padding: 10px 0; list-style: none; transition: color 0.2s; }
+    .miet-archiv summary::-webkit-details-marker { display: none; }
+    .miet-archiv summary:hover { color: var(--white); }
+    .miet-archiv[open] summary { color: var(--gold); }
+    .cl-archiv-val { padding: 11px 16px; font-size: 0.86rem; color: var(--muted); display: flex; align-items: center; }
+    .miet-archiv-del { margin: 4px 0 14px; padding: 7px 14px; font-size: 0.78rem; }
 
     /* ── NOTES ── */
     .notes-area { width: 100%; min-height: 440px; background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); color: var(--white); font-family: inherit; font-size: 0.92rem; line-height: 1.65; padding: 22px; outline: none; resize: vertical; transition: border-color 0.2s; }
@@ -306,8 +316,12 @@
       </div>
 
       <div class="cl-table" id="clTableMiet">
-        <div class="cl-section-label">Mieterdaten</div>
+        <div class="cl-section-label">Aktuelles Mietverhältnis</div>
       </div>
+
+      <button class="btn-add-row" onclick="archiveMiet()">📦 Mietverhältnis archivieren &amp; neues anlegen</button>
+
+      <div id="mietArchiv"></div>
 
     </div>
   </div>
@@ -650,16 +664,20 @@
     const MIET_FIELDS = [
       { key: 'mieter',              label: 'Mieter' },
       { key: 'kontaktMieter',       label: 'Kontaktdetails Mieter' },
+      { key: 'mietverhaeltnisSeit', label: 'Mietverhältnis seit' },
       { key: 'letzteMieterhoehung', label: 'Letzte Mieterhöhung' },
       { key: 'buergschaft',         label: 'Bürgschaft' },
     ]
 
-    let mietData = {}
+    let mietData = { aktuell: {}, archiv: [] }
     let mTimer = null
 
     function initMietverhaeltnis(data) {
-      mietData = data || {}
+      // Altbestand (flaches Objekt) in neue Struktur { aktuell, archiv } überführen
+      if (data && (data.aktuell || data.archiv)) mietData = { aktuell: data.aktuell || {}, archiv: data.archiv || [] }
+      else mietData = { aktuell: data || {}, archiv: [] }
       renderMietverhaeltnis()
+      renderMietArchiv()
     }
 
     function renderMietverhaeltnis() {
@@ -671,7 +689,7 @@
         row.innerHTML = `
           <div class="cl-fixed-label">${field.label}</div>
           <input class="cl-value-input" type="text" placeholder="eintragen …"
-                 value="${esc(mietData[field.key] || '')}" data-miet-key="${field.key}" />
+                 value="${esc(mietData.aktuell[field.key] || '')}" data-miet-key="${field.key}" />
           <div></div>`
         row.querySelector('input').addEventListener('input', () => scheduleSave('m'))
         table.appendChild(row)
@@ -681,8 +699,55 @@
     function collectMiet() {
       MIET_FIELDS.forEach(field => {
         const inp = document.querySelector(`[data-miet-key="${field.key}"]`)
-        if (inp) mietData[field.key] = inp.value
+        if (inp) mietData.aktuell[field.key] = inp.value
       })
+    }
+
+    function archiveMiet() {
+      collectMiet()
+      if (!confirm('Aktuelles Mietverhältnis archivieren?\n\nDie Daten werden unten unter „Alte Mietverhältnisse“ abgelegt und die Tabelle für ein neues Mietverhältnis geleert.')) return
+      if (!mietData.archiv) mietData.archiv = []
+      mietData.archiv.push({ ...mietData.aktuell, archiviertAm: new Date().toISOString().slice(0, 10) })
+      mietData.aktuell = {}
+      renderMietverhaeltnis()
+      renderMietArchiv()
+      scheduleSave('m')
+    }
+
+    function renderMietArchiv() {
+      const wrap = document.getElementById('mietArchiv')
+      wrap.innerHTML = ''
+      const arch = mietData.archiv || []
+      if (!arch.length) return
+      const head = document.createElement('div')
+      head.className = 'miet-archiv-head'
+      head.textContent = `Alte Mietverhältnisse (${arch.length})`
+      wrap.appendChild(head)
+      arch.slice().reverse().forEach((entry, revIdx) => {
+        const idx = arch.length - 1 - revIdx
+        const dat = entry.archiviertAm
+          ? new Date(entry.archiviertAm).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''
+        const det = document.createElement('details')
+        det.className = 'miet-archiv'
+        const rows = MIET_FIELDS.map(f => `
+          <div class="cl-row">
+            <div class="cl-fixed-label">${f.label}</div>
+            <div class="cl-archiv-val">${esc(entry[f.key] || '') || '–'}</div>
+            <div></div>
+          </div>`).join('')
+        det.innerHTML = `
+          <summary>▸ ${esc(entry.mieter || 'Ohne Mieter')}${dat ? ' · archiviert am ' + dat : ''}</summary>
+          <div class="cl-table" style="margin-top:10px;">${rows}</div>
+          <button class="btn-delete miet-archiv-del" onclick="deleteMietArchiv(${idx})">Archiv-Eintrag löschen</button>`
+        wrap.appendChild(det)
+      })
+    }
+
+    function deleteMietArchiv(idx) {
+      if (!confirm('Diesen Archiv-Eintrag endgültig löschen?')) return
+      mietData.archiv.splice(idx, 1)
+      renderMietArchiv()
+      scheduleSave('m')
     }
 
     // ════════════════════════════════════════
