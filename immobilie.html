@@ -136,6 +136,8 @@
     .liq-row-calc .liq-label { color: var(--white); }
     .liq-row-strong .liq-label, .liq-row-total .liq-label { font-weight: 600; }
     .liq-sep td { border-top: 2px solid rgba(255,255,255,0.1); }
+    .liq-row-strong td { background: rgba(255,255,255,0.045); }
+    .liq-row-strong .liq-label { background: #20304f; color: var(--white); }
     .liq-row-total td { background: rgba(201,168,76,0.06); }
     .liq-row-total .liq-label { background: #22304d; color: var(--gold); }
     .liq-yr { border-left: 2px solid rgba(201,168,76,0.25) !important; }
@@ -144,11 +146,11 @@
     .liq-cell { width: 100px; background: transparent; border: none; color: var(--white); font-family: inherit; font-size: 0.8rem; text-align: right; padding: 8px 12px; outline: none; }
     .liq-cell:focus { background: rgba(201,168,76,0.08); }
     .liq-cell.calc { color: #aebccf; }
+    .liq-cell.ov { color: var(--white); }
     .liq-cell.neg { color: var(--red); }
     .liq-cell.pos { color: var(--green); }
-    .liq-cell.ov { box-shadow: inset 3px 0 0 var(--gold); color: var(--gold2); }
     .liq-cell::placeholder { color: rgba(138,151,170,0.25); }
-    .liq-row-sub .liq-cell { font-size: 0.72rem; font-style: italic; color: var(--muted); }
+    .liq-row-sub .liq-cell { font-size: 0.72rem; font-style: italic; }
     .liq-table td:not(.liq-label) { position: relative; }
     .liq-table td.has-note::after { content: ''; position: absolute; top: 0; right: 0; border-top: 7px solid var(--gold); border-left: 7px solid transparent; pointer-events: none; }
     .liq-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none; align-items: center; justify-content: center; z-index: 400; }
@@ -171,6 +173,25 @@
     .miet-archiv[open] summary { color: var(--gold); }
     .cl-archiv-val { padding: 11px 16px; font-size: 0.86rem; color: var(--muted); display: flex; align-items: center; }
     .miet-archiv-del { margin: 4px 0 14px; padding: 7px 14px; font-size: 0.78rem; }
+
+    /* ── DATEIEN ── */
+    .dok-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; margin-bottom: 12px; }
+    .dok-folder { background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); padding: 18px 20px; cursor: pointer; transition: border-color 0.2s, transform 0.15s; position: relative; }
+    .dok-folder:hover { border-color: rgba(201,168,76,0.35); transform: translateY(-1px); }
+    .dok-folder .dok-ic { font-size: 1.5rem; }
+    .dok-folder .dok-name { font-weight: 500; font-size: 0.9rem; margin: 10px 0 3px; word-break: break-word; }
+    .dok-folder .dok-cnt { color: var(--muted); font-size: 0.78rem; }
+    .dok-folder .dok-del { position: absolute; top: 8px; right: 10px; background: none; border: none; color: transparent; cursor: pointer; font-size: 0.85rem; transition: color 0.2s; }
+    .dok-folder:hover .dok-del { color: var(--muted); }
+    .dok-folder .dok-del:hover { color: var(--red); }
+    .dok-file { display: grid; grid-template-columns: 1fr auto auto auto; gap: 14px; align-items: center; padding: 11px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.86rem; }
+    .dok-file:last-child { border-bottom: none; }
+    .dok-file .dok-fname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dok-file .dok-fmeta { color: var(--muted); font-size: 0.76rem; white-space: nowrap; }
+    .dok-file button { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.9rem; padding: 2px 6px; transition: color 0.2s; }
+    .dok-file button:hover { color: var(--gold); }
+    .dok-file button.dok-fdel:hover { color: var(--red); }
+    .dok-empty { padding: 24px 20px; color: var(--muted); font-size: 0.86rem; text-align: center; }
 
     /* ── NOTES ── */
     .notes-area { width: 100%; min-height: 440px; background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); color: var(--white); font-family: inherit; font-size: 0.92rem; line-height: 1.65; padding: 22px; outline: none; resize: vertical; transition: border-color 0.2s; }
@@ -344,7 +365,7 @@
         <button class="liq-btn" onclick="liqExtend()">+ 12 Monate</button>
         <button class="liq-btn" onclick="liqOpenImport()">⤒ Tilgungsplan importieren</button>
         <input type="file" id="liqPdfInput" accept="application/pdf" style="display:none" onchange="liqImportPdf(this.files[0])" />
-        <span class="liq-hint">Alle Werte in € · <span style="color:var(--gold2)">gold</span> = manuell überschrieben · Zelle leeren = zurück zur Formel · Doppelklick = Notiz</span>
+        <span class="liq-hint">Alle Werte in € · Zelle leeren = zurück zur Formel · Doppelklick = Notiz</span>
       </div>
 
       <div class="liq-scroll" id="liqScroll"></div>
@@ -386,12 +407,30 @@
   ══════════════════════════════════════ -->
   <div class="tab-pane" id="pane-dateien">
     <div class="tab-content">
-      <div class="placeholder-card">
-        <div class="placeholder-icon">📁</div>
-        <h3>Dateien</h3>
-        <p>Kaufvertrag, Grundrisse, Energieausweis – alle wichtigen Dokumente an einem Ort.</p>
-        <span class="coming-badge">Kommt bald</span>
+
+      <div class="section-head" style="margin-bottom:16px;">
+        <h3>Dat<span style="color:var(--gold)">eien</span></h3>
+        <div class="save-indicator" id="siDateien"></div>
       </div>
+
+      <!-- Ordner-Ansicht -->
+      <div id="dokFolderView">
+        <div class="dok-grid" id="dokGrid"></div>
+        <button class="btn-add-row" id="dokAddBtn" onclick="dokAddFolder()">+ Eigenen Ordner hinzufügen</button>
+      </div>
+
+      <!-- Datei-Ansicht (innerhalb eines Ordners) -->
+      <div id="dokFileView" style="display:none;">
+        <a class="back-link" href="#" onclick="dokBack(event)" style="margin-bottom:14px;">← Alle Ordner</a>
+        <h3 id="dokFolderTitle" style="margin-bottom:14px;">📁</h3>
+        <div class="liq-drop" id="dokDrop" onclick="document.getElementById('dokFileInput').click()"
+             style="margin:0 0 14px; padding:26px 20px;">
+          <span id="dokDropText">📄 Dateien hier ablegen oder klicken (max. 50 MB pro Datei)</span>
+        </div>
+        <input type="file" id="dokFileInput" multiple style="display:none;" />
+        <div class="cl-table" id="dokFileList"></div>
+      </div>
+
     </div>
   </div>
 
@@ -420,12 +459,15 @@
     const id = new URLSearchParams(window.location.search).get('id')
     if (!id) window.location.href = 'portfolio.html'
 
+    let currentUserId = null
+
     sb.auth.getSession().then(({ data }) => {
       if (!data.session) {
         document.getElementById('authGuard').classList.add('visible')
         setTimeout(() => { window.location.href = 'login.html' }, 1500)
         return
       }
+      currentUserId = data.session.user.id
       loadImmobilie()
     })
 
@@ -462,6 +504,7 @@
       initMietverhaeltnis(data.mietverhaeltnis)
       initLiquiditaet(data)
       initNotes(data.notes)
+      initDateien(data.dateien)
     }
 
     // ════════════════════════════════════════
@@ -703,11 +746,23 @@
       })
     }
 
+    // Archivierte Einträge zeigen zusätzlich "Mietverhältnis beendet" (unter "Mietverhältnis seit")
+    const MIET_ARCHIV_FIELDS = (() => {
+      const f = MIET_FIELDS.slice()
+      const i = f.findIndex(x => x.key === 'mietverhaeltnisSeit')
+      f.splice(i + 1, 0, { key: 'mietverhaeltnisBeendet', label: 'Mietverhältnis beendet', editable: true })
+      return f
+    })()
+
     function archiveMiet() {
       collectMiet()
       if (!confirm('Aktuelles Mietverhältnis archivieren?\n\nDie Daten werden unten unter „Alte Mietverhältnisse“ abgelegt und die Tabelle für ein neues Mietverhältnis geleert.')) return
       if (!mietData.archiv) mietData.archiv = []
-      mietData.archiv.push({ ...mietData.aktuell, archiviertAm: new Date().toISOString().slice(0, 10) })
+      mietData.archiv.push({
+        ...mietData.aktuell,
+        mietverhaeltnisBeendet: new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        archiviertAm: new Date().toISOString().slice(0, 10),
+      })
       mietData.aktuell = {}
       renderMietverhaeltnis()
       renderMietArchiv()
@@ -729,16 +784,24 @@
           ? new Date(entry.archiviertAm).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''
         const det = document.createElement('details')
         det.className = 'miet-archiv'
-        const rows = MIET_FIELDS.map(f => `
+        const rows = MIET_ARCHIV_FIELDS.map(f => `
           <div class="cl-row">
             <div class="cl-fixed-label">${f.label}</div>
-            <div class="cl-archiv-val">${esc(entry[f.key] || '') || '–'}</div>
+            ${f.editable
+              ? `<input class="cl-value-input" type="text" placeholder="eintragen …" value="${esc(entry[f.key] || '')}" data-archiv-idx="${idx}" data-archiv-key="${f.key}" />`
+              : `<div class="cl-archiv-val">${esc(entry[f.key] || '') || '–'}</div>`}
             <div></div>
           </div>`).join('')
         det.innerHTML = `
           <summary>▸ ${esc(entry.mieter || 'Ohne Mieter')}${dat ? ' · archiviert am ' + dat : ''}</summary>
           <div class="cl-table" style="margin-top:10px;">${rows}</div>
           <button class="btn-delete miet-archiv-del" onclick="deleteMietArchiv(${idx})">Archiv-Eintrag löschen</button>`
+        det.querySelectorAll('[data-archiv-key]').forEach(inp => {
+          inp.addEventListener('input', () => {
+            mietData.archiv[Number(inp.dataset.archivIdx)][inp.dataset.archivKey] = inp.value
+            scheduleSave('m')
+          })
+        })
         wrap.appendChild(det)
       })
     }
@@ -770,7 +833,7 @@
       { key: 'hausgeld',     label: 'Hausgeld',          type: 'input' },
       { key: 'zins',         label: 'Zins',              type: 'input' },
       { key: 'tilgung',      label: 'Tilgung',           type: 'input' },
-      { key: 'cf',           label: 'CF Wohnung',        type: 'calc',  strong: true },
+      { key: 'cf',           label: 'CF Wohnung',        type: 'calc',  strong: true, sep: true },
       { key: 'guthaben',     label: 'Guthaben',          type: 'calc',  total: true, sep: true },
     ]
 
@@ -1073,7 +1136,7 @@
         cell.classList.toggle('calc', def.type === 'calc' && !hasOv)
         cell.classList.toggle('ov', def.type === 'calc' && hasOv)
         cell.classList.toggle('neg', val < -0.004)
-        cell.classList.toggle('pos', row === 'guthaben' && val > 0.004)
+        cell.classList.toggle('pos', val > 0.004)
         const note = liqData.notes?.[row]?.[month]
         cell.title = note || ''
         cell.parentElement.classList.toggle('has-note', !!note)
@@ -1119,6 +1182,191 @@
       })
       liqRender()
       scheduleSave('l')
+    }
+
+    // ════════════════════════════════════════
+    // DATEIEN (Supabase Storage)
+    // ════════════════════════════════════════
+    const DOK_BUCKET = 'dokumente'
+    const DOK_MAX = 15
+    const DOK_FIXED = [
+      '01 Kauf', '02 Liegenschaft', '03 Finanzierung', '04 Mietverhältnis',
+      '05 Wirtschaftspläne', '06 NK-Abrechnung', '07 WEG-Protokolle', '08 Weitere Unterlagen',
+    ]
+    let dokCustom = []      // eigene Ordnernamen
+    let dokCounts = {}      // Dateianzahl je Ordner
+    let dokFolder = null    // aktuell geöffneter Ordner
+
+    // Pfadsichere Namen (Umlaute transliterieren, Sonderzeichen entfernen)
+    function dokSlug(s) {
+      return String(s)
+        .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue')
+        .replace(/Ä/g, 'Ae').replace(/Ö/g, 'Oe').replace(/Ü/g, 'Ue').replace(/ß/g, 'ss')
+        .replace(/[^A-Za-z0-9 ._()+-]/g, '').replace(/\s+/g, ' ').trim()
+    }
+    const dokPath = (folder, file) =>
+      `${currentUserId}/${id}/${dokSlug(folder)}` + (file ? '/' + dokSlug(file) : '')
+
+    function initDateien(meta) {
+      dokCustom = (meta && meta.ordner) || []
+      renderDokFolders()
+      dokLoadCounts()
+      // Drag & Drop einmalig verdrahten
+      const drop = document.getElementById('dokDrop')
+      ;['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over') }))
+      ;['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over') }))
+      drop.addEventListener('drop', e => { if (e.dataTransfer?.files?.length) dokUpload(e.dataTransfer.files) })
+      const inp = document.getElementById('dokFileInput')
+      inp.addEventListener('change', () => { dokUpload(inp.files); inp.value = '' })
+    }
+
+    function dokAllFolders() { return [...DOK_FIXED, ...dokCustom] }
+
+    function renderDokFolders() {
+      const grid = document.getElementById('dokGrid')
+      grid.innerHTML = ''
+      dokAllFolders().forEach(name => {
+        const isCustom = !DOK_FIXED.includes(name)
+        const card = document.createElement('div')
+        card.className = 'dok-folder'
+        card.innerHTML = `
+          <div class="dok-ic">📁</div>
+          <div class="dok-name">${esc(name)}</div>
+          <div class="dok-cnt">${dokCounts[name] === undefined ? '…' : dokCounts[name] + (dokCounts[name] === 1 ? ' Datei' : ' Dateien')}</div>
+          ${isCustom ? '<button class="dok-del" title="Ordner löschen">✕</button>' : ''}`
+        card.addEventListener('click', e => {
+          if (e.target.classList.contains('dok-del')) { dokDeleteFolder(name); return }
+          dokOpen(name)
+        })
+        grid.appendChild(card)
+      })
+      document.getElementById('dokAddBtn').style.display =
+        dokAllFolders().length >= DOK_MAX ? 'none' : 'flex'
+    }
+
+    async function dokLoadCounts() {
+      await Promise.all(dokAllFolders().map(async name => {
+        const { data } = await sb.storage.from(DOK_BUCKET).list(dokPath(name), { limit: 100 })
+        dokCounts[name] = (data || []).filter(f => f.id && f.name !== '.emptyFolderPlaceholder').length
+      }))
+      renderDokFolders()
+    }
+
+    function dokOpen(name) {
+      dokFolder = name
+      document.getElementById('dokFolderView').style.display = 'none'
+      document.getElementById('dokFileView').style.display = 'block'
+      document.getElementById('dokFolderTitle').textContent = '📁 ' + name
+      dokRenderFiles()
+    }
+
+    function dokBack(e) {
+      e.preventDefault()
+      dokFolder = null
+      document.getElementById('dokFileView').style.display = 'none'
+      document.getElementById('dokFolderView').style.display = 'block'
+      dokLoadCounts()
+    }
+
+    function dokFmtSize(b) {
+      if (!b && b !== 0) return ''
+      if (b < 1024 * 1024) return (b / 1024).toFixed(0) + ' KB'
+      return (b / 1024 / 1024).toFixed(1) + ' MB'
+    }
+
+    async function dokRenderFiles() {
+      const listEl = document.getElementById('dokFileList')
+      listEl.innerHTML = '<div class="dok-empty">Lade …</div>'
+      const { data, error } = await sb.storage.from(DOK_BUCKET)
+        .list(dokPath(dokFolder), { limit: 100, sortBy: { column: 'name', order: 'asc' } })
+      if (error) { listEl.innerHTML = `<div class="dok-empty">Fehler beim Laden: ${esc(error.message)}</div>`; return }
+      const files = (data || []).filter(f => f.id && f.name !== '.emptyFolderPlaceholder')
+      if (!files.length) { listEl.innerHTML = '<div class="dok-empty">Noch keine Dateien in diesem Ordner.</div>'; return }
+      listEl.innerHTML = ''
+      files.forEach(f => {
+        const row = document.createElement('div')
+        row.className = 'dok-file'
+        const dat = f.created_at ? new Date(f.created_at).toLocaleDateString('de-DE') : ''
+        row.innerHTML = `
+          <span class="dok-fname" title="${esc(f.name)}">${esc(f.name)}</span>
+          <span class="dok-fmeta">${dokFmtSize(f.metadata?.size)}${dat ? ' · ' + dat : ''}</span>
+          <button title="Herunterladen">⬇</button>
+          <button class="dok-fdel" title="Löschen">✕</button>`
+        row.querySelector('button[title="Herunterladen"]').addEventListener('click', () => dokDownload(f.name))
+        row.querySelector('.dok-fdel').addEventListener('click', () => dokDeleteFile(f.name))
+        listEl.appendChild(row)
+      })
+    }
+
+    async function dokUpload(fileList) {
+      if (!dokFolder) return
+      const dropText = document.getElementById('dokDropText')
+      const files = Array.from(fileList)
+      let done = 0
+      for (const f of files) {
+        if (f.size > 50 * 1024 * 1024) { alert(`„${f.name}“ ist größer als 50 MB und wird übersprungen.`); continue }
+        dropText.textContent = `⏳ Lade hoch (${done + 1}/${files.length}) …`
+        const { error } = await sb.storage.from(DOK_BUCKET)
+          .upload(dokPath(dokFolder, f.name), f, { upsert: true })
+        if (error) alert(`Upload von „${f.name}“ fehlgeschlagen: ${error.message}`)
+        else done++
+      }
+      dropText.textContent = '📄 Dateien hier ablegen oder klicken (max. 50 MB pro Datei)'
+      dokRenderFiles()
+    }
+
+    async function dokDownload(name) {
+      const { data, error } = await sb.storage.from(DOK_BUCKET)
+        .createSignedUrl(dokPath(dokFolder, name), 60)
+      if (error || !data?.signedUrl) { alert('Download fehlgeschlagen.'); return }
+      window.open(data.signedUrl, '_blank')
+    }
+
+    async function dokDeleteFile(name) {
+      if (!confirm(`„${name}“ endgültig löschen?`)) return
+      const { error } = await sb.storage.from(DOK_BUCKET).remove([dokPath(dokFolder, name)])
+      if (error) { alert('Löschen fehlgeschlagen: ' + error.message); return }
+      dokRenderFiles()
+    }
+
+    function dokAddFolder() {
+      if (dokAllFolders().length >= DOK_MAX) { alert(`Maximal ${DOK_MAX} Ordner möglich.`); return }
+      let name = prompt('Name des neuen Ordners:')
+      if (name === null) return
+      name = dokSlug(name).slice(0, 40)
+      if (!name) { alert('Ungültiger Ordnername.'); return }
+      const exists = dokAllFolders().some(f => dokSlug(f).toLowerCase() === name.toLowerCase())
+      if (exists) { alert('Ein Ordner mit diesem Namen existiert bereits.'); return }
+      dokCustom.push(name)
+      dokCounts[name] = 0
+      renderDokFolders()
+      dokSaveMeta()
+    }
+
+    async function dokDeleteFolder(name) {
+      const cnt = dokCounts[name]
+      if (!confirm(`Ordner „${name}“ löschen?${cnt ? `\n\n${cnt} enthaltene Datei(en) werden endgültig gelöscht.` : ''}`)) return
+      const { data } = await sb.storage.from(DOK_BUCKET).list(dokPath(name), { limit: 100 })
+      const keys = (data || []).filter(f => f.id).map(f => dokPath(name) + '/' + f.name)
+      if (keys.length) await sb.storage.from(DOK_BUCKET).remove(keys)
+      dokCustom = dokCustom.filter(n => n !== name)
+      delete dokCounts[name]
+      renderDokFolders()
+      dokSaveMeta()
+    }
+
+    async function dokSaveMeta() {
+      const ind = document.getElementById('siDateien')
+      if (ind) { ind.textContent = 'Speichern …'; ind.className = 'save-indicator saving' }
+      const { error } = await sb.from('portfolio').update({ dateien: { ordner: dokCustom } }).eq('id', id)
+      if (!ind) return
+      if (!error) {
+        ind.textContent = '✓ Gespeichert'; ind.className = 'save-indicator saved'
+        setTimeout(() => { ind.textContent = ''; ind.className = 'save-indicator' }, 2500)
+      } else {
+        ind.textContent = '⚠ Fehler beim Speichern'; ind.className = 'save-indicator'; ind.style.color = 'var(--red)'
+        setTimeout(() => { ind.textContent = ''; ind.style.color = '' }, 4000)
+      }
     }
 
     // ════════════════════════════════════════
