@@ -119,6 +119,34 @@
     .ci-anmerkung:focus { border-color: rgba(201,168,76,0.3); color: var(--white); }
     .ci-anmerkung::placeholder { color: rgba(138,151,170,0.35); font-style: italic; }
 
+    /* ── LIQUIDITÄT ── */
+    .liq-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+    .liq-controls label { color: var(--muted); font-size: 0.82rem; display: flex; align-items: center; gap: 8px; }
+    .liq-controls input[type="month"] { background: var(--navy2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--white); font-family: inherit; font-size: 0.82rem; padding: 7px 10px; outline: none; color-scheme: dark; }
+    .liq-btn { background: transparent; border: 1px dashed rgba(255,255,255,0.15); border-radius: 8px; color: var(--muted); font-family: inherit; font-size: 0.82rem; padding: 8px 14px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+    .liq-btn:hover { border-color: rgba(201,168,76,0.4); color: var(--gold); }
+    .liq-hint { color: rgba(138,151,170,0.7); font-size: 0.74rem; margin-left: auto; }
+    .liq-scroll { overflow-x: auto; border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); background: var(--navy2); }
+    .liq-table { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; }
+    .liq-table th, .liq-table td { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 0; }
+    .liq-table thead th { font-size: 0.68rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px; text-align: right; background: #1b2a48; white-space: nowrap; position: sticky; top: 0; z-index: 3; }
+    .liq-table thead th.liq-label { z-index: 4; background: #1b2a48; }
+    .liq-label { position: sticky; left: 0; background: var(--navy2); z-index: 2; text-align: left; font-size: 0.82rem; color: var(--muted); padding: 8px 16px; white-space: nowrap; min-width: 160px; border-right: 1px solid rgba(255,255,255,0.08); }
+    .liq-row-sub .liq-label { padding-left: 30px; font-size: 0.76rem; font-style: italic; }
+    .liq-row-calc .liq-label { color: var(--white); }
+    .liq-row-strong .liq-label, .liq-row-total .liq-label { font-weight: 600; }
+    .liq-sep td { border-top: 2px solid rgba(255,255,255,0.1); }
+    .liq-row-total td { background: rgba(201,168,76,0.06); }
+    .liq-row-total .liq-label { background: #22304d; color: var(--gold); }
+    .liq-yr { border-left: 2px solid rgba(201,168,76,0.25) !important; }
+    .liq-cell { width: 100px; background: transparent; border: none; color: var(--white); font-family: inherit; font-size: 0.8rem; text-align: right; padding: 8px 12px; outline: none; }
+    .liq-cell:focus { background: rgba(201,168,76,0.08); }
+    .liq-cell.calc { color: #aebccf; }
+    .liq-cell.neg { color: var(--red); }
+    .liq-cell.pos { color: var(--green); }
+    .liq-cell.ov { box-shadow: inset 3px 0 0 var(--gold); color: var(--gold2); }
+    .liq-cell::placeholder { color: rgba(138,151,170,0.25); }
+
     /* ── PLACEHOLDER TABS ── */
     .placeholder-card { background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); padding: 60px 40px; text-align: center; }
     .placeholder-icon { font-size: 2.5rem; margin-bottom: 16px; }
@@ -268,13 +296,24 @@
        TAB 4: LIQUIDITÄT
   ══════════════════════════════════════ -->
   <div class="tab-pane" id="pane-liquiditaet">
-    <div class="tab-content">
-      <div class="placeholder-card">
-        <div class="placeholder-icon">💰</div>
-        <h3>Liquidität</h3>
-        <p>Detaillierte Cashflow-Analyse, Einnahmen, Ausgaben und monatliche Liquiditätsplanung.</p>
-        <span class="coming-badge">Kommt bald</span>
+    <div class="tab-content" style="max-width:1400px;">
+
+      <div class="section-head" style="margin-bottom:16px;">
+        <h3>Liquiditäts<span>planung</span></h3>
+        <div class="save-indicator" id="siLiq"></div>
       </div>
+
+      <div class="liq-controls">
+        <label>Start
+          <input type="month" id="liqStart" onchange="liqChangeStart(this.value)" />
+        </label>
+        <button class="liq-btn" onclick="liqExtend()">+ 12 Monate</button>
+        <button class="liq-btn" onclick="liqFillFromUberblick()">↻ Aus Überblick übernehmen</button>
+        <span class="liq-hint">Alle Werte in € · <span style="color:var(--gold2)">gold</span> = manuell überschrieben · Zelle leeren = zurück zur Formel</span>
+      </div>
+
+      <div class="liq-scroll" id="liqScroll"></div>
+
     </div>
   </div>
 
@@ -371,6 +410,7 @@
       initUberblick(data.checkliste)
       initKaufcheckliste(data.kaufcheckliste)
       initMietverhaeltnis(data.mietverhaeltnis)
+      initLiquiditaet(data)
     }
 
     // ════════════════════════════════════════
@@ -382,12 +422,17 @@
       { key: 'verwaltung',        label: 'Verwaltung (Kontakt)',  group: 'Kontakte' },
       { key: 'hausmeister',       label: 'Hausmeister (Kontakt)', group: 'Kontakte' },
       { key: 'bank',              label: 'Bank (Kontakt)',        group: 'Kontakte' },
-      { key: 'kaufpreisDetail',   label: 'Kaufpreis',            group: 'Finanzierung' },
-      { key: 'finanzierendeBank', label: 'Finanzierende Bank',   group: 'Finanzierung' },
-      { key: 'darlehenssumme',    label: 'Darlehenssumme',       group: 'Finanzierung' },
-      { key: 'annuitaet',         label: 'Darlehensannuität',    group: 'Finanzierung' },
+      { key: 'kaufpreisDetail',   label: 'Kaufpreis',            group: 'Finanzierung und Liquidität' },
+      { key: 'kaufnebenkosten',   label: 'Kaufnebenkosten',      group: 'Finanzierung und Liquidität' },
+      { key: 'finanzierendeBank', label: 'Finanzierende Bank',   group: 'Finanzierung und Liquidität' },
+      { key: 'darlehenssumme',    label: 'Darlehenssumme',       group: 'Finanzierung und Liquidität' },
+      { key: 'zinssatz',          label: 'Zinssatz',             group: 'Finanzierung und Liquidität' },
+      { key: 'annuitaet',         label: 'Darlehensannuität',    group: 'Finanzierung und Liquidität' },
+      { key: 'nkm',               label: 'NKM (Kaltmiete) / Monat',   group: 'Finanzierung und Liquidität' },
+      { key: 'nebenkosten',       label: 'Nebenkosten (NK) / Monat',  group: 'Finanzierung und Liquidität' },
+      { key: 'weitereMiete',      label: 'Weitere Miete / Monat',     group: 'Finanzierung und Liquidität' },
+      { key: 'hausgeld',          label: 'Hausgeld / Monat',          group: 'Finanzierung und Liquidität' },
       { key: 'uebernahmedatum',   label: 'Übernahmedatum (wirtschaftlich)', group: 'Vertrag' },
-      { key: 'grundbuchdatum',    label: 'Datum Eintragung Grundbuch',      group: 'Vertrag' },
       { key: 'kautionstyp',       label: 'Kautionstyp (Bürgschaft, Bar, …)', group: 'Kaution' },
       { key: 'hoeheKaution',      label: 'Höhe Kaution',         group: 'Kaution' },
     ]
@@ -604,30 +649,292 @@
     }
 
     // ════════════════════════════════════════
+    // LIQUIDITÄT
+    // ════════════════════════════════════════
+    // Zeilen wie in der Excel-Vorlage.
+    // type 'input' = manuelle Eingabe, type 'calc' = berechnet (überschreibbar).
+    const LIQ_ROWS = [
+      { key: 'einzahlungFk', label: 'Einzahlung FK',     type: 'input' },
+      { key: 'kaufpreis',    label: 'Kaufpreis',         type: 'input' },
+      { key: 'einzahlungEk', label: 'Einzahlung EK',     type: 'input', sep: true },
+      { key: 'ausgabe',      label: 'Ausgabe',           type: 'input' },
+      { key: 'miete',        label: 'Miete',             type: 'calc',  sep: true },
+      { key: 'nkm',          label: 'davon NKM',         type: 'input', sub: true },
+      { key: 'nk',           label: 'davon NK',          type: 'input', sub: true },
+      { key: 'weitereMiete', label: 'Weitere Miete',     type: 'input' },
+      { key: 'hausgeld',     label: 'Hausgeld',          type: 'input' },
+      { key: 'zins',         label: 'Zins',              type: 'input' },
+      { key: 'tilgung',      label: 'Tilgung',           type: 'input' },
+      { key: 'tilgungKum',   label: 'Tilgung kumuliert', type: 'calc' },
+      { key: 'bankrate',     label: 'Bankrate',          type: 'calc' },
+      { key: 'cf',           label: 'CF Wohnung',        type: 'calc',  strong: true },
+      { key: 'guthaben',     label: 'Guthaben',          type: 'calc',  total: true, sep: true },
+    ]
+
+    let liqData = null
+    let propData = null
+    let lTimer = null
+    let liqEditTimer = null
+
+    function initLiquiditaet(data) {
+      propData = data
+      liqData = data.liquiditaet || liqDefaults(data)
+      if (!liqData.cells)     liqData.cells = {}
+      if (!liqData.overrides) liqData.overrides = {}
+      document.getElementById('liqStart').value = liqData.startMonth
+      liqTakeSyncSnapshot()
+      liqRender()
+    }
+
+    // ── Auto-Sync: Änderungen im Überblick wirken nur ab dem aktuellen Monat ──
+    // Vergangenheit bleibt unverändert (z. B. Hausgelderhöhung ab Jan 26).
+    const LIQ_SYNC_FIELDS = { nkm: 'nkm', nebenkosten: 'nk', weitereMiete: 'weitereMiete', hausgeld: 'hausgeld' }
+    let liqSyncSnapshot = {}
+
+    function liqTakeSyncSnapshot() {
+      Object.keys(LIQ_SYNC_FIELDS).forEach(f => { liqSyncSnapshot[f] = liqParse(uberblickData[f]) })
+    }
+
+    function liqSyncFromUberblick() {
+      if (!liqData) return
+      const nowM = new Date().toISOString().slice(0, 7)
+      const months = liqMonths()
+      let changed = false
+      Object.entries(LIQ_SYNC_FIELDS).forEach(([field, row]) => {
+        const val = liqParse(uberblickData[field])
+        if (val === liqSyncSnapshot[field]) return
+        liqSyncSnapshot[field] = val
+        // ab aktuellem Monat, frühestens ab dem Folgemonat des Starts
+        let fromIdx = months.findIndex(m => m >= nowM)
+        if (fromIdx === -1) fromIdx = months.length
+        months.slice(Math.max(fromIdx, 1)).forEach(m => {
+          if (!liqData.cells[row]) liqData.cells[row] = {}
+          if (val === null) delete liqData.cells[row][m]
+          else liqData.cells[row][m] = row === 'hausgeld' ? -Math.abs(val) : Math.abs(val)
+        })
+        changed = true
+      })
+      if (changed) { liqRefreshCells(); scheduleSave('l') }
+    }
+
+    // Erstbefüllung automatisch aus Stammdaten + Überblick > "Finanzierung und Liquidität"
+    function liqDefaults(data, count = 24) {
+      const start = (data.kaufdatum || new Date().toISOString()).slice(0, 7)
+      const d = { startMonth: start, monthCount: count, cells: {}, overrides: {} }
+      const set = (row, month, val) => {
+        if (!d.cells[row]) d.cells[row] = {}
+        d.cells[row][month] = val
+      }
+      const cl = data.checkliste || {}
+      const kp = liqParse(cl.kaufpreisDetail) ?? data.kaufpreis
+      if (kp) set('kaufpreis', start, -Math.abs(kp))
+      const fk = liqParse(cl.darlehenssumme)
+      if (fk) set('einzahlungFk', start, Math.abs(fk))
+      // Wiederkehrende Positionen ab dem Folgemonat des Kaufs
+      const nkm = liqParse(cl.nkm) ?? data.kaltmiete
+      const nk  = liqParse(cl.nebenkosten)
+      const wm  = liqParse(cl.weitereMiete)
+      const hg  = liqParse(cl.hausgeld)
+      liqMonthList(start, count).slice(1).forEach(m => {
+        if (nkm) set('nkm', m, Math.abs(nkm))
+        if (nk)  set('nk', m, Math.abs(nk))
+        if (wm)  set('weitereMiete', m, Math.abs(wm))
+        if (hg)  set('hausgeld', m, -Math.abs(hg))
+      })
+      return d
+    }
+
+    // Auto-Zeilen erneut aus dem Überblick übernehmen (Button)
+    function liqFillFromUberblick() {
+      if (!confirm('Werte aus „Finanzierung und Liquidität“ (Überblick) übernehmen?\n\nKaufpreis, Einzahlung FK, NKM, NK, Weitere Miete und Hausgeld werden für alle Monate neu befüllt. Manuelle Einträge in diesen Zeilen gehen verloren.')) return
+      collectUberblick()
+      const fresh = liqDefaults(
+        { ...propData, checkliste: uberblickData, kaufdatum: liqData.startMonth + '-01' },
+        liqData.monthCount
+      )
+      ;['kaufpreis', 'einzahlungFk', 'nkm', 'nk', 'weitereMiete', 'hausgeld'].forEach(k => {
+        liqData.cells[k] = fresh.cells[k] || {}
+      })
+      liqTakeSyncSnapshot()
+      liqRender()
+      scheduleSave('l')
+    }
+
+    function liqMonthList(start, count) {
+      const [y, mo] = start.split('-').map(Number)
+      return Array.from({ length: count }, (_, i) => {
+        const dt = new Date(y, mo - 1 + i, 1)
+        return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0')
+      })
+    }
+    const liqMonths = () => liqMonthList(liqData.startMonth, liqData.monthCount)
+
+    // ── Berechnung (Logik 1:1 wie Excel) ──
+    function liqCompute() {
+      const months = liqMonths()
+      const inp = (k, m) => Number(liqData.cells[k]?.[m]) || 0
+      const ov  = (k, m) => {
+        const v = liqData.overrides[k]?.[m]
+        return (v === undefined || v === null || v === '') ? null : Number(v)
+      }
+      const out = {}
+      LIQ_ROWS.forEach(r => { out[r.key] = {} })
+      let kum = 0, guthaben = 0
+      months.forEach(m => {
+        LIQ_ROWS.forEach(r => { if (r.type === 'input') out[r.key][m] = inp(r.key, m) })
+        const miete    = ov('miete', m)      ?? out.nkm[m] + out.nk[m]                       // Miete = NKM + NK
+        kum            = ov('tilgungKum', m) ?? kum + out.tilgung[m]                          // kumulierte Tilgung
+        const bankrate = ov('bankrate', m)   ?? out.zins[m] + out.tilgung[m]                  // Bankrate = Zins + Tilgung
+        const cf       = ov('cf', m)         ?? miete + out.weitereMiete[m] + out.hausgeld[m] + bankrate // CF Wohnung
+        guthaben       = ov('guthaben', m)   ?? guthaben + out.einzahlungFk[m] + out.kaufpreis[m]
+                                               + out.einzahlungEk[m] + out.ausgabe[m] + cf    // Guthaben kumuliert
+        out.miete[m] = miete; out.tilgungKum[m] = kum
+        out.bankrate[m] = bankrate; out.cf[m] = cf; out.guthaben[m] = guthaben
+      })
+      return { months, out }
+    }
+
+    // ── Zahlen parsen/formatieren (deutsches Format) ──
+    function liqParse(s) {
+      if (typeof s === 'number') return s
+      if (!s) return null
+      s = String(s).replace(/[\s€]/g, '')
+      if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.')
+      else if (/^-?\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '')
+      const n = parseFloat(s)
+      return isNaN(n) ? null : n
+    }
+    const liqFmt = n => new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 }).format(Math.round(n * 100) / 100)
+
+    // ── Rendering ──
+    function liqRender() {
+      const { months, out } = liqCompute()
+      const monthTh = months.map(m => {
+        const [y, mo] = m.split('-').map(Number)
+        const name = new Date(y, mo - 1, 1).toLocaleDateString('de-DE', { month: 'short' })
+        return `<th class="${mo === 1 ? 'liq-yr' : ''}">${name} ${String(y).slice(2)}</th>`
+      }).join('')
+
+      const rows = LIQ_ROWS.map(r => {
+        const cls = ['liq-row-' + r.type,
+          r.sub ? 'liq-row-sub' : '', r.sep ? 'liq-sep' : '',
+          r.strong ? 'liq-row-strong' : '', r.total ? 'liq-row-total' : ''].filter(Boolean).join(' ')
+        const tds = months.map(m => {
+          const [, mo] = m.split('-').map(Number)
+          return `<td class="${mo === 1 ? 'liq-yr' : ''}">
+            <input class="liq-cell" data-row="${r.key}" data-month="${m}" placeholder="0" />
+          </td>`
+        }).join('')
+        return `<tr class="${cls}"><td class="liq-label">${r.label}</td>${tds}</tr>`
+      }).join('')
+
+      document.getElementById('liqScroll').innerHTML =
+        `<table class="liq-table">
+          <thead><tr><th class="liq-label">Position</th>${monthTh}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`
+
+      document.querySelectorAll('.liq-cell').forEach(cell => {
+        cell.addEventListener('input', () => liqOnEdit(cell))
+        cell.addEventListener('blur',  () => liqRefreshCells())
+      })
+      liqRefreshCells()
+    }
+
+    // Alle Zellwerte aus dem Modell in die Inputs schreiben (fokussierte Zelle bleibt unangetastet)
+    function liqRefreshCells() {
+      const { out } = liqCompute()
+      document.querySelectorAll('.liq-cell').forEach(cell => {
+        const { row, month } = cell.dataset
+        const def = LIQ_ROWS.find(r => r.key === row)
+        const val = out[row][month] ?? 0
+        const hasOv = liqData.overrides[row]?.[month] !== undefined
+        if (cell !== document.activeElement) {
+          if (def.type === 'input') {
+            cell.value = liqData.cells[row]?.[month] !== undefined && liqData.cells[row][month] !== ''
+              ? liqFmt(Number(liqData.cells[row][month]) || 0) : ''
+          } else {
+            cell.value = liqFmt(val)
+          }
+        }
+        cell.classList.toggle('calc', def.type === 'calc' && !hasOv)
+        cell.classList.toggle('ov', def.type === 'calc' && hasOv)
+        cell.classList.toggle('neg', val < -0.004)
+        cell.classList.toggle('pos', row === 'guthaben' && val > 0.004)
+      })
+    }
+
+    function liqOnEdit(cell) {
+      const { row, month } = cell.dataset
+      const def = LIQ_ROWS.find(r => r.key === row)
+      const n = liqParse(cell.value)
+      if (def.type === 'input') {
+        if (!liqData.cells[row]) liqData.cells[row] = {}
+        if (cell.value.trim() === '' || n === null) delete liqData.cells[row][month]
+        else liqData.cells[row][month] = n
+      } else {
+        if (!liqData.overrides[row]) liqData.overrides[row] = {}
+        if (cell.value.trim() === '' || n === null) delete liqData.overrides[row][month]
+        else liqData.overrides[row][month] = n
+      }
+      clearTimeout(liqEditTimer)
+      liqEditTimer = setTimeout(liqRefreshCells, 350)
+      scheduleSave('l')
+    }
+
+    function liqChangeStart(val) {
+      if (!val) return
+      liqData.startMonth = val
+      liqRender()
+      scheduleSave('l')
+    }
+
+    function liqExtend() {
+      const months = liqMonths()
+      const last = months[months.length - 1]
+      liqData.monthCount += 12
+      // wiederkehrende Zeilen in die neuen Monate fortschreiben
+      const carry = ['nkm', 'nk', 'weitereMiete', 'hausgeld']
+      liqMonths().slice(-12).forEach(m => {
+        carry.forEach(k => {
+          const lastVal = liqData.cells[k]?.[last]
+          if (lastVal !== undefined && liqData.cells[k][m] === undefined) liqData.cells[k][m] = lastVal
+        })
+      })
+      liqRender()
+      scheduleSave('l')
+    }
+
+    // ════════════════════════════════════════
     // AUTO-SAVE (geteilt für alle Tabs)
     // ════════════════════════════════════════
     function scheduleSave(type) {
-      const indicators = { u: 'siUberblick', k: 'siCheckliste', m: 'siMiet' }
-      const timers     = { u: () => uTimer, k: () => kTimer, m: () => mTimer }
+      const indicators = { u: 'siUberblick', k: 'siCheckliste', m: 'siMiet', l: 'siLiq' }
       const ind = document.getElementById(indicators[type])
       if (ind) { ind.textContent = 'Speichern …'; ind.className = 'save-indicator saving'; }
       if (type === 'u') { clearTimeout(uTimer); uTimer = setTimeout(() => doSave('u'), 900) }
       if (type === 'k') { clearTimeout(kTimer); kTimer = setTimeout(() => doSave('k'), 900) }
       if (type === 'm') { clearTimeout(mTimer); mTimer = setTimeout(() => doSave('m'), 900) }
+      if (type === 'l') { clearTimeout(lTimer); lTimer = setTimeout(() => doSave('l'), 900) }
     }
 
     async function doSave(type) {
       let col, payload
-      if (type === 'u') { collectUberblick(); col = 'checkliste';       payload = uberblickData }
+      if (type === 'u') { collectUberblick(); liqSyncFromUberblick(); col = 'checkliste'; payload = uberblickData }
       if (type === 'k') { collectKauf();       col = 'kaufcheckliste';  payload = kaufData }
       if (type === 'm') { collectMiet();       col = 'mietverhaeltnis'; payload = mietData }
+      if (type === 'l') {                      col = 'liquiditaet';     payload = liqData }
 
-      const indicators = { u: 'siUberblick', k: 'siCheckliste', m: 'siMiet' }
+      const indicators = { u: 'siUberblick', k: 'siCheckliste', m: 'siMiet', l: 'siLiq' }
       const ind = document.getElementById(indicators[type])
       const { error } = await sb.from('portfolio').update({ [col]: payload }).eq('id', id)
-      if (!error && ind) {
+      if (!ind) return
+      if (!error) {
         ind.textContent = '✓ Gespeichert'; ind.className = 'save-indicator saved'
         setTimeout(() => { ind.textContent = ''; ind.className = 'save-indicator' }, 2500)
+      } else {
+        ind.textContent = '⚠ Fehler beim Speichern'; ind.className = 'save-indicator'; ind.style.color = 'var(--red)'
+        setTimeout(() => { ind.textContent = ''; ind.style.color = '' }, 4000)
       }
     }
 
