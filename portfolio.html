@@ -67,6 +67,7 @@
     .summary-stat .s-value { font-size: 1.35rem; font-weight: 700; }
     .summary-stat .s-value.gold { color: var(--gold); }
     .summary-stat .s-value.green { color: var(--green); }
+    .summary-stat .s-value.red { color: var(--red); }
 
     /* ── TILE GRID ── */
     .tile-grid {
@@ -116,6 +117,7 @@
     .tile-stat-value { font-size: 1rem; font-weight: 700; }
     .tile-stat-value.gold { color: var(--gold); }
     .tile-stat-value.green { color: var(--green); }
+    .tile-stat-value.red { color: var(--red); }
     .tile-arrow { color: var(--muted); font-size: 1.1rem; }
 
     /* ── ADD TILE ── */
@@ -243,6 +245,10 @@
       <div class="s-label">Kaltmiete gesamt</div>
       <div class="s-value green" id="sumMiete">0 €/Mon</div>
     </div>
+    <div class="summary-stat">
+      <div class="s-label">CF gesamt</div>
+      <div class="s-value" id="sumCf">0 €/Mon</div>
+    </div>
   </div>
 
   <!-- Tile Grid -->
@@ -254,7 +260,7 @@
   <div id="addModal" onclick="handleModalBg(event)">
     <div class="modal-box">
       <h2>Immobilie <span>hinzufügen</span></h2>
-      <p class="modal-sub">Tragen Sie die Stammdaten Ihrer Immobilie ein.</p>
+      <p class="modal-sub">Tragen Sie die Stammdaten Ihrer Immobilie ein. Diese können später noch angepasst werden.</p>
 
       <div class="form-group">
         <label>Bezeichnung</label>
@@ -281,7 +287,7 @@
           <input type="number" id="fKaufpreis" placeholder="z.B. 349000" min="0" />
         </div>
         <div class="form-group">
-          <label>Kaufdatum</label>
+          <label>Übernahmedatum</label>
           <input type="date" id="fKaufdatum" />
         </div>
       </div>
@@ -345,27 +351,35 @@
       grid.innerHTML = ''
 
       if (!error && data && data.length > 0) {
+        // Kennzahlen je Immobilie aus der Liqui-Planung (wie im Übersicht-Tab)
+        const stats = data.map(p => liqStats(p))
+
         // Summary berechnen
-        const totalKauf  = data.reduce((s, p) => s + (p.kaufpreis || 0), 0)
-        const totalMiete = data.reduce((s, p) => s + (p.kaltmiete || 0), 0)
-        document.getElementById('sumAnzahl').textContent   = data.length
+        const totalKauf  = stats.reduce((s, st) => s + st.kaufpreis, 0)
+        const totalMiete = stats.reduce((s, st) => s + st.nkm, 0)
+        const totalCf    = stats.reduce((s, st) => s + st.cf, 0)
+        document.getElementById('sumAnzahl').textContent    = data.length
         document.getElementById('sumKaufpreis').textContent = formatEur(totalKauf)
-        document.getElementById('sumMiete').textContent     = formatEur(totalMiete) + '/Mon'
+        document.getElementById('sumMiete').textContent     = formatEur2(totalMiete) + '/Mon'
+        const sumCf = document.getElementById('sumCf')
+        sumCf.textContent = formatEur2(totalCf) + '/Mon'
+        sumCf.className   = 's-value ' + (totalCf < -0.004 ? 'red' : 'green')
         document.getElementById('summaryBar').classList.add('visible')
 
         // Kacheln rendern
-        data.forEach(p => grid.appendChild(buildTile(p)))
+        data.forEach((p, i) => grid.appendChild(buildTile(p, stats[i])))
       }
 
       // "Hinzufügen"-Kachel immer am Ende
       grid.appendChild(buildAddTile())
     }
 
-    function buildTile(p) {
+    function buildTile(p, st) {
       const icon = OBJEKTART_ICONS[p.objektart] || '🏗️'
       const div  = document.createElement('a')
       div.className = 'prop-tile'
       div.href      = `immobilie.html?id=${p.id}`
+      const cfClass = st.cf < -0.004 ? 'red' : 'green'
       div.innerHTML = `
         <div class="tile-header">
           <span class="tile-icon">${icon}</span>
@@ -377,16 +391,35 @@
           <div class="tile-stats">
             <div class="tile-stat-group">
               <span class="tile-stat-label">Kaufpreis</span>
-              <span class="tile-stat-value gold">${p.kaufpreis ? formatEur(p.kaufpreis) : '–'}</span>
+              <span class="tile-stat-value gold">${st.kaufpreis ? formatEur(st.kaufpreis) : '–'}</span>
+            </div>
+            <div class="tile-stat-group" style="text-align:center">
+              <span class="tile-stat-label">Kaltmiete</span>
+              <span class="tile-stat-value green">${st.nkm ? formatEur2(st.nkm) : '–'}</span>
             </div>
             <div class="tile-stat-group" style="text-align:right">
-              <span class="tile-stat-label">Kaltmiete</span>
-              <span class="tile-stat-value green">${p.kaltmiete ? formatEur(p.kaltmiete) + '/Mon' : '–'}</span>
+              <span class="tile-stat-label">CF / Monat</span>
+              <span class="tile-stat-value ${cfClass}">${formatEur2(st.cf)}</span>
             </div>
           </div>
         </div>
       `
       return div
+    }
+
+    // Kennzahlen aus der Liqui-Planung – gleiche Logik wie im Übersicht-Tab der Immobilie
+    function liqStats(p) {
+      const lq = p.liquiditaet
+      const nowM = new Date().toISOString().slice(0, 7)
+      if (!lq || !lq.cells) return { kaufpreis: p.kaufpreis || 0, nkm: p.kaltmiete || 0, cf: 0 }
+      const cells = lq.cells, ovs = lq.overrides || {}
+      const sum = k => Object.values(cells[k] || {}).reduce((s, v) => s + (Number(v) || 0), 0)
+      const c   = k => Number(cells[k]?.[nowM]) || 0
+      const ov  = k => { const v = ovs[k]?.[nowM]; return (v === undefined || v === null || v === '') ? null : Number(v) }
+      const kaufpreis = Math.abs(sum('kaufpreis')) || p.kaufpreis || 0
+      const miete = ov('miete') ?? c('nkm') + c('nk')
+      const cf = ov('cf') ?? miete + c('weitereMiete') + c('grundsteuer') + c('hausgeld') + c('zins') + c('tilgung')
+      return { kaufpreis, nkm: c('nkm') || p.kaltmiete || 0, cf }
     }
 
     function buildAddTile() {
@@ -457,6 +490,10 @@
     // ── HELPERS ─────────────────────────────────────
     function formatEur(n) {
       return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
+    }
+
+    function formatEur2(n) {
+      return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.round(n * 100) / 100)
     }
 
     function esc(s) {

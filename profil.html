@@ -340,6 +340,10 @@
           <span class="lbl">Gespeicherte Steckbriefe</span>
           <span class="val gold" id="infoCount">–</span>
         </div>
+        <div class="info-row">
+          <span class="lbl">Immobilien im Portfolio</span>
+          <span class="val gold" id="infoPortfolioCount">–</span>
+        </div>
       </div>
 
       <button class="btn-logout" onclick="logout()">Abmelden</button>
@@ -538,6 +542,9 @@
 
       const { count } = await sb.from('steckbriefe').select('*', { count: 'exact', head: true })
       document.getElementById('infoCount').textContent = count || 0
+
+      const { count: portfolioCount } = await sb.from('portfolio').select('*', { count: 'exact', head: true })
+      document.getElementById('infoPortfolioCount').textContent = portfolioCount || 0
     }
 
     // ── TAB SWITCHING ────────────────────────────────

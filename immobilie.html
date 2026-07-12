@@ -68,6 +68,14 @@
     .detail-row .val { font-weight: 500; }
     .detail-row .val.gold { color: var(--gold); }
     .detail-row .val.green { color: var(--green); }
+    .detail-row .val.red { color: var(--red); }
+    .detail-input { background: transparent; border: none; border-bottom: 1px dashed rgba(255,255,255,0.18); color: var(--white); font-family: inherit; font-size: 0.9rem; font-weight: 500; text-align: right; outline: none; padding: 2px 0; max-width: 58%; color-scheme: dark; transition: border-color 0.2s; }
+    .detail-input:focus { border-bottom-color: var(--gold); }
+    .detail-input::placeholder { color: rgba(138,151,170,0.4); font-weight: 400; }
+    select.detail-input option { background: var(--navy2); color: var(--white); }
+    .cl-computed { padding: 11px 16px; font-size: 0.86rem; font-weight: 500; display: flex; align-items: center; }
+    .cl-computed.red { color: var(--red); }
+    .cl-computed.green { color: var(--green); }
 
     /* ── SECTION HEADER (Überblick editable table) ── */
     .section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
@@ -193,6 +201,17 @@
     .dok-file button.dok-fdel:hover { color: var(--red); }
     .dok-empty { padding: 24px 20px; color: var(--muted); font-size: 0.86rem; text-align: center; }
 
+    /* ── TO-DOS ── */
+    .todo-add { display: flex; gap: 10px; margin-bottom: 14px; }
+    .todo-add input { flex: 1; background: var(--navy2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--white); font-family: inherit; font-size: 0.88rem; padding: 10px 14px; outline: none; transition: border-color 0.2s; }
+    .todo-add input:focus { border-color: rgba(201,168,76,0.4); }
+    .todo-add input::placeholder { color: rgba(138,151,170,0.4); }
+    .todo-item { display: grid; grid-template-columns: 52px 1fr 40px; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .todo-item:last-child { border-bottom: none; }
+    .todo-text { font-size: 0.88rem; padding: 14px 0; cursor: pointer; user-select: none; word-break: break-word; }
+    .todo-text.done { color: var(--muted); text-decoration: line-through; }
+    .todo-meta { font-size: 0.72rem; color: rgba(138,151,170,0.6); margin-top: 2px; }
+
     /* ── NOTES ── */
     .notes-area { width: 100%; min-height: 440px; background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); color: var(--white); font-family: inherit; font-size: 0.92rem; line-height: 1.65; padding: 22px; outline: none; resize: vertical; transition: border-color 0.2s; }
     .notes-area:focus { border-color: rgba(201,168,76,0.35); }
@@ -252,9 +271,11 @@
   <div class="tab-header">
     <div class="tab-nav">
       <button class="tab-btn active" onclick="switchTab('uberblick')">Überblick</button>
+      <button class="tab-btn"        onclick="switchTab('kontakte')">Kontakte</button>
       <button class="tab-btn"        onclick="switchTab('checkliste')">Checkliste Kauf</button>
       <button class="tab-btn"        onclick="switchTab('mietverhaeltnis')">Mietverhältnis</button>
       <button class="tab-btn"        onclick="switchTab('liquiditaet')">Liquidität</button>
+      <button class="tab-btn"        onclick="switchTab('todos')">To-Dos</button>
       <button class="tab-btn"        onclick="switchTab('notes')">Notes</button>
       <button class="tab-btn"        onclick="switchTab('dateien')">Dateien</button>
     </div>
@@ -270,28 +291,36 @@
       <div class="detail-grid">
         <div class="detail-card">
           <h3>Stammdaten</h3>
-          <div class="detail-row"><span class="lbl">Bezeichnung</span><span class="val" id="dBezeichnung">–</span></div>
-          <div class="detail-row"><span class="lbl">Objektart</span><span class="val" id="dObjektart">–</span></div>
-          <div class="detail-row"><span class="lbl">Adresse</span><span class="val" id="dAdresse">–</span></div>
-          <div class="detail-row"><span class="lbl">Kaufdatum</span><span class="val" id="dKaufdatum">–</span></div>
+          <div class="detail-row"><span class="lbl">Bezeichnung</span><input class="detail-input" id="sBezeichnung" type="text" placeholder="eintragen …" /></div>
+          <div class="detail-row"><span class="lbl">Objektart</span>
+            <select class="detail-input" id="sObjektart">
+              <option value="Eigentumswohnung">Eigentumswohnung</option>
+              <option value="Einfamilienhaus">Einfamilienhaus</option>
+              <option value="Mehrfamilienhaus">Mehrfamilienhaus</option>
+              <option value="Gewerbe">Gewerbe</option>
+              <option value="Sonstiges">Sonstiges</option>
+            </select>
+          </div>
+          <div class="detail-row"><span class="lbl">Übernahmestichtag</span><input class="detail-input" id="sKaufdatum" type="date" /></div>
+          <div class="detail-row"><span class="lbl">Adresse</span><input class="detail-input" id="sAdresse" type="text" placeholder="eintragen …" /></div>
         </div>
         <div class="detail-card">
           <h3>Finanzkennzahlen</h3>
           <div class="detail-row"><span class="lbl">Kaufpreis</span><span class="val gold" id="dKaufpreis">–</span></div>
           <div class="detail-row"><span class="lbl">Kaltmiete / Monat</span><span class="val green" id="dKaltmiete">–</span></div>
-          <div class="detail-row"><span class="lbl">Kaltmiete / Jahr</span><span class="val" id="dKaltmieteJahr">–</span></div>
+          <div class="detail-row"><span class="lbl">CF / Monat</span><span class="val" id="dCf">–</span></div>
           <div class="detail-row"><span class="lbl">Brutto-Mietrendite</span><span class="val" id="dRendite">–</span></div>
         </div>
       </div>
 
-      <!-- Editierbare Detailtabelle -->
+      <!-- Finanzierung & Liquidität (berechnet aus der Liqui-Planung) -->
       <div class="section-head">
-        <h3>Details &amp; <span>Kontakte</span></h3>
+        <h3>Finanzierung &amp; <span>Liquidität</span></h3>
         <div class="save-indicator" id="siUberblick"></div>
       </div>
 
       <div class="cl-table" id="clTableFixed">
-        <div class="cl-section-label">Kontakte</div>
+        <div class="cl-section-label">Werte aus der Liquiditätsplanung (aktueller Monat)</div>
       </div>
 
       <div class="cl-table" id="clTableCustom">
@@ -303,6 +332,22 @@
       <div class="actions-row">
         <button class="btn-delete" onclick="deleteImmobilie()">Immobilie löschen</button>
       </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       TAB: KONTAKTE
+  ══════════════════════════════════════ -->
+  <div class="tab-pane" id="pane-kontakte">
+    <div class="tab-content">
+
+      <div class="section-head" style="margin-bottom:16px;">
+        <h3>Kon<span style="color:var(--gold)">takte</span></h3>
+        <div class="save-indicator" id="siKontakte"></div>
+      </div>
+
+      <div class="cl-table" id="clTableKontakte"></div>
 
     </div>
   </div>
@@ -374,13 +419,34 @@
       <div class="liq-modal" id="liqImportModal" onclick="if(event.target===this)liqCloseImport()">
         <div class="liq-modal-box">
           <h4>Tilgungsplan importieren</h4>
-          <p>PDF deiner Bank hierher ziehen oder klicken zum Auswählen.<br />Zins und Tilgung werden automatisch erkannt und nach Bestätigung übernommen.</p>
+          <p>PDF deiner Bank hierher ziehen oder klicken zum Auswählen.<br />Zins und Tilgung werden automatisch erkannt und nach Bestätigung übernommen.<br />Auch Scans/Fotos werden unterstützt (per Texterkennung, dauert etwas länger).</p>
           <div class="liq-drop" id="liqDrop" onclick="document.getElementById('liqPdfInput').click()">
             <span id="liqDropText">📄 PDF hier ablegen oder klicken</span>
           </div>
           <button class="liq-btn" onclick="liqCloseImport()">Abbrechen</button>
         </div>
       </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       TAB: TO-DOS
+  ══════════════════════════════════════ -->
+  <div class="tab-pane" id="pane-todos">
+    <div class="tab-content">
+
+      <div class="section-head" style="margin-bottom:16px;">
+        <h3>To-<span style="color:var(--gold)">Dos</span></h3>
+        <div class="save-indicator" id="siTodos"></div>
+      </div>
+
+      <div class="todo-add">
+        <input type="text" id="todoInput" placeholder="Neues To-Do eintragen …" maxlength="300" />
+        <button class="liq-btn liq-btn-gold" onclick="addTodo()">+ Hinzufügen</button>
+      </div>
+
+      <div class="checklist-card" id="todoList"></div>
 
     </div>
   </div>
@@ -484,86 +550,138 @@
       document.getElementById('propName').textContent    = data.bezeichnung || '–'
       document.getElementById('propAdresse').textContent = data.adresse || '–'
 
-      // Stammdaten-Karten
-      document.getElementById('dBezeichnung').textContent = data.bezeichnung || '–'
-      document.getElementById('dObjektart').textContent   = data.objektart   || '–'
-      document.getElementById('dAdresse').textContent     = data.adresse     || '–'
-      document.getElementById('dKaufdatum').textContent   = data.kaufdatum
-        ? new Date(data.kaufdatum).toLocaleDateString('de-DE', { day:'2-digit', month:'long', year:'numeric' }) : '–'
-      document.getElementById('dKaufpreis').textContent     = data.kaufpreis ? formatEur(data.kaufpreis)      : '–'
-      document.getElementById('dKaltmiete').textContent     = data.kaltmiete ? formatEur(data.kaltmiete)      : '–'
-      document.getElementById('dKaltmieteJahr').textContent = data.kaltmiete ? formatEur(data.kaltmiete * 12) : '–'
-      if (data.kaufpreis && data.kaltmiete) {
-        document.getElementById('dRendite').textContent =
-          ((data.kaltmiete * 12) / data.kaufpreis * 100).toFixed(2) + ' %'
-      }
-
       // Editierbare Tabellen
+      initStammdaten(data)
       initUberblick(data.checkliste)
       initKaufcheckliste(data.kaufcheckliste)
       initMietverhaeltnis(data.mietverhaeltnis)
       initLiquiditaet(data)
+      initTodos(data.todos)
       initNotes(data.notes)
       initDateien(data.dateien)
     }
 
     // ════════════════════════════════════════
-    // ÜBERBLICK – EDITIERBARE TABELLE
+    // STAMMDATEN (editierbar, speichert direkt in portfolio-Spalten)
     // ════════════════════════════════════════
-    const UBERBLICK_FIELDS = [
-      { key: 'verkaeufer',        label: 'Verkäufer (Kontakt)',   group: 'Kontakte' },
-      { key: 'makler',            label: 'Makler (Kontakt)',      group: 'Kontakte' },
-      { key: 'verwaltung',        label: 'Verwaltung (Kontakt)',  group: 'Kontakte' },
-      { key: 'hausmeister',       label: 'Hausmeister (Kontakt)', group: 'Kontakte' },
-      { key: 'bank',              label: 'Bank (Kontakt)',        group: 'Kontakte' },
-      { key: 'kaufpreisDetail',   label: 'Kaufpreis',            group: 'Finanzierung und Liquidität' },
-      { key: 'kaufnebenkosten',   label: 'Kaufnebenkosten',      group: 'Finanzierung und Liquidität' },
-      { key: 'finanzierendeBank', label: 'Finanzierende Bank',   group: 'Finanzierung und Liquidität' },
-      { key: 'darlehenssumme',    label: 'Darlehenssumme',       group: 'Finanzierung und Liquidität' },
-      { key: 'zinssatz',          label: 'Zinssatz',             group: 'Finanzierung und Liquidität' },
-      { key: 'annuitaet',         label: 'Darlehensannuität',    group: 'Finanzierung und Liquidität' },
-      { key: 'nkm',               label: 'NKM (Kaltmiete) / Monat',   group: 'Finanzierung und Liquidität' },
-      { key: 'nebenkosten',       label: 'Nebenkosten (NK) / Monat',  group: 'Finanzierung und Liquidität' },
-      { key: 'weitereMiete',      label: 'Weitere Miete / Monat',     group: 'Finanzierung und Liquidität' },
-      { key: 'hausgeld',          label: 'Hausgeld / Monat',          group: 'Finanzierung und Liquidität' },
-      { key: 'uebernahmedatum',   label: 'Übernahmedatum (wirtschaftlich)', group: 'Vertrag' },
-      { key: 'kautionstyp',       label: 'Kautionstyp (Bürgschaft, Bar, …)', group: 'Kaution' },
-      { key: 'hoeheKaution',      label: 'Höhe Kaution',         group: 'Kaution' },
+    let sTimer = null
+
+    function initStammdaten(data) {
+      document.getElementById('sBezeichnung').value = data.bezeichnung || ''
+      document.getElementById('sObjektart').value   = data.objektart || 'Eigentumswohnung'
+      document.getElementById('sAdresse').value     = data.adresse || ''
+      document.getElementById('sKaufdatum').value   = data.kaufdatum ? data.kaufdatum.slice(0, 10) : ''
+      ;['sBezeichnung', 'sAdresse'].forEach(i =>
+        document.getElementById(i).addEventListener('input', () => scheduleSave('s')))
+      ;['sObjektart', 'sKaufdatum'].forEach(i =>
+        document.getElementById(i).addEventListener('change', () => scheduleSave('s')))
+    }
+
+    function collectStammdaten() {
+      const bez = document.getElementById('sBezeichnung').value.trim()
+      const oa  = document.getElementById('sObjektart').value
+      const adr = document.getElementById('sAdresse').value.trim()
+      const kd  = document.getElementById('sKaufdatum').value || null
+      document.getElementById('propName').textContent    = bez || '–'
+      document.getElementById('propAdresse').textContent = adr || '–'
+      document.getElementById('propBadge').textContent   = oa || 'Immobilie'
+      document.getElementById('propIcon').textContent    = OBJEKTART_ICONS[oa] || '🏗️'
+      document.title = `${bez || 'Immobilie'} – Immo.Expert`
+      return { bezeichnung: bez, objektart: oa, adresse: adr, kaufdatum: kd }
+    }
+
+    // ════════════════════════════════════════
+    // ÜBERBLICK – FINANZIERUNG & LIQUIDITÄT (berechnet aus Liqui)
+    // ════════════════════════════════════════
+    const FINANZ_ROWS = [
+      { id: 'fKaufpreis',   label: 'Kaufpreis' },
+      { id: 'fNebenkosten', label: 'Nebenkosten' },
+      { id: 'fDarlehen',    label: 'Ursprüngliche Darlehenssumme' },
+      { id: 'fRest',        label: 'Restbetrag Darlehen' },
+      { key: 'zinssatz',    label: 'Zinssatz', input: true },
+      { id: 'fWarmmiete',   label: 'Aktuelle Warmmiete' },
+      { id: 'fNkm',         label: 'Aktuelle NKM' },
+      { id: 'fNk',          label: 'Aktuelle NK-Vorauszahlung' },
+      { id: 'fHausgeld',    label: 'Aktuelles Hausgeld' },
+      { id: 'fAnnuitaet',   label: 'Darlehensannuität' },
+      { id: 'fCf',          label: 'Wohnung CF' },
     ]
 
     let uberblickData = {}
     let uTimer = null
+    let cTimer = null
 
     function initUberblick(data) {
       uberblickData = data || {}
       renderUberblickFixed()
       renderUberblickCustom()
+      renderKontakte()
     }
 
     function renderUberblickFixed() {
       const table = document.getElementById('clTableFixed')
       table.querySelectorAll('.cl-row, .cl-section-label:not(:first-child)').forEach(r => r.remove())
-
-      let currentGroup = ''
-      UBERBLICK_FIELDS.forEach(field => {
-        if (field.group !== currentGroup) {
-          currentGroup = field.group
-          if (currentGroup !== 'Kontakte') {
-            const sep = document.createElement('div')
-            sep.className = 'cl-section-label'
-            sep.textContent = currentGroup
-            table.appendChild(sep)
-          }
-        }
+      FINANZ_ROWS.forEach(f => {
         const row = document.createElement('div')
         row.className = 'cl-row'
-        row.innerHTML = `
-          <div class="cl-fixed-label">${field.label}</div>
-          <input class="cl-value-input" type="text" placeholder="eintragen …"
-                 value="${esc(uberblickData[field.key] || '')}" data-key="${field.key}" />
-          <div></div>`
-        row.querySelector('input').addEventListener('input', () => scheduleSave('u'))
+        if (f.input) {
+          row.innerHTML = `
+            <div class="cl-fixed-label">${f.label}</div>
+            <input class="cl-value-input" type="text" placeholder="eintragen …"
+                   value="${esc(uberblickData[f.key] || '')}" data-key="${f.key}" />
+            <div></div>`
+          row.querySelector('input').addEventListener('input', () => scheduleSave('u'))
+        } else {
+          row.innerHTML = `
+            <div class="cl-fixed-label">${f.label}</div>
+            <div class="cl-computed" id="${f.id}">–</div>
+            <div></div>`
+        }
         table.appendChild(row)
+      })
+    }
+
+    // ════════════════════════════════════════
+    // KONTAKTE (eigener Tab, gespeichert in checkliste.kontakte)
+    // ════════════════════════════════════════
+    const KONTAKT_GROUPS = [
+      { key: 'verkaeufer',  label: 'Verkäufer' },
+      { key: 'makler',      label: 'Makler' },
+      { key: 'verwaltung',  label: 'Verwaltung' },
+      { key: 'hausmeister', label: 'Hausmeister' },
+      { key: 'bank',        label: 'Bank' },
+    ]
+    const KONTAKT_FIELDS = [
+      { key: 'name',    label: 'Name' },
+      { key: 'telefon', label: 'Telefonnummer' },
+      { key: 'email',   label: 'E-Mail' },
+    ]
+
+    function renderKontakte() {
+      const table = document.getElementById('clTableKontakte')
+      table.innerHTML = ''
+      if (!uberblickData.kontakte) uberblickData.kontakte = {}
+      KONTAKT_GROUPS.forEach(g => {
+        // Migration: alte Freitext-Kontakte in das Namensfeld übernehmen
+        if (!uberblickData.kontakte[g.key] && typeof uberblickData[g.key] === 'string' && uberblickData[g.key].trim()) {
+          uberblickData.kontakte[g.key] = { name: uberblickData[g.key].trim() }
+        }
+        const sep = document.createElement('div')
+        sep.className = 'cl-section-label'
+        sep.textContent = g.label
+        table.appendChild(sep)
+        KONTAKT_FIELDS.forEach(f => {
+          const row = document.createElement('div')
+          row.className = 'cl-row'
+          row.innerHTML = `
+            <div class="cl-fixed-label">${f.label}</div>
+            <input class="cl-value-input" type="text" placeholder="eintragen …"
+                   value="${esc(uberblickData.kontakte[g.key]?.[f.key] || '')}"
+                   data-kon="${g.key}" data-kfield="${f.key}" />
+            <div></div>`
+          row.querySelector('input').addEventListener('input', () => scheduleSave('c'))
+          table.appendChild(row)
+        })
       })
     }
 
@@ -615,6 +733,13 @@
         })
       })
       uberblickData.custom = customs
+      // Kontakte
+      if (!uberblickData.kontakte) uberblickData.kontakte = {}
+      document.querySelectorAll('#clTableKontakte [data-kon]').forEach(inp => {
+        const g = inp.dataset.kon, f = inp.dataset.kfield
+        if (!uberblickData.kontakte[g]) uberblickData.kontakte[g] = {}
+        uberblickData.kontakte[g][f] = inp.value
+      })
     }
 
     // ════════════════════════════════════════
@@ -849,39 +974,71 @@
       if (!liqData.overrides) liqData.overrides = {}
       if (!liqData.notes)     liqData.notes = {}
       document.getElementById('liqStart').value = liqData.startMonth
-      liqTakeSyncSnapshot()
       liqRender()
     }
 
-    // ── Auto-Sync: Änderungen im Überblick wirken nur ab dem aktuellen Monat ──
-    // Vergangenheit bleibt unverändert (z. B. Hausgelderhöhung ab Jan 26).
-    const LIQ_SYNC_FIELDS = { nkm: 'nkm', nebenkosten: 'nk', weitereMiete: 'weitereMiete', hausgeld: 'hausgeld' }
-    let liqSyncSnapshot = {}
-
-    function liqTakeSyncSnapshot() {
-      Object.keys(LIQ_SYNC_FIELDS).forEach(f => { liqSyncSnapshot[f] = liqParse(uberblickData[f]) })
+    // ── Kennzahlen für den Überblick (aus der Liqui-Planung berechnet) ──
+    function liqNowVals() {
+      const nowM = new Date().toISOString().slice(0, 7)
+      const { months, out } = liqCompute()
+      if (months.includes(nowM)) {
+        return { miete: out.miete[nowM], nkm: out.nkm[nowM], nk: out.nk[nowM],
+                 hausgeld: out.hausgeld[nowM], zins: out.zins[nowM], tilgung: out.tilgung[nowM], cf: out.cf[nowM] }
+      }
+      // aktueller Monat außerhalb des sichtbaren Zeitraums → direkt aus den Zellen
+      const c = k => Number(liqData.cells[k]?.[nowM]) || 0
+      const miete = c('nkm') + c('nk')
+      return { miete, nkm: c('nkm'), nk: c('nk'), hausgeld: c('hausgeld'), zins: c('zins'), tilgung: c('tilgung'),
+               cf: miete + c('weitereMiete') + c('grundsteuer') + c('hausgeld') + c('zins') + c('tilgung') }
     }
 
-    function liqSyncFromUberblick() {
-      if (!liqData) return
+    function liqRowSum(key, bisHeute = false) {
       const nowM = new Date().toISOString().slice(0, 7)
-      const months = liqMonths()
-      let changed = false
-      Object.entries(LIQ_SYNC_FIELDS).forEach(([field, row]) => {
-        const val = liqParse(uberblickData[field])
-        if (val === liqSyncSnapshot[field]) return
-        liqSyncSnapshot[field] = val
-        // ab aktuellem Monat, frühestens ab dem Folgemonat des Starts
-        let fromIdx = months.findIndex(m => m >= nowM)
-        if (fromIdx === -1) fromIdx = months.length
-        months.slice(Math.max(fromIdx, 1)).forEach(m => {
-          if (!liqData.cells[row]) liqData.cells[row] = {}
-          if (val === null) delete liqData.cells[row][m]
-          else liqData.cells[row][m] = row === 'hausgeld' ? -Math.abs(val) : Math.abs(val)
-        })
-        changed = true
+      let s = 0
+      Object.entries(liqData.cells[key] || {}).forEach(([m, v]) => {
+        if (!bisHeute || m <= nowM) s += Number(v) || 0
       })
-      if (changed) { liqRefreshCells(); scheduleSave('l') }
+      return s
+    }
+
+    function updateFinanzWerte() {
+      if (!liqData) return
+      const v = liqNowVals()
+      const eur = n => liqFmt(n) + ' €'
+      const kaufpreis   = Math.abs(liqRowSum('kaufpreis')) || Number(propData?.kaufpreis) || 0
+      const nebenkosten = Math.abs(liqRowSum('ausgabe'))
+      const darlehen    = liqRowSum('einzahlungFk')
+      const rest        = darlehen - Math.abs(liqRowSum('tilgung', true))
+      const set = (elId, val, { abs = true, dash = false } = {}) => {
+        const el = document.getElementById(elId)
+        if (!el) return
+        el.textContent = dash ? '–' : eur(abs ? Math.abs(val) : val)
+        el.classList.remove('red', 'green')
+      }
+      set('fKaufpreis', kaufpreis, { dash: !kaufpreis })
+      set('fNebenkosten', nebenkosten, { dash: !nebenkosten })
+      set('fDarlehen', darlehen, { dash: !darlehen })
+      set('fRest', rest, { dash: !darlehen })
+      set('fWarmmiete', v.miete)
+      set('fNkm', v.nkm)
+      set('fNk', v.nk)
+      set('fHausgeld', v.hausgeld)
+      set('fAnnuitaet', v.zins + v.tilgung)
+      set('fCf', v.cf, { abs: false })
+      const fCf = document.getElementById('fCf')
+      if (fCf) fCf.classList.add(v.cf < -0.004 ? 'red' : 'green')
+      // Finanzkennzahlen-Karte
+      const dKp = document.getElementById('dKaufpreis')
+      if (dKp) dKp.textContent = kaufpreis ? formatEur(kaufpreis) : '–'
+      const dKm = document.getElementById('dKaltmiete')
+      if (dKm) dKm.textContent = eur(v.nkm)
+      const dCf = document.getElementById('dCf')
+      if (dCf) {
+        dCf.textContent = eur(v.cf)
+        dCf.className = 'val ' + (v.cf < -0.004 ? 'red' : 'green')
+      }
+      const dR = document.getElementById('dRendite')
+      if (dR) dR.textContent = kaufpreis && v.nkm ? ((v.nkm * 12) / kaufpreis * 100).toFixed(2) + ' %' : '–'
     }
 
     // Erstbefüllung automatisch aus Stammdaten + Überblick > "Finanzierung und Liquidität"
@@ -976,7 +1133,7 @@
       const n = parseFloat(s)
       return isNaN(n) ? null : n
     }
-    const liqFmt = n => new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 }).format(Math.round(n * 100) / 100)
+    const liqFmt = n => new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.round(n * 100) / 100)
 
     // ── Rendering ──
     function liqRender() {
@@ -1141,6 +1298,7 @@
         cell.title = note || ''
         cell.parentElement.classList.toggle('has-note', !!note)
       })
+      updateFinanzWerte()
     }
 
     function liqOnEdit(cell) {
@@ -1370,6 +1528,76 @@
     }
 
     // ════════════════════════════════════════
+    // TO-DOS
+    // ════════════════════════════════════════
+    let todosData = []
+    let tTimer = null
+
+    function initTodos(data) {
+      todosData = Array.isArray(data) ? data : []
+      renderTodos()
+      document.getElementById('todoInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') addTodo()
+      })
+    }
+
+    function renderTodos() {
+      const list = document.getElementById('todoList')
+      list.innerHTML = ''
+      if (!todosData.length) {
+        list.innerHTML = '<div class="dok-empty">Noch keine To-Dos – oben eins eintragen.</div>'
+        return
+      }
+      // offene zuerst, erledigte darunter (jeweils in Erstellreihenfolge)
+      const sorted = todosData.map((t, i) => ({ ...t, _i: i }))
+        .sort((a, b) => (a.done === b.done) ? a._i - b._i : (a.done ? 1 : -1))
+      sorted.forEach(t => {
+        const row = document.createElement('div')
+        row.className = 'todo-item'
+        const dat = t.createdAt ? new Date(t.createdAt).toLocaleDateString('de-DE') : ''
+        row.innerHTML = `
+          <div class="ci-check-col">
+            <input type="checkbox" class="ci-cb" ${t.done ? 'checked' : ''} />
+          </div>
+          <div>
+            <div class="todo-text${t.done ? ' done' : ''}">${esc(t.text)}</div>
+            ${dat ? `<div class="todo-meta" style="margin:-10px 0 10px;">erstellt am ${dat}</div>` : ''}
+          </div>
+          <button class="cl-delete" title="Löschen" style="color:var(--muted);">✕</button>`
+        row.querySelector('.ci-cb').addEventListener('change', () => toggleTodo(t._i))
+        row.querySelector('.todo-text').addEventListener('click', () => toggleTodo(t._i))
+        row.querySelector('.cl-delete').addEventListener('click', () => deleteTodo(t._i))
+        list.appendChild(row)
+      })
+    }
+
+    function addTodo() {
+      const inp = document.getElementById('todoInput')
+      const text = inp.value.trim()
+      if (!text) return
+      todosData.push({ text, done: false, createdAt: new Date().toISOString().slice(0, 10) })
+      inp.value = ''
+      inp.focus()
+      renderTodos()
+      scheduleSave('t')
+    }
+
+    function toggleTodo(i) {
+      if (!todosData[i]) return
+      todosData[i].done = !todosData[i].done
+      renderTodos()
+      scheduleSave('t')
+    }
+
+    function deleteTodo(i) {
+      if (!todosData[i]) return
+      if (!confirm(`To-Do „${todosData[i].text}“ löschen?`)) return
+      todosData.splice(i, 1)
+      renderTodos()
+      scheduleSave('t')
+    }
+
+    // ════════════════════════════════════════
     // NOTES
     // ════════════════════════════════════════
     let nTimer = null
@@ -1430,22 +1658,36 @@
             rows.push({ items: byY[y].sort((a, b) => a.x - b.x) })
           })
         }
-        const { entries, headerFound, skipped } = liqParseTilgungsplan(rows)
-        if (!headerFound) {
-          resetDrop()
-          alert('Im PDF wurde keine Kopfzeile mit den Spalten „Zins“ und „Tilgung“ gefunden.\n\nBitte prüfen, ob es sich um einen Tilgungsplan mit Tabellenstruktur handelt (kein Scan/Foto).')
-          return
+        let { entries, headerFound, skipped } = liqParseTilgungsplan(rows)
+        let viaOcr = false
+
+        // Kein verwertbarer Text (z. B. Scan/Foto) → OCR-Fallback im Browser
+        if (!headerFound || !entries.length) {
+          try {
+            const ocrRows = await liqOcrPdf(pdf, dropText)
+            const p2 = liqParseTilgungsplan(ocrRows)
+            if (p2.headerFound && p2.entries.length) {
+              entries = p2.entries; skipped = p2.skipped; headerFound = true; viaOcr = true
+            }
+          } catch (e) { /* OCR fehlgeschlagen → normale Fehlermeldung unten */ }
         }
-        if (!entries.length) {
+        if (!headerFound || !entries.length) {
           resetDrop()
-          alert('Kopfzeile gefunden, aber keine Datenzeilen mit Datum, Zins und Tilgung erkannt.')
+          alert('Es konnte kein Tilgungsplan erkannt werden – weder als Text noch per Texterkennung (OCR).\n\nBitte prüfen, ob das PDF eine Tabelle mit den Spalten „Zins“ und „Tilgung“ enthält und der Scan gut lesbar ist.')
           return
         }
         liqCloseImport()
         entries.sort((a, b) => a.month < b.month ? -1 : 1)
         const first = entries[0], last = entries[entries.length - 1]
         const fmtM = m => { const [y, mo] = m.split('-'); return mo + '/' + y }
-        const warn = skipped > 0 ? `\n⚠ ${skipped} Zeile(n) konnten nicht zugeordnet werden.\n` : ''
+        const [fy, fm] = first.month.split('-').map(Number)
+        const [ly, lm] = last.month.split('-').map(Number)
+        const luecken = (ly - fy) * 12 + (lm - fm) + 1 - entries.length
+        let warn = ''
+        if (viaOcr) warn += '\n🔍 Per Texterkennung (OCR) aus einem Scan gelesen – bitte Werte stichprobenartig prüfen.'
+        if (luecken > 0) warn += `\n⚠ ${luecken} Monat(e) im Zeitraum wurden nicht erkannt und bleiben leer.`
+        if (skipped > 0) warn += `\n⚠ ${skipped} Zeile(n) konnten nicht zugeordnet werden.`
+        if (warn) warn += '\n'
         if (!confirm(`${entries.length} Monatsraten erkannt (${fmtM(first.month)} bis ${fmtM(last.month)}).${warn}\nErste Rate ${fmtM(first.month)}: Zins ${liqFmt(first.zins)} €, Tilgung ${liqFmt(first.tilgung)} €\nLetzte Rate ${fmtM(last.month)}: Zins ${liqFmt(last.zins)} €, Tilgung ${liqFmt(last.tilgung)} €\n\nZins und Tilgung übernehmen? Bestehende Werte dieser Monate werden überschrieben.`)) return
         if (!liqData.cells.zins)    liqData.cells.zins = {}
         if (!liqData.cells.tilgung) liqData.cells.tilgung = {}
@@ -1461,6 +1703,72 @@
       } finally {
         document.getElementById('liqPdfInput').value = ''
       }
+    }
+
+    // ── OCR-Fallback für Scans (Tesseract.js, komplett im Browser) ──
+    async function liqLoadTesseract() {
+      if (window.Tesseract) return window.Tesseract
+      await new Promise((res, rej) => {
+        const s = document.createElement('script')
+        s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'
+        s.onload = res; s.onerror = () => rej(new Error('Tesseract.js konnte nicht geladen werden'))
+        document.head.appendChild(s)
+      })
+      return window.Tesseract
+    }
+
+    async function liqOcrPdf(pdf, statusEl) {
+      if (statusEl) statusEl.textContent = '🔍 Kein Text gefunden – lade Texterkennung (einmalig ~10 MB) …'
+      const T = await liqLoadTesseract()
+      const worker = await T.createWorker('deu')
+      const rows = []
+      try {
+        for (let p = 1; p <= pdf.numPages; p++) {
+          if (statusEl) statusEl.textContent = `🔍 Texterkennung Seite ${p}/${pdf.numPages} … (kann etwas dauern)`
+          const page = await pdf.getPage(p)
+          const viewport = page.getViewport({ scale: 2 })
+          const canvas = document.createElement('canvas')
+          canvas.width = viewport.width
+          canvas.height = viewport.height
+          const ctx = canvas.getContext('2d')
+          await page.render({ canvasContext: ctx, viewport }).promise
+          // Vorverarbeitung für Foto-Scans: Graustufen + Kontrast spreizen (1%-Perzentile)
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+          const d = imgData.data
+          const hist = new Array(256).fill(0)
+          for (let i = 0; i < d.length; i += 4) {
+            const g = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2])
+            d[i] = g
+            hist[g]++
+          }
+          const total = d.length / 4
+          let lo = 0, hi = 255, acc = 0
+          for (let g = 0; g < 256; g++) { acc += hist[g]; if (acc >= total * 0.01) { lo = g; break } }
+          acc = 0
+          for (let g = 255; g >= 0; g--) { acc += hist[g]; if (acc >= total * 0.01) { hi = g; break } }
+          const range = Math.max(1, hi - lo)
+          for (let i = 0; i < d.length; i += 4) {
+            const v = Math.min(255, Math.max(0, Math.round((d[i] - lo) * 255 / range)))
+            d[i] = d[i + 1] = d[i + 2] = v
+          }
+          ctx.putImageData(imgData, 0, 0)
+          const { data } = await worker.recognize(canvas)
+          const words = (data.words || []).filter(w => w.text.trim() && w.confidence > 30)
+          // Wörter über ihre Y-Position zu Zeilen gruppieren
+          const lines = []
+          words.forEach(w => {
+            const y = (w.bbox.y0 + w.bbox.y1) / 2
+            const h = w.bbox.y1 - w.bbox.y0
+            let line = lines.find(l => Math.abs(l.y - y) < Math.max(8, h * 0.6))
+            if (!line) { line = { y, items: [] }; lines.push(line) }
+            line.items.push({ x: w.bbox.x0, str: w.text.trim() })
+          })
+          lines.sort((a, b) => a.y - b.y).forEach(l => rows.push({ items: l.items.sort((a, b) => a.x - b.x) }))
+        }
+      } finally {
+        await worker.terminate()
+      }
+      return rows
     }
 
     // Erkennt Kopfzeile (Zins/Tilgung) und ordnet Zahlen den Spalten per X-Position zu
@@ -1517,28 +1825,33 @@
     // ════════════════════════════════════════
     // AUTO-SAVE (geteilt für alle Tabs)
     // ════════════════════════════════════════
+    const SAVE_INDICATORS = { u: 'siUberblick', c: 'siKontakte', k: 'siCheckliste', m: 'siMiet', l: 'siLiq', n: 'siNotes', s: 'siUberblick', t: 'siTodos' }
+
     function scheduleSave(type) {
-      const indicators = { u: 'siUberblick', k: 'siCheckliste', m: 'siMiet', l: 'siLiq', n: 'siNotes' }
-      const ind = document.getElementById(indicators[type])
+      const ind = document.getElementById(SAVE_INDICATORS[type])
       if (ind) { ind.textContent = 'Speichern …'; ind.className = 'save-indicator saving'; }
       if (type === 'u') { clearTimeout(uTimer); uTimer = setTimeout(() => doSave('u'), 900) }
+      if (type === 'c') { clearTimeout(cTimer); cTimer = setTimeout(() => doSave('c'), 900) }
       if (type === 'k') { clearTimeout(kTimer); kTimer = setTimeout(() => doSave('k'), 900) }
       if (type === 'm') { clearTimeout(mTimer); mTimer = setTimeout(() => doSave('m'), 900) }
       if (type === 'l') { clearTimeout(lTimer); lTimer = setTimeout(() => doSave('l'), 900) }
       if (type === 'n') { clearTimeout(nTimer); nTimer = setTimeout(() => doSave('n'), 900) }
+      if (type === 's') { clearTimeout(sTimer); sTimer = setTimeout(() => doSave('s'), 900) }
+      if (type === 't') { clearTimeout(tTimer); tTimer = setTimeout(() => doSave('t'), 900) }
     }
 
     async function doSave(type) {
-      let col, payload
-      if (type === 'u') { collectUberblick(); liqSyncFromUberblick(); col = 'checkliste'; payload = uberblickData }
-      if (type === 'k') { collectKauf();       col = 'kaufcheckliste';  payload = kaufData }
-      if (type === 'm') { collectMiet();       col = 'mietverhaeltnis'; payload = mietData }
-      if (type === 'l') {                      col = 'liquiditaet';     payload = liqData }
-      if (type === 'n') { col = 'notes'; payload = document.getElementById('notesArea').value }
+      let updateObj
+      if (type === 'u' || type === 'c') { collectUberblick(); updateObj = { checkliste: uberblickData } }
+      if (type === 'k') { collectKauf(); updateObj = { kaufcheckliste: kaufData } }
+      if (type === 'm') { collectMiet(); updateObj = { mietverhaeltnis: mietData } }
+      if (type === 'l') { updateObj = { liquiditaet: liqData } }
+      if (type === 'n') { updateObj = { notes: document.getElementById('notesArea').value } }
+      if (type === 's') { updateObj = collectStammdaten() }
+      if (type === 't') { updateObj = { todos: todosData } }
 
-      const indicators = { u: 'siUberblick', k: 'siCheckliste', m: 'siMiet', l: 'siLiq', n: 'siNotes' }
-      const ind = document.getElementById(indicators[type])
-      const { error } = await sb.from('portfolio').update({ [col]: payload }).eq('id', id)
+      const ind = document.getElementById(SAVE_INDICATORS[type])
+      const { error } = await sb.from('portfolio').update(updateObj).eq('id', id)
       if (!ind) return
       if (!error) {
         ind.textContent = '✓ Gespeichert'; ind.className = 'save-indicator saved'
@@ -1552,7 +1865,7 @@
     // ════════════════════════════════════════
     // TABS & LÖSCHEN
     // ════════════════════════════════════════
-    const TAB_ORDER = ['uberblick','checkliste','mietverhaeltnis','liquiditaet','notes','dateien']
+    const TAB_ORDER = ['uberblick','kontakte','checkliste','mietverhaeltnis','liquiditaet','todos','notes','dateien']
     function switchTab(name) {
       document.querySelectorAll('.tab-btn').forEach((btn, i) => {
         btn.classList.toggle('active', TAB_ORDER[i] === name)
