@@ -97,6 +97,9 @@
     .cl-value-input { background: transparent; border: none; color: var(--white); font-family: inherit; font-size: 0.86rem; padding: 11px 16px; outline: none; width: 100%; }
     .cl-value-input:focus { background: rgba(201,168,76,0.03); }
     .cl-value-input::placeholder { color: rgba(138,151,170,0.35); }
+    select.cl-value-input { cursor: pointer; }
+    select.cl-value-input option { background: var(--navy2); color: var(--white); }
+    textarea.miet-notes { resize: vertical; min-height: 76px; line-height: 1.55; font-family: inherit; }
     .cl-delete { background: none; border: none; color: transparent; cursor: pointer; font-size: 0.85rem; padding: 0 12px; transition: color 0.2s; display: flex; align-items: center; justify-content: center; }
     .cl-row:hover .cl-delete { color: var(--muted); }
     .cl-delete:hover { color: var(--red) !important; }
@@ -206,6 +209,9 @@
     .todo-add input { flex: 1; background: var(--navy2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--white); font-family: inherit; font-size: 0.88rem; padding: 10px 14px; outline: none; transition: border-color 0.2s; }
     .todo-add input:focus { border-color: rgba(201,168,76,0.4); }
     .todo-add input::placeholder { color: rgba(138,151,170,0.4); }
+    .todo-add input[type="date"] { flex: 0 0 auto; color-scheme: dark; color: var(--muted); }
+    .todo-due { color: var(--muted); }
+    .todo-due.overdue { color: var(--red); font-weight: 600; }
     .todo-item { display: grid; grid-template-columns: 52px 1fr 40px; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
     .todo-item:last-child { border-bottom: none; }
     .todo-text { font-size: 0.88rem; padding: 14px 0; cursor: pointer; user-select: none; word-break: break-word; }
@@ -443,6 +449,7 @@
 
       <div class="todo-add">
         <input type="text" id="todoInput" placeholder="Neues To-Do eintragen …" maxlength="300" />
+        <input type="date" id="todoDueInput" title="Fällig am (optional) – bei Fälligkeit gibt es eine Benachrichtigung" />
         <button class="liq-btn liq-btn-gold" onclick="addTodo()">+ Hinzufügen</button>
       </div>
 
@@ -511,6 +518,7 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="notifications.js" defer></script>
   <script>
     const SUPABASE_URL = 'https://awvnfocepqkkncgqgaka.supabase.co'
     const SUPABASE_KEY = 'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
@@ -831,10 +839,14 @@
     // ════════════════════════════════════════
     const MIET_FIELDS = [
       { key: 'mieter',              label: 'Mieter' },
-      { key: 'kontaktMieter',       label: 'Kontaktdetails Mieter' },
+      { key: 'mieterTelefon',       label: 'Mieter Telefonnummer' },
+      { key: 'mieterEmail',         label: 'Mieter E-Mail' },
       { key: 'mietverhaeltnisSeit', label: 'Mietverhältnis seit' },
-      { key: 'letzteMieterhoehung', label: 'Letzte Mieterhöhung' },
-      { key: 'buergschaft',         label: 'Bürgschaft' },
+      { key: 'letzteMieterhoehung', label: 'Letzte Mieterhöhung', ph: 'TT.MM.JJJJ (z. B. 01.07.2025)' },
+      { key: 'erinnerungMieterhoehung', label: 'Erinnerung 12 Monate nach Mieterhöhung', select: ['', 'Ja', 'Nein'] },
+      { key: 'mietsicherheitArt',   label: 'Mietsicherheit Art', ph: 'z. B. Bürgschaft, Barkaution …' },
+      { key: 'mietsicherheitHoehe', label: 'Mietsicherheit Höhe' },
+      { key: 'notes',               label: 'Notes', textarea: true },
     ]
 
     let mietData = { aktuell: {}, archiv: [] }
@@ -844,6 +856,12 @@
       // Altbestand (flaches Objekt) in neue Struktur { aktuell, archiv } überführen
       if (data && (data.aktuell || data.archiv)) mietData = { aktuell: data.aktuell || {}, archiv: data.archiv || [] }
       else mietData = { aktuell: data || {}, archiv: [] }
+      // Migration alter Feldnamen (Kontaktdetails → Telefonnummer, Bürgschaft → Mietsicherheit Art)
+      ;[mietData.aktuell, ...mietData.archiv].forEach(e => {
+        if (!e) return
+        if (e.kontaktMieter && !e.mieterTelefon)     e.mieterTelefon = e.kontaktMieter
+        if (e.buergschaft && !e.mietsicherheitArt)   e.mietsicherheitArt = e.buergschaft
+      })
       renderMietverhaeltnis()
       renderMietArchiv()
     }
@@ -854,12 +872,30 @@
       MIET_FIELDS.forEach(field => {
         const row = document.createElement('div')
         row.className = 'cl-row'
-        row.innerHTML = `
-          <div class="cl-fixed-label">${field.label}</div>
-          <input class="cl-value-input" type="text" placeholder="eintragen …"
-                 value="${esc(mietData.aktuell[field.key] || '')}" data-miet-key="${field.key}" />
-          <div></div>`
-        row.querySelector('input').addEventListener('input', () => scheduleSave('m'))
+        const val = mietData.aktuell[field.key] || ''
+        if (field.select) {
+          const opts = field.select.map(o =>
+            `<option value="${o}" ${val === o ? 'selected' : ''}>${o || '– wählen –'}</option>`).join('')
+          row.innerHTML = `
+            <div class="cl-fixed-label">${field.label}</div>
+            <select class="cl-value-input" data-miet-key="${field.key}">${opts}</select>
+            <div></div>`
+          row.querySelector('select').addEventListener('change', () => scheduleSave('m'))
+        } else if (field.textarea) {
+          row.innerHTML = `
+            <div class="cl-fixed-label" style="align-items:flex-start; padding-top:12px;">${field.label}</div>
+            <textarea class="cl-value-input miet-notes" rows="3" placeholder="Freitext …"
+                      data-miet-key="${field.key}">${esc(val)}</textarea>
+            <div></div>`
+          row.querySelector('textarea').addEventListener('input', () => scheduleSave('m'))
+        } else {
+          row.innerHTML = `
+            <div class="cl-fixed-label">${field.label}</div>
+            <input class="cl-value-input" type="text" placeholder="${field.ph || 'eintragen …'}"
+                   value="${esc(val)}" data-miet-key="${field.key}" />
+            <div></div>`
+          row.querySelector('input').addEventListener('input', () => scheduleSave('m'))
+        }
         table.appendChild(row)
       })
     }
@@ -1004,7 +1040,7 @@
     function updateFinanzWerte() {
       if (!liqData) return
       const v = liqNowVals()
-      const eur = n => liqFmt(n) + ' €'
+      const eur = n => formatEur(n)   // Überblick: gerundet, ohne Nachkommastellen
       const kaufpreis   = Math.abs(liqRowSum('kaufpreis')) || Number(propData?.kaufpreis) || 0
       const nebenkosten = Math.abs(liqRowSum('ausgabe'))
       const darlehen    = liqRowSum('einzahlungFk')
@@ -1551,17 +1587,23 @@
       // offene zuerst, erledigte darunter (jeweils in Erstellreihenfolge)
       const sorted = todosData.map((t, i) => ({ ...t, _i: i }))
         .sort((a, b) => (a.done === b.done) ? a._i - b._i : (a.done ? 1 : -1))
+      const heute = new Date().toISOString().slice(0, 10)
       sorted.forEach(t => {
         const row = document.createElement('div')
         row.className = 'todo-item'
         const dat = t.createdAt ? new Date(t.createdAt).toLocaleDateString('de-DE') : ''
+        let meta = dat ? `erstellt am ${dat}` : ''
+        if (t.faellig) {
+          const overdue = !t.done && t.faellig <= heute
+          meta += `${meta ? ' · ' : ''}<span class="todo-due${overdue ? ' overdue' : ''}">fällig am ${new Date(t.faellig).toLocaleDateString('de-DE')}${overdue ? ' ⚠' : ''}</span>`
+        }
         row.innerHTML = `
           <div class="ci-check-col">
             <input type="checkbox" class="ci-cb" ${t.done ? 'checked' : ''} />
           </div>
           <div>
             <div class="todo-text${t.done ? ' done' : ''}">${esc(t.text)}</div>
-            ${dat ? `<div class="todo-meta" style="margin:-10px 0 10px;">erstellt am ${dat}</div>` : ''}
+            ${meta ? `<div class="todo-meta" style="margin:-10px 0 10px;">${meta}</div>` : ''}
           </div>
           <button class="cl-delete" title="Löschen" style="color:var(--muted);">✕</button>`
         row.querySelector('.ci-cb').addEventListener('change', () => toggleTodo(t._i))
@@ -1573,10 +1615,16 @@
 
     function addTodo() {
       const inp = document.getElementById('todoInput')
+      const dueInp = document.getElementById('todoDueInput')
       const text = inp.value.trim()
       if (!text) return
-      todosData.push({ text, done: false, createdAt: new Date().toISOString().slice(0, 10) })
+      todosData.push({
+        text, done: false,
+        createdAt: new Date().toISOString().slice(0, 10),
+        faellig: dueInp.value || null,
+      })
       inp.value = ''
+      dueInp.value = ''
       inp.focus()
       renderTodos()
       scheduleSave('t')
@@ -1875,6 +1923,10 @@
       if (pane) pane.classList.add('active')
       if (name === 'liquiditaet') liqScrollToNow()
     }
+
+    // Deep-Link: immobilie.html?id=…&tab=todos (z. B. aus Benachrichtigungen)
+    const tabParam = new URLSearchParams(window.location.search).get('tab')
+    if (tabParam && TAB_ORDER.includes(tabParam)) switchTab(tabParam)
 
     async function deleteImmobilie() {
       if (!confirm('Immobilie löschen?\n\nDieser Eintrag wird vollständig gelöscht und kann nicht wiederhergestellt werden.')) return

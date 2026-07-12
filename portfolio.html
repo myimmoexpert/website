@@ -314,6 +314,7 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="notifications.js" defer></script>
   <script>
     const SUPABASE_URL = 'https://awvnfocepqkkncgqgaka.supabase.co'
     const SUPABASE_KEY = 'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
@@ -360,9 +361,9 @@
         const totalCf    = stats.reduce((s, st) => s + st.cf, 0)
         document.getElementById('sumAnzahl').textContent    = data.length
         document.getElementById('sumKaufpreis').textContent = formatEur(totalKauf)
-        document.getElementById('sumMiete').textContent     = formatEur2(totalMiete) + '/Mon'
+        document.getElementById('sumMiete').textContent     = formatEur(totalMiete) + '/Mon'
         const sumCf = document.getElementById('sumCf')
-        sumCf.textContent = formatEur2(totalCf) + '/Mon'
+        sumCf.textContent = formatEur(totalCf) + '/Mon'
         sumCf.className   = 's-value ' + (totalCf < -0.004 ? 'red' : 'green')
         document.getElementById('summaryBar').classList.add('visible')
 
@@ -395,11 +396,11 @@
             </div>
             <div class="tile-stat-group" style="text-align:center">
               <span class="tile-stat-label">Kaltmiete</span>
-              <span class="tile-stat-value green">${st.nkm ? formatEur2(st.nkm) : '–'}</span>
+              <span class="tile-stat-value green">${st.nkm ? formatEur(st.nkm) : '–'}</span>
             </div>
             <div class="tile-stat-group" style="text-align:right">
               <span class="tile-stat-label">CF / Monat</span>
-              <span class="tile-stat-value ${cfClass}">${formatEur2(st.cf)}</span>
+              <span class="tile-stat-value ${cfClass}">${formatEur(st.cf)}</span>
             </div>
           </div>
         </div>
@@ -492,9 +493,6 @@
       return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
     }
 
-    function formatEur2(n) {
-      return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.round(n * 100) / 100)
-    }
 
     function esc(s) {
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')

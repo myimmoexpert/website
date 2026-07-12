@@ -597,12 +597,6 @@
       </div>
       <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; flex-wrap:wrap; gap:8px;">
         <p class="input-hint">Link eines Immobilien-Inserats einfügen und analysieren lassen</p>
-        <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:50px; padding:5px 12px;">
-          <svg width="16" height="16" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M26 4C13.85 4 4 13.85 4 26s9.85 22 22 22 22-9.85 22-22S38.15 4 26 4zm0 6c4.08 0 7.82 1.4 10.78 3.72L13.72 36.78A15.93 15.93 0 0 1 10 26c0-8.84 7.16-16 16-16zm0 32c-4.08 0-7.82-1.4-10.78-3.72l23.06-23.06A15.93 15.93 0 0 1 42 26c0 8.84-7.16 16-16 16z" fill="#c9a84c"/>
-          </svg>
-          <span style="font-size:0.78rem; font-weight:600; color:#8a97aa;">Analysiert von <span style="color:#c9a84c;">Claude AI</span></span>
-        </div>
       </div>
     </div>
   </div>
@@ -626,12 +620,6 @@
       <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
         <div class="result-source">
           🔗 <a href="#" id="resultLink" target="_blank">Originalinserat öffnen</a>
-        </div>
-        <div style="display:flex; align-items:center; gap:6px; background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.2); border-radius:50px; padding:4px 12px;">
-          <svg width="14" height="14" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M26 4C13.85 4 4 13.85 4 26s9.85 22 22 22 22-9.85 22-22S38.15 4 26 4zm0 6c4.08 0 7.82 1.4 10.78 3.72L13.72 36.78A15.93 15.93 0 0 1 10 26c0-8.84 7.16-16 16-16zm0 32c-4.08 0-7.82-1.4-10.78-3.72l23.06-23.06A15.93 15.93 0 0 1 42 26c0 8.84-7.16 16-16 16z" fill="#c9a84c"/>
-          </svg>
-          <span style="font-size:0.75rem; font-weight:600; color:#c9a84c;">Powered by Claude AI</span>
         </div>
       </div>
     </div>
@@ -747,6 +735,7 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="notifications.js" defer></script>
   <script>
     const SUPABASE_URL = 'https://awvnfocepqkkncgqgaka.supabase.co'
     const SUPABASE_KEY = 'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
