@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <script>if(sessionStorage.getItem('ie_gate')!=='1')document.documentElement.style.visibility='hidden'</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio-Übersicht – Immo.Expert</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #0f1c2e; --navy2: #172540; --navy3: #1e2f50;
+      --gold: #c9a84c; --gold2: #e0bf74;
+      --muted: #8a97aa; --white: #ffffff;
+      --green: #3ecf8e; --red: #f87171;
+      --radius: 12px;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--navy); color: var(--white); min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* ── NAV ── */
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 24px 60px; position: sticky; top: 0; z-index: 100; background: rgba(15,28,46,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(201,168,76,0.15); }
+    .logo { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; color: var(--white); text-decoration: none; }
+    .logo span { color: var(--gold); }
+    nav ul { list-style: none; display: flex; gap: 36px; }
+    nav ul a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+    nav ul a:hover { color: var(--white); }
+    nav ul a.active { color: var(--gold); }
+    .nav-cta { background: var(--gold); color: var(--navy) !important; padding: 10px 22px; border-radius: 8px; font-weight: 600 !important; }
+    .nav-cta:hover { background: var(--gold2) !important; }
+
+    /* ── AUTH GUARD ── */
+    #authGuard { display: none; position: fixed; inset: 0; background: var(--navy); z-index: 200; align-items: center; justify-content: center; flex-direction: column; gap: 16px; text-align: center; }
+    #authGuard.visible { display: flex; }
+    #authGuard p { color: var(--muted); }
+    #authGuard a { color: var(--gold); font-weight: 600; text-decoration: none; }
+
+    /* ── HEADER ── */
+    .prop-header { padding: 44px 60px 0; max-width: 980px; margin: 0 auto; width: 100%; }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); text-decoration: none; font-size: 0.85rem; margin-bottom: 28px; transition: color 0.2s; }
+    .back-link:hover { color: var(--white); }
+    .prop-meta { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; flex-wrap: wrap; }
+    .prop-icon { font-size: 1.8rem; line-height: 1; }
+    .prop-badge { background: rgba(201,168,76,0.12); color: var(--gold); border: 1px solid rgba(201,168,76,0.25); border-radius: 50px; padding: 4px 14px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .prop-name { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+    .prop-name span { color: var(--gold); }
+    .prop-adresse { color: var(--muted); font-size: 0.95rem; }
+
+    /* ── TAB NAV ── */
+    .tab-header { padding: 0 60px; border-bottom: 1px solid rgba(255,255,255,0.07); background: rgba(15,28,46,0.6); margin-top: 32px; }
+    .tab-nav { display: flex; max-width: 980px; margin: 0 auto; overflow-x: auto; scrollbar-width: none; }
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn { background: none; border: none; color: var(--muted); font-family: inherit; font-size: 0.88rem; font-weight: 500; padding: 18px 22px; cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; }
+    .tab-btn:hover { color: var(--white); }
+    .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    /* ── TAB PANES ── */
+    .tab-pane { display: none; flex: 1; }
+    .tab-pane.active { display: block; }
+    .tab-content { max-width: 980px; margin: 0 auto; padding: 48px 60px 80px; }
+
+    /* ── SECTION HEADER ── */
+    .section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .section-head h3 { font-size: 1rem; font-weight: 600; }
+    .section-head h3 span { color: var(--gold); }
+    .save-indicator { font-size: 0.76rem; }
+    .save-indicator.saving { color: var(--muted); }
+    .save-indicator.saved  { color: var(--green); }
+
+    /* ── EDITABLE TABLE (cl-table) ── */
+    .cl-table { background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; }
+    .cl-section-label { padding: 9px 20px; background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+    .cl-section-label .kon-del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.72rem; letter-spacing: 0.4px; transition: color 0.2s; }
+    .cl-section-label .kon-del:hover { color: var(--red); }
+    .cl-row { display: grid; grid-template-columns: 220px 1fr 40px; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: stretch; }
+    .cl-row:last-child { border-bottom: none; }
+    .cl-fixed-label { padding: 11px 20px; font-size: 0.86rem; color: var(--muted); border-right: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; }
+    .cl-value-input { background: transparent; border: none; color: var(--white); font-family: inherit; font-size: 0.86rem; padding: 11px 16px; outline: none; width: 100%; }
+    .cl-value-input:focus { background: rgba(201,168,76,0.03); }
+    .cl-value-input::placeholder { color: rgba(138,151,170,0.35); }
+    .btn-add-row { width: 100%; background: transparent; border: 1px dashed rgba(255,255,255,0.1); border-radius: var(--radius); color: var(--muted); font-family: inherit; font-size: 0.86rem; padding: 11px; cursor: pointer; transition: border-color 0.2s, color 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 4px; }
+    .btn-add-row:hover { border-color: rgba(201,168,76,0.4); color: var(--gold); }
+
+    /* ── ÜBERSICHT-TABELLE ── */
+    .ov-intro { color: var(--muted); font-size: 0.88rem; margin-bottom: 20px; line-height: 1.6; }
+    .ov-table-wrap { overflow-x: auto; border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); background: var(--navy2); }
+    .ov-table { border-collapse: collapse; width: 100%; min-width: 660px; }
+    .ov-table th, .ov-table td { padding: 13px 18px; text-align: right; font-size: 0.86rem; border-bottom: 1px solid rgba(255,255,255,0.05); white-space: nowrap; }
+    .ov-table th { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); font-weight: 600; background: #1b2a48; position: sticky; top: 0; }
+    .ov-table th:first-child, .ov-table td:first-child { text-align: left; }
+    .ov-table tbody tr { cursor: pointer; transition: background 0.15s; }
+    .ov-table tbody tr:hover { background: rgba(201,168,76,0.05); }
+    .ov-obj { font-weight: 600; }
+    .ov-sub { color: var(--muted); font-weight: 400; font-size: 0.78rem; }
+    .ov-table tr.ov-total { cursor: default; }
+    .ov-table tr.ov-total:hover { background: rgba(201,168,76,0.06); }
+    .ov-table tr.ov-total td { border-top: 2px solid rgba(201,168,76,0.3); border-bottom: none; background: rgba(201,168,76,0.06); font-weight: 700; }
+    .ov-gold { color: var(--gold); } .ov-green { color: var(--green); } .ov-red { color: var(--red); }
+    .ov-empty { padding: 40px 20px; color: var(--muted); font-size: 0.9rem; text-align: center; }
+
+    /* ── LIQUIDITÄT (nur Anzeige, Summe aller Immobilien) ── */
+    .liq-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+    .liq-hint { color: rgba(138,151,170,0.7); font-size: 0.74rem; }
+    .liq-scroll { overflow-x: auto; border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); background: var(--navy2); }
+    .liq-table { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; }
+    .liq-table th, .liq-table td { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 0; }
+    .liq-table thead th { font-size: 0.68rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px; text-align: right; background: #1b2a48; white-space: nowrap; position: sticky; top: 0; z-index: 3; }
+    .liq-table thead th.liq-label { z-index: 4; background: #1b2a48; }
+    .liq-label { position: sticky; left: 0; background: var(--navy2); z-index: 2; text-align: left; font-size: 0.82rem; color: var(--muted); padding: 8px 16px; white-space: nowrap; min-width: 160px; border-right: 1px solid rgba(255,255,255,0.08); }
+    .liq-row-sub .liq-label { padding-left: 30px; font-size: 0.76rem; font-style: italic; }
+    .liq-row-calc .liq-label { color: var(--white); }
+    .liq-row-strong .liq-label, .liq-row-total .liq-label { font-weight: 600; }
+    .liq-sep td { border-top: 2px solid rgba(255,255,255,0.1); }
+    .liq-row-strong td { background: rgba(255,255,255,0.045); }
+    .liq-row-strong .liq-label { background: #20304f; color: var(--white); }
+    .liq-row-total td { background: rgba(201,168,76,0.06); }
+    .liq-row-total .liq-label { background: #22304d; color: var(--gold); }
+    .liq-yr { border-left: 2px solid rgba(201,168,76,0.25) !important; }
+    .liq-table th.liq-now { color: var(--gold); background: rgba(201,168,76,0.12); }
+    .liq-table td.liq-now { background: rgba(201,168,76,0.05); }
+    .liq-cell { width: 100px; color: #aebccf; font-family: inherit; font-size: 0.8rem; text-align: right; padding: 8px 12px; }
+    .liq-cell.neg { color: var(--red); }
+    .liq-cell.pos { color: var(--green); }
+    .liq-row-sub .liq-cell { font-size: 0.72rem; font-style: italic; }
+
+    /* ── TO-DOS ── */
+    .checklist-card { background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; }
+    .ci-check-col { display: flex; align-items: center; justify-content: center; padding: 16px 0; }
+    .ci-cb { width: 18px; height: 18px; appearance: none; -webkit-appearance: none; border: 2px solid rgba(255,255,255,0.2); border-radius: 4px; cursor: pointer; background: transparent; transition: background 0.2s, border-color 0.2s; position: relative; flex-shrink: 0; }
+    .ci-cb:checked { background: var(--green); border-color: var(--green); }
+    .ci-cb:checked::after { content: '✓'; position: absolute; top: -1px; left: 2px; color: var(--navy); font-size: 11px; font-weight: 700; }
+    .cl-delete { background: none; border: none; color: transparent; cursor: pointer; font-size: 0.85rem; padding: 0 12px; transition: color 0.2s; display: flex; align-items: center; justify-content: center; }
+    .todo-add { display: flex; gap: 10px; margin-bottom: 14px; }
+    .todo-add input { flex: 1; background: var(--navy2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--white); font-family: inherit; font-size: 0.88rem; padding: 10px 14px; outline: none; transition: border-color 0.2s; }
+    .todo-add input:focus { border-color: rgba(201,168,76,0.4); }
+    .todo-add input::placeholder { color: rgba(138,151,170,0.4); }
+    .todo-add input[type="date"] { flex: 0 0 auto; color-scheme: dark; color: var(--muted); }
+    .todo-btn { background: transparent; border: 1px solid rgba(201,168,76,0.5); border-radius: 8px; color: var(--gold); font-family: inherit; font-size: 0.82rem; padding: 8px 14px; cursor: pointer; transition: background 0.2s; }
+    .todo-btn:hover { background: rgba(201,168,76,0.1); }
+    .todo-due { color: var(--muted); }
+    .todo-due.overdue { color: var(--red); font-weight: 600; }
+    .todo-item { display: grid; grid-template-columns: 52px 1fr 40px; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .todo-item:last-child { border-bottom: none; }
+    .todo-text { font-size: 0.88rem; padding: 14px 0; cursor: pointer; user-select: none; word-break: break-word; }
+    .todo-text.done { color: var(--muted); text-decoration: line-through; }
+    .todo-meta { font-size: 0.72rem; color: rgba(138,151,170,0.6); margin-top: 2px; }
+    .dok-empty { padding: 24px 20px; color: var(--muted); font-size: 0.86rem; text-align: center; }
+
+    /* ── NOTES ── */
+    .notes-area { width: 100%; min-height: 440px; background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); color: var(--white); font-family: inherit; font-size: 0.92rem; line-height: 1.65; padding: 22px; outline: none; resize: vertical; transition: border-color 0.2s; }
+    .notes-area:focus { border-color: rgba(201,168,76,0.35); }
+    .notes-area::placeholder { color: rgba(138,151,170,0.4); }
+
+    /* ── FOOTER ── */
+    footer { border-top: 1px solid rgba(255,255,255,0.07); padding: 36px 60px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-top: auto; }
+    .footer-links { display: flex; gap: 28px; list-style: none; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; }
+    .footer-copy { color: var(--muted); font-size: 0.82rem; }
+
+    @media (max-width: 700px) {
+      nav { padding: 18px 24px; }
+      nav ul { display: none; }
+      .prop-header, .tab-header { padding-left: 20px; padding-right: 20px; }
+      .tab-content { padding-left: 20px; padding-right: 20px; }
+      .cl-row { grid-template-columns: 140px 1fr 36px; }
+      footer { padding: 28px 24px; flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="authGuard">
+    <div style="font-size:2rem;">🔒</div>
+    <p>Diese Seite ist nur für angemeldete Nutzer.</p>
+    <a href="login.html">Jetzt einloggen →</a>
+  </div>
+
+  <nav>
+    <a href="index.html" class="logo">Immo<span>.Expert</span></a>
+    <ul>
+      <li><a href="finder.html">Immo.Finder</a></li>
+      <li><a href="portfolio.html" class="active">Immo.Portfolio</a></li>
+      <li><a href="profil.html" class="nav-cta" id="navAuthLink">Profil</a></li>
+    </ul>
+  </nav>
+
+  <div class="prop-header">
+    <a href="portfolio.html" class="back-link">← Zurück zum Portfolio</a>
+    <div class="prop-meta">
+      <span class="prop-icon">📊</span>
+      <span class="prop-badge">Gesamtportfolio</span>
+    </div>
+    <div class="prop-name">Erweiterte <span>Portfolio-Übersicht</span></div>
+    <div class="prop-adresse">Alle Immobilien zusammengefasst.</div>
+  </div>
+
+  <div class="tab-header">
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('uebersicht')">Übersicht</button>
+      <button class="tab-btn"        onclick="switchTab('kontakte')">Kontakte</button>
+      <button class="tab-btn"        onclick="switchTab('liquiditaet')">Liquidität</button>
+      <button class="tab-btn"        onclick="switchTab('todos')">To-Dos</button>
+      <button class="tab-btn"        onclick="switchTab('notes')">Notes</button>
+    </div>
+  </div>
+
+  <!-- ══ TAB: ÜBERSICHT ══ -->
+  <div class="tab-pane active" id="pane-uebersicht">
+    <div class="tab-content">
+      <div class="section-head" style="margin-bottom:16px;">
+        <h3>Über<span>sicht</span></h3>
+      </div>
+      <p class="ov-intro">Kennzahlen je Immobilie (aktueller Monat aus der Liquiditätsplanung). Zeile anklicken, um die Immobilie zu öffnen.</p>
+      <div class="ov-table-wrap" id="ovTableWrap"></div>
+    </div>
+  </div>
+
+  <!-- ══ TAB: KONTAKTE ══ -->
+  <div class="tab-pane" id="pane-kontakte">
+    <div class="tab-content">
+      <div class="section-head" style="margin-bottom:16px;">
+        <h3>Kon<span>takte</span></h3>
+        <div class="save-indicator" id="siKontakte"></div>
+      </div>
+      <div id="kontakteWrap"></div>
+      <button class="btn-add-row" onclick="addKontakt()">+ Kontakt hinzufügen</button>
+    </div>
+  </div>
+
+  <!-- ══ TAB: LIQUIDITÄT ══ -->
+  <div class="tab-pane" id="pane-liquiditaet">
+    <div class="tab-content" style="max-width:1400px;">
+      <div class="section-head" style="margin-bottom:16px;">
+        <h3>Liquidität <span>gesamt</span></h3>
+      </div>
+      <div class="liq-controls">
+        <span class="liq-hint">Alle Werte in € · Summe aller Immobilien je Monat · nur Anzeige</span>
+      </div>
+      <div class="liq-scroll" id="liqScroll"></div>
+    </div>
+  </div>
+
+  <!-- ══ TAB: TO-DOS ══ -->
+  <div class="tab-pane" id="pane-todos">
+    <div class="tab-content">
+      <div class="section-head" style="margin-bottom:16px;">
+        <h3>To-<span>Dos</span></h3>
+        <div class="save-indicator" id="siTodos"></div>
+      </div>
+      <div class="todo-add">
+        <input type="text" id="todoInput" placeholder="Neues To-Do eintragen …" maxlength="300" />
+        <input type="date" id="todoDueInput" title="Fällig am (optional)" />
+        <button class="todo-btn" onclick="addTodo()">+ Hinzufügen</button>
+      </div>
+      <div class="checklist-card" id="todoList"></div>
+    </div>
+  </div>
+
+  <!-- ══ TAB: NOTES ══ -->
+  <div class="tab-pane" id="pane-notes">
+    <div class="tab-content">
+      <div class="section-head" style="margin-bottom:16px;">
+        <h3>No<span>tes</span></h3>
+        <div class="save-indicator" id="siNotes"></div>
+      </div>
+      <textarea class="notes-area" id="notesArea"
+                placeholder="Portfolio-weite Notizen, Erinnerungen und wichtige Informationen …"></textarea>
+    </div>
+  </div>
+
+  <footer>
+    <a href="index.html" class="logo">Immo<span>.Expert</span></a>
+    <ul class="footer-links">
+      <li><a href="impressum.html">Impressum</a></li>
+      <li><a href="datenschutz.html">Datenschutz</a></li>
+      <li><a href="kontakt.html">Kontakt</a></li>
+    </ul>
+    <span class="footer-copy">© 2026 Immo.Expert</span>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="notifications.js" defer></script>
+  <script>
+    const SUPABASE_URL = 'https://awvnfocepqkkncgqgaka.supabase.co'
+    const SUPABASE_KEY = 'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
+    const { createClient } = window.supabase
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+    const OBJEKTART_ICONS = {
+      'Eigentumswohnung': '🏢', 'Einfamilienhaus': '🏠',
+      'Mehrfamilienhaus': '🏘️', 'Gewerbe': '🏪', 'Sonstiges': '🏗️',
+    }
+
+    // Zeilen der Liquiditätsplanung – identisch zur Immobilien-Seite
+    const LIQ_ROWS = [
+      { key: 'einzahlungEk',          label: 'Einzahlung Eigenkapital',  type: 'input' },
+      { key: 'einzahlungFk',          label: 'Valutierung Fremdkapital', type: 'input' },
+      { key: 'kaufpreis',             label: 'Zahlung Kaufpreis',        type: 'input' },
+      { key: 'ausgabe',               label: 'Zahlung Nebenkosten',      type: 'input' },
+      { key: 'weitereAusgaben',       label: 'Weitere Ausgaben',         type: 'input' },
+      { key: 'nebenkostenabrechnung', label: 'Nebenkostenabrechnung',    type: 'input' },
+      { key: 'miete',        label: 'Miete',                    type: 'calc',  sep: true },
+      { key: 'nkm',          label: 'Nettokaltmiete',           type: 'input', sub: true },
+      { key: 'nk',           label: 'Nebenkostenvorauszahlung', type: 'input', sub: true },
+      { key: 'weitereMiete', label: 'Weitere Miete',     type: 'input' },
+      { key: 'grundsteuer',  label: 'Grundsteuer',       type: 'input' },
+      { key: 'hausgeld',     label: 'Hausgeld',          type: 'input' },
+      { key: 'zins',         label: 'Zins',              type: 'input' },
+      { key: 'tilgung',      label: 'Tilgung',           type: 'input' },
+      { key: 'cf',           label: 'CF Wohnung',        type: 'calc',  strong: true, sep: true },
+      { key: 'guthaben',     label: 'Guthaben',          type: 'calc',  total: true, sep: true },
+    ]
+
+    let currentUserId = null
+    let properties = []
+    let overview = { kontakte: [], todos: [], notes: '' }
+
+    // ── AUTH ──
+    sb.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        document.getElementById('authGuard').classList.add('visible')
+        setTimeout(() => { window.location.href = 'login.html' }, 1500)
+        return
+      }
+      currentUserId = data.session.user.id
+      loadAll()
+    })
+
+    async function loadAll() {
+      const [{ data: props }, { data: ov }] = await Promise.all([
+        sb.from('portfolio').select('*').order('created_at', { ascending: true }),
+        sb.from('portfolio_overview').select('*').eq('user_id', currentUserId).maybeSingle(),
+      ])
+      properties = props || []
+      if (ov) overview = { kontakte: ov.kontakte || [], todos: ov.todos || [], notes: ov.notes || '' }
+
+      renderUebersicht()
+      renderKontakte()
+      renderLiquiditaet()
+      initTodos()
+      initNotes()
+
+      // Deep-Link ?tab=…
+      const tabParam = new URLSearchParams(window.location.search).get('tab')
+      if (tabParam && TAB_ORDER.includes(tabParam)) switchTab(tabParam)
+    }
+
+    // ════════════════════════════════════════
+    // KENNZAHLEN JE IMMOBILIE (wie in portfolio.html / Übersicht-Tab)
+    // ════════════════════════════════════════
+    function liqStats(p) {
+      const lq = p.liquiditaet
+      const nowM = new Date().toISOString().slice(0, 7)
+      if (!lq || !lq.cells) return { kaufpreis: p.kaufpreis || 0, nkm: p.kaltmiete || 0, cf: 0, liq: 0 }
+      const cells = lq.cells, ovs = lq.overrides || {}
+      const sum = k => Object.values(cells[k] || {}).reduce((s, v) => s + (Number(v) || 0), 0)
+      const c   = k => Number(cells[k]?.[nowM]) || 0
+      const ov  = k => { const v = ovs[k]?.[nowM]; return (v === undefined || v === null || v === '') ? null : Number(v) }
+      const kaufpreis = Math.abs(sum('kaufpreis')) || p.kaufpreis || 0
+      const miete = ov('miete') ?? c('nkm') + c('nk')
+      const cf = ov('cf') ?? miete + c('weitereMiete') + c('grundsteuer') + c('hausgeld') + c('zins') + c('tilgung')
+      const liq = Math.abs(c('hausgeld') + c('zins') + c('tilgung'))
+      return { kaufpreis, nkm: c('nkm') || p.kaltmiete || 0, cf, liq }
+    }
+
+    // ════════════════════════════════════════
+    // TAB: ÜBERSICHT (Tabelle)
+    // ════════════════════════════════════════
+    function renderUebersicht() {
+      const wrap = document.getElementById('ovTableWrap')
+      if (!properties.length) {
+        wrap.innerHTML = '<div class="ov-empty">Noch keine Immobilien im Portfolio.</div>'
+        return
+      }
+      const stats = properties.map(liqStats)
+      const tot = stats.reduce((a, s) => ({
+        kaufpreis: a.kaufpreis + s.kaufpreis, nkm: a.nkm + s.nkm, cf: a.cf + s.cf, liq: a.liq + s.liq,
+      }), { kaufpreis: 0, nkm: 0, cf: 0, liq: 0 })
+
+      const rows = properties.map((p, i) => {
+        const s = stats[i]
+        const icon = OBJEKTART_ICONS[p.objektart] || '🏗️'
+        const cfCls = s.cf < -0.004 ? 'ov-red' : 'ov-green'
+        return `
+          <tr onclick="location.href='immobilie.html?id=${p.id}'">
+            <td>
+              <div class="ov-obj">${icon} ${esc(p.bezeichnung || '–')}</div>
+              <div class="ov-sub">${esc(p.objektart || 'Immobilie')}${p.adresse ? ' · ' + esc(p.adresse) : ''}</div>
+            </td>
+            <td class="ov-gold">${s.kaufpreis ? formatEur(s.kaufpreis) : '–'}</td>
+            <td class="ov-green">${formatEur(s.nkm)}</td>
+            <td class="${cfCls}">${formatEur(s.cf)}</td>
+            <td>${formatEur(s.liq)}</td>
+          </tr>`
+      }).join('')
+
+      const totCfCls = tot.cf < -0.004 ? 'ov-red' : 'ov-green'
+      wrap.innerHTML = `
+        <table class="ov-table">
+          <thead>
+            <tr>
+              <th>Immobilie</th>
+              <th>Kaufpreis</th>
+              <th>Kaltmiete / Monat</th>
+              <th>Cashflow / Monat</th>
+              <th>Empf. Liquidität</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+            <tr class="ov-total">
+              <td>Gesamt (${properties.length})</td>
+              <td class="ov-gold">${formatEur(tot.kaufpreis)}</td>
+              <td class="ov-green">${formatEur(tot.nkm)}</td>
+              <td class="${totCfCls}">${formatEur(tot.cf)}</td>
+              <td>${formatEur(tot.liq)}</td>
+            </tr>
+          </tbody>
+        </table>`
+    }
+
+    // ════════════════════════════════════════
+    // TAB: KONTAKTE (eigene Portfolio-Kontakte)
+    // ════════════════════════════════════════
+    const KONTAKT_FIELDS = [
+      { key: 'bezeichnung', label: 'Bezeichnung', ph: 'z. B. Steuerberater' },
+      { key: 'name',        label: 'Name' },
+      { key: 'telefon',     label: 'Telefonnummer' },
+      { key: 'email',       label: 'E-Mail' },
+    ]
+
+    function renderKontakte() {
+      const wrap = document.getElementById('kontakteWrap')
+      wrap.innerHTML = ''
+      if (!Array.isArray(overview.kontakte)) overview.kontakte = []
+      if (!overview.kontakte.length) {
+        wrap.innerHTML = '<div class="dok-empty">Noch keine Kontakte – unten einen hinzufügen.</div>'
+        return
+      }
+      overview.kontakte.forEach((k, idx) => {
+        const card = document.createElement('div')
+        card.className = 'cl-table'
+        card.style.marginBottom = '14px'
+        const title = (k.bezeichnung || '').trim() || `Kontakt ${idx + 1}`
+        const rows = KONTAKT_FIELDS.map(f => `
+          <div class="cl-row">
+            <div class="cl-fixed-label">${f.label}</div>
+            <input class="cl-value-input" type="text" placeholder="${f.ph || 'eintragen …'}"
+                   value="${esc(k[f.key] || '')}" data-kidx="${idx}" data-kfield="${f.key}" />
+            <div></div>
+          </div>`).join('')
+        card.innerHTML = `
+          <div class="cl-section-label">
+            <span data-ktitle="${idx}">${esc(title)}</span>
+            <button class="kon-del" onclick="deleteKontakt(${idx})">Löschen ✕</button>
+          </div>${rows}`
+        card.querySelectorAll('input[data-kidx]').forEach(inp => {
+          inp.addEventListener('input', () => {
+            const i = Number(inp.dataset.kidx), field = inp.dataset.kfield
+            overview.kontakte[i][field] = inp.value
+            if (field === 'bezeichnung') {
+              const t = card.querySelector(`[data-ktitle="${i}"]`)
+              if (t) t.textContent = inp.value.trim() || `Kontakt ${i + 1}`
+            }
+            scheduleSave('c')
+          })
+        })
+        wrap.appendChild(card)
+      })
+    }
+
+    function addKontakt() {
+      if (!Array.isArray(overview.kontakte)) overview.kontakte = []
+      overview.kontakte.push({ bezeichnung: '', name: '', telefon: '', email: '' })
+      renderKontakte()
+      const inputs = document.querySelectorAll('#kontakteWrap .cl-table:last-child input')
+      if (inputs.length) inputs[0].focus()
+      scheduleSave('c')
+    }
+
+    function deleteKontakt(idx) {
+      if (!overview.kontakte[idx]) return
+      const nm = (overview.kontakte[idx].bezeichnung || overview.kontakte[idx].name || '').trim()
+      if (!confirm(`Kontakt${nm ? ' „' + nm + '“' : ''} löschen?`)) return
+      overview.kontakte.splice(idx, 1)
+      renderKontakte()
+      scheduleSave('c')
+    }
+
+    // ════════════════════════════════════════
+    // TAB: LIQUIDITÄT (Summe aller Immobilien, nur Anzeige)
+    // ════════════════════════════════════════
+    function liqMonthList(start, count) {
+      const [y, mo] = start.split('-').map(Number)
+      return Array.from({ length: count }, (_, i) => {
+        const dt = new Date(y, mo - 1 + i, 1)
+        return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0')
+      })
+    }
+
+    function monthRange(start, end) {
+      const [ys, ms] = start.split('-').map(Number)
+      const [ye, me] = end.split('-').map(Number)
+      const n = (ye - ys) * 12 + (me - ms) + 1
+      return liqMonthList(start, Math.max(n, 1))
+    }
+
+    // Berechnung je Immobilie – Logik 1:1 wie auf der Immobilien-Seite
+    function computeProp(lq) {
+      const months = liqMonthList(lq.startMonth, lq.monthCount)
+      const cells = lq.cells || {}, overrides = lq.overrides || {}
+      const inp = (k, m) => Number(cells[k]?.[m]) || 0
+      const ov  = (k, m) => { const v = overrides[k]?.[m]; return (v === undefined || v === null || v === '') ? null : Number(v) }
+      const out = {}
+      LIQ_ROWS.forEach(r => { out[r.key] = {} })
+      let guthaben = 0
+      months.forEach(m => {
+        LIQ_ROWS.forEach(r => { if (r.type === 'input') out[r.key][m] = inp(r.key, m) })
+        const miete = ov('miete', m) ?? out.nkm[m] + out.nk[m]
+        const cf = ov('cf', m) ?? miete + out.weitereMiete[m] + out.grundsteuer[m]
+                                  + out.hausgeld[m] + out.zins[m] + out.tilgung[m]
+        guthaben = ov('guthaben', m) ?? guthaben + out.einzahlungEk[m] + out.einzahlungFk[m]
+                                        + out.kaufpreis[m] + out.ausgabe[m] + out.weitereAusgaben[m]
+                                        + out.nebenkostenabrechnung[m] + cf
+        out.miete[m] = miete; out.cf[m] = cf; out.guthaben[m] = guthaben
+      })
+      return { months, out }
+    }
+
+    // Aggregation über alle Immobilien
+    function aggregateLiq() {
+      const perProp = properties
+        .filter(p => p.liquiditaet && p.liquiditaet.cells && p.liquiditaet.startMonth)
+        .map(p => computeProp(p.liquiditaet))
+      const all = new Set()
+      perProp.forEach(pp => pp.months.forEach(m => all.add(m)))
+      if (!all.size) return { months: [], out: {} }
+      const sorted = [...all].sort()
+      const months = monthRange(sorted[0], sorted[sorted.length - 1])
+      const out = {}
+      LIQ_ROWS.forEach(r => { out[r.key] = {} })
+      months.forEach(m => {
+        LIQ_ROWS.forEach(r => {
+          let s = 0
+          perProp.forEach(pp => {
+            if (r.key === 'guthaben') {
+              // Guthaben ist kumulativ → nach Planende der Immobilie letzten Stand fortführen
+              if (pp.out.guthaben[m] !== undefined) s += pp.out.guthaben[m]
+              else if (m > pp.months[pp.months.length - 1]) s += pp.out.guthaben[pp.months[pp.months.length - 1]] || 0
+            } else {
+              s += pp.out[r.key]?.[m] || 0
+            }
+          })
+          out[r.key][m] = s
+        })
+      })
+      return { months, out }
+    }
+
+    const liqFmt = n => new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.round(n * 100) / 100)
+
+    function renderLiquiditaet() {
+      const scroll = document.getElementById('liqScroll')
+      const { months, out } = aggregateLiq()
+      if (!months.length) {
+        scroll.innerHTML = '<div class="ov-empty">Noch keine Liquiditätsdaten in den Immobilien vorhanden.</div>'
+        return
+      }
+      const nowM = new Date().toISOString().slice(0, 7)
+      const monthTh = months.map(m => {
+        const [y, mo] = m.split('-').map(Number)
+        const name = new Date(y, mo - 1, 1).toLocaleDateString('de-DE', { month: 'short' })
+        return `<th class="${mo === 1 ? 'liq-yr' : ''}${m === nowM ? ' liq-now' : ''}">${name} ${String(y).slice(2)}</th>`
+      }).join('')
+
+      const rows = LIQ_ROWS.map(r => {
+        const cls = ['liq-row-' + r.type,
+          r.sub ? 'liq-row-sub' : '', r.sep ? 'liq-sep' : '',
+          r.strong ? 'liq-row-strong' : '', r.total ? 'liq-row-total' : ''].filter(Boolean).join(' ')
+        const tds = months.map(m => {
+          const [, mo] = m.split('-').map(Number)
+          const val = out[r.key][m] ?? 0
+          const vcls = val < -0.004 ? 'neg' : (val > 0.004 ? 'pos' : '')
+          return `<td class="${mo === 1 ? 'liq-yr' : ''}${m === nowM ? ' liq-now' : ''}">
+            <div class="liq-cell ${vcls}">${liqFmt(val)}</div></td>`
+        }).join('')
+        return `<tr class="${cls}"><td class="liq-label">${r.label}</td>${tds}</tr>`
+      }).join('')
+
+      scroll.innerHTML = `
+        <table class="liq-table">
+          <thead><tr><th class="liq-label">Position</th>${monthTh}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`
+      liqScrollToNow()
+    }
+
+    function liqScrollToNow() {
+      const scroll = document.getElementById('liqScroll')
+      const th = scroll?.querySelector('th.liq-now')
+      if (!scroll || !th || !document.getElementById('pane-liquiditaet').classList.contains('active')) return
+      const labelW = scroll.querySelector('th.liq-label')?.offsetWidth || 0
+      const visible = scroll.clientWidth - labelW
+      scroll.scrollLeft = Math.max(0, th.offsetLeft - labelW - visible / 2 + th.offsetWidth / 2)
+    }
+
+    // ════════════════════════════════════════
+    // TAB: TO-DOS (portfolio-weit)
+    // ════════════════════════════════════════
+    function initTodos() {
+      if (!Array.isArray(overview.todos)) overview.todos = []
+      renderTodos()
+      document.getElementById('todoInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') addTodo()
+      })
+    }
+
+    function renderTodos() {
+      const list = document.getElementById('todoList')
+      list.innerHTML = ''
+      if (!overview.todos.length) {
+        list.innerHTML = '<div class="dok-empty">Noch keine To-Dos – oben eins eintragen.</div>'
+        return
+      }
+      const sorted = overview.todos.map((t, i) => ({ ...t, _i: i }))
+        .sort((a, b) => (a.done === b.done) ? a._i - b._i : (a.done ? 1 : -1))
+      const heute = new Date().toISOString().slice(0, 10)
+      sorted.forEach(t => {
+        const row = document.createElement('div')
+        row.className = 'todo-item'
+        const dat = t.createdAt ? new Date(t.createdAt).toLocaleDateString('de-DE') : ''
+        let meta = dat ? `erstellt am ${dat}` : ''
+        if (t.faellig) {
+          const overdue = !t.done && t.faellig <= heute
+          meta += `${meta ? ' · ' : ''}<span class="todo-due${overdue ? ' overdue' : ''}">fällig am ${new Date(t.faellig).toLocaleDateString('de-DE')}${overdue ? ' ⚠' : ''}</span>`
+        }
+        row.innerHTML = `
+          <div class="ci-check-col">
+            <input type="checkbox" class="ci-cb" ${t.done ? 'checked' : ''} />
+          </div>
+          <div>
+            <div class="todo-text${t.done ? ' done' : ''}">${esc(t.text)}</div>
+            ${meta ? `<div class="todo-meta" style="margin:-10px 0 10px;">${meta}</div>` : ''}
+          </div>
+          <button class="cl-delete" title="Löschen" style="color:var(--muted);">✕</button>`
+        row.querySelector('.ci-cb').addEventListener('change', () => toggleTodo(t._i))
+        row.querySelector('.todo-text').addEventListener('click', () => toggleTodo(t._i))
+        row.querySelector('.cl-delete').addEventListener('click', () => deleteTodo(t._i))
+        list.appendChild(row)
+      })
+    }
+
+    function addTodo() {
+      const inp = document.getElementById('todoInput')
+      const dueInp = document.getElementById('todoDueInput')
+      const text = inp.value.trim()
+      if (!text) return
+      overview.todos.push({
+        text, done: false,
+        createdAt: new Date().toISOString().slice(0, 10),
+        faellig: dueInp.value || null,
+      })
+      inp.value = ''; dueInp.value = ''; inp.focus()
+      renderTodos()
+      scheduleSave('t')
+    }
+
+    function toggleTodo(i) {
+      if (!overview.todos[i]) return
+      overview.todos[i].done = !overview.todos[i].done
+      renderTodos()
+      scheduleSave('t')
+    }
+
+    function deleteTodo(i) {
+      if (!overview.todos[i]) return
+      if (!confirm(`To-Do „${overview.todos[i].text}“ löschen?`)) return
+      overview.todos.splice(i, 1)
+      renderTodos()
+      scheduleSave('t')
+    }
+
+    // ════════════════════════════════════════
+    // TAB: NOTES (portfolio-weit)
+    // ════════════════════════════════════════
+    function initNotes() {
+      const area = document.getElementById('notesArea')
+      area.value = overview.notes || ''
+      area.addEventListener('input', () => { overview.notes = area.value; scheduleSave('n') })
+    }
+
+    // ════════════════════════════════════════
+    // AUTO-SAVE (eine Zeile in portfolio_overview)
+    // ════════════════════════════════════════
+    const SAVE_INDICATORS = { c: 'siKontakte', t: 'siTodos', n: 'siNotes' }
+    let saveTimer = null
+    let lastType = 'n'
+
+    function scheduleSave(type) {
+      lastType = type
+      const ind = document.getElementById(SAVE_INDICATORS[type])
+      if (ind) { ind.textContent = 'Speichern …'; ind.className = 'save-indicator saving' }
+      clearTimeout(saveTimer)
+      saveTimer = setTimeout(doSave, 900)
+    }
+
+    async function doSave() {
+      const payload = {
+        user_id: currentUserId,
+        kontakte: overview.kontakte || [],
+        todos: overview.todos || [],
+        notes: overview.notes || '',
+        updated_at: new Date().toISOString(),
+      }
+      const { error } = await sb.from('portfolio_overview').upsert(payload, { onConflict: 'user_id' })
+      const ind = document.getElementById(SAVE_INDICATORS[lastType])
+      if (!ind) return
+      if (!error) {
+        ind.textContent = '✓ Gespeichert'; ind.className = 'save-indicator saved'
+        setTimeout(() => { ind.textContent = ''; ind.className = 'save-indicator' }, 2500)
+      } else {
+        ind.textContent = '⚠ Fehler beim Speichern'; ind.className = 'save-indicator'; ind.style.color = 'var(--red)'
+        setTimeout(() => { ind.textContent = ''; ind.style.color = '' }, 4000)
+        console.error('Speichern fehlgeschlagen:', error)
+      }
+    }
+
+    // ════════════════════════════════════════
+    // TABS
+    // ════════════════════════════════════════
+    const TAB_ORDER = ['uebersicht', 'kontakte', 'liquiditaet', 'todos', 'notes']
+    function switchTab(name) {
+      document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', TAB_ORDER[i] === name)
+      })
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'))
+      const pane = document.getElementById('pane-' + name)
+      if (pane) pane.classList.add('active')
+      if (name === 'liquiditaet') liqScrollToNow()
+    }
+
+    // ════════════════════════════════════════
+    // HELPERS
+    // ════════════════════════════════════════
+    function formatEur(n) {
+      return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
+    }
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+    }
+  </script>
+  <script src="password-gate.js"></script>
+</body>
+</html>

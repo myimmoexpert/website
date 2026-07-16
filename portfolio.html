@@ -57,17 +57,30 @@
       max-width: 1100px; margin: 0 auto; width: 100%;
       padding: 28px 60px 0;
       display: none; gap: 16px;
+      grid-template-columns: repeat(3, 1fr);
     }
-    .summary-bar.visible { display: flex; }
+    .summary-bar.visible { display: grid; }
     .summary-stat {
       background: var(--navy2); border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 12px; padding: 18px 24px; flex: 1;
+      border-radius: 12px; padding: 18px 24px;
+      display: flex; flex-direction: column; justify-content: center;
     }
     .summary-stat .s-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 6px; }
     .summary-stat .s-value { font-size: 1.35rem; font-weight: 700; }
     .summary-stat .s-value.gold { color: var(--gold); }
     .summary-stat .s-value.green { color: var(--green); }
     .summary-stat .s-value.red { color: var(--red); }
+
+    /* ── CTA-KACHEL (Erweiterte Übersicht) ── */
+    .summary-cta {
+      background: var(--gold); color: var(--navy);
+      border-radius: 12px; padding: 18px 24px;
+      display: flex; flex-direction: column; justify-content: center; gap: 6px;
+      text-decoration: none; cursor: pointer; transition: background 0.2s, transform 0.15s;
+    }
+    .summary-cta:hover { background: var(--gold2); transform: translateY(-2px); }
+    .summary-cta .cta-label { font-size: 0.98rem; font-weight: 700; line-height: 1.25; }
+    .summary-cta .cta-arrow { font-size: 0.8rem; font-weight: 600; opacity: 0.85; }
 
     /* ── TILE GRID ── */
     .tile-grid {
@@ -196,13 +209,14 @@
 
     @media (max-width: 900px) {
       .tile-grid { grid-template-columns: repeat(2, 1fr); }
-      .summary-bar { flex-wrap: wrap; }
+      .summary-bar { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 600px) {
       nav { padding: 18px 24px; }
       nav ul { display: none; }
       .page-header, .summary-bar, .tile-grid { padding-left: 20px; padding-right: 20px; }
       .tile-grid { grid-template-columns: 1fr; }
+      .summary-bar { grid-template-columns: 1fr; }
       .form-row { grid-template-columns: 1fr; }
       footer { padding: 28px 24px; flex-direction: column; align-items: flex-start; }
     }
@@ -242,13 +256,21 @@
       <div class="s-value" id="sumKaufpreis">0 €</div>
     </div>
     <div class="summary-stat">
-      <div class="s-label">Kaltmiete gesamt</div>
-      <div class="s-value green" id="sumMiete">0 €/Mon</div>
+      <div class="s-label">Kaltmiete / Monat</div>
+      <div class="s-value green" id="sumMiete">0 €</div>
     </div>
     <div class="summary-stat">
-      <div class="s-label">CF gesamt</div>
-      <div class="s-value" id="sumCf">0 €/Mon</div>
+      <div class="s-label">Cashflow / Monat</div>
+      <div class="s-value" id="sumCf">0 €</div>
     </div>
+    <div class="summary-stat">
+      <div class="s-label">Empfohlene Liquidität zum Monatswechsel</div>
+      <div class="s-value gold" id="sumLiq">0 €</div>
+    </div>
+    <a class="summary-cta" href="portfolio-uebersicht.html">
+      <span class="cta-label">Erweiterte Portfolio&nbsp;Übersicht</span>
+      <span class="cta-arrow">Öffnen →</span>
+    </a>
   </div>
 
   <!-- Tile Grid -->
@@ -359,12 +381,15 @@
         const totalKauf  = stats.reduce((s, st) => s + st.kaufpreis, 0)
         const totalMiete = stats.reduce((s, st) => s + st.nkm, 0)
         const totalCf    = stats.reduce((s, st) => s + st.cf, 0)
+        // Empfohlene Liquidität = Hausgeld + Zins + Tilgung (aktueller Monat) aller Immobilien
+        const totalLiq   = Math.abs(stats.reduce((s, st) => s + st.hausgeld + st.zins + st.tilgung, 0))
         document.getElementById('sumAnzahl').textContent    = data.length
         document.getElementById('sumKaufpreis').textContent = formatEur(totalKauf)
-        document.getElementById('sumMiete').textContent     = formatEur(totalMiete) + '/Mon'
+        document.getElementById('sumMiete').textContent     = formatEur(totalMiete)
         const sumCf = document.getElementById('sumCf')
-        sumCf.textContent = formatEur(totalCf) + '/Mon'
+        sumCf.textContent = formatEur(totalCf)
         sumCf.className   = 's-value ' + (totalCf < -0.004 ? 'red' : 'green')
+        document.getElementById('sumLiq').textContent       = formatEur(totalLiq)
         document.getElementById('summaryBar').classList.add('visible')
 
         // Kacheln rendern
@@ -412,7 +437,7 @@
     function liqStats(p) {
       const lq = p.liquiditaet
       const nowM = new Date().toISOString().slice(0, 7)
-      if (!lq || !lq.cells) return { kaufpreis: p.kaufpreis || 0, nkm: p.kaltmiete || 0, cf: 0 }
+      if (!lq || !lq.cells) return { kaufpreis: p.kaufpreis || 0, nkm: p.kaltmiete || 0, cf: 0, hausgeld: 0, zins: 0, tilgung: 0 }
       const cells = lq.cells, ovs = lq.overrides || {}
       const sum = k => Object.values(cells[k] || {}).reduce((s, v) => s + (Number(v) || 0), 0)
       const c   = k => Number(cells[k]?.[nowM]) || 0
@@ -420,7 +445,7 @@
       const kaufpreis = Math.abs(sum('kaufpreis')) || p.kaufpreis || 0
       const miete = ov('miete') ?? c('nkm') + c('nk')
       const cf = ov('cf') ?? miete + c('weitereMiete') + c('grundsteuer') + c('hausgeld') + c('zins') + c('tilgung')
-      return { kaufpreis, nkm: c('nkm') || p.kaltmiete || 0, cf }
+      return { kaufpreis, nkm: c('nkm') || p.kaltmiete || 0, cf, hausgeld: c('hausgeld'), zins: c('zins'), tilgung: c('tilgung') }
     }
 
     function buildAddTile() {
