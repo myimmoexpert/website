@@ -1053,6 +1053,8 @@
         const date   = new Date(item.created_at).toLocaleDateString('de-DE')
         const el     = document.createElement('div')
         el.className = 'saved-item'
+        el.style.cursor = 'pointer'
+        el.title = 'Steckbrief öffnen'
         el.innerHTML = `
           <div class="saved-number">#${number}</div>
           <div class="saved-info">
@@ -1061,14 +1063,25 @@
           </div>
           <div class="saved-price">${esc(d.kpiKaufpreis || d.kpiPrice || '–')}</div>
           <div class="saved-actions">
-            <a href="${esc(item.url)}" target="_blank" class="saved-link">↗ Inserat</a>
-            <button class="saved-delete" onclick="deleteSaved('${item.id}')" title="Löschen">✕</button>
+            <a href="${esc(item.url)}" target="_blank" class="saved-link" onclick="event.stopPropagation()">↗ Inserat</a>
+            <button class="saved-delete" onclick="event.stopPropagation(); deleteSaved('${item.id}')" title="Löschen">✕</button>
           </div>
         `
+        el.addEventListener('click', () => openSavedSteckbrief(d, item.url))
         list.appendChild(el)
       })
 
       section.classList.add('visible')
+    }
+
+    function openSavedSteckbrief(d, url) {
+      currentData = d
+      currentUrl  = url
+      fillResult(d, url)
+      document.getElementById('freemiumBanner').classList.remove('visible')
+      document.getElementById('saveBtn').classList.remove('visible')
+      document.getElementById('result').classList.add('visible')
+      document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
 
     async function deleteSaved(id) {
@@ -1180,7 +1193,6 @@
     function buildKaufen() {
       const { article, phrase } = objektPhrase()
       const portal = portalName()
-      const name = getUserName()
       return `Hallo Herr/Frau [Name],
 
 ich interessiere mich sehr für ${article} ${phrase} aus Ihrem Inserat und würde dieses Objekt als reine Kapitalanlage erwerben wollen. Über noch tiefergehende Informationen würde ich mich daher sehr freuen. Können Sie mir zum Objekt noch die folgenden Informationen und Unterlagen zur Verfügung stellen?
@@ -1192,7 +1204,7 @@ ich interessiere mich sehr für ${article} ${phrase} aus Ihrem Inserat und würd
 Ebenfalls bin ich daran interessiert, das Objekt zu besichtigen, sollten Sie bereits einen Besichtigungstermin planen. Ich würde mich sehr über eine Rückmeldung freuen. Gerne stehe ich hierzu über die Nachrichtenfunktion von ${portal}, per E-Mail unter [E-Mail] oder telefonisch unter [Telefon] zur Verfügung.
 
 Viele Grüße und einen schönen Tag,
-${name}`
+[Name]`
     }
 
     function computeOffer() {
@@ -1207,7 +1219,6 @@ ${name}`
 
     function buildVerhandeln() {
       const { article, phrase } = objektPhrase()
-      const name = getUserName()
       const kp = parseNumber(currentData.kpiKaufpreis) || parseNumber(currentData.dKaufpreis)
       const kaufpreisStr = kp ? fmtEuro(kp) : (currentData.kpiKaufpreis || '[Kaufpreis]')
       const offer = computeOffer()
@@ -1218,8 +1229,14 @@ ich bin sehr daran interessiert, ${article} ${phrase} aus Ihrem Inserat als rein
 
 Bei der aktuellen Kaltmiete kann ich den Kaufpreis von ${kaufpreisStr} leider nicht mitgehen. Für einen Kaufpreis iHv. ${angebotStr} würde ich das Objekt sehr gerne erwerben (vorbehaltlich Besichtigung). Um beiden Seiten potenziellen Aufwand zu ersparen, wollte ich dies vor einer möglichen Besichtigung transparent kommunizieren. Sollte der Kaufpreis für die aktuellen Eigentümer von Interesse sein, würde ich mich sehr freuen, das Objekt zu besichtigen und den Kauf schnell abzuwickeln.
 
+Sollte mein Angebot für Sie interessant sein, würde ich mich zur weiteren Prüfung über die folgenden Unterlagen freuen:
+
+- Höhe der monatlichen Nettokaltmiete
+- Die Beschlüsse der letzten Eigentümerversammlungen
+- Abrechnung des Hausgeldes / Wirtschaftspläne der Eigentümergemeinschaft der letzten Jahre
+
 Viele Grüße und einen schönen Tag,
-${name}
+[Name]
 
 mobil: [Telefon]`
     }
