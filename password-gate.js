@@ -1,5 +1,5 @@
 (function () {
-  const PASS = 'ImmoexpertPR1'
+  const PASS = 'Immoexpert11'
   const KEY  = 'ie_gate'
 
   // Bereits entsperrt — Seite normal anzeigen

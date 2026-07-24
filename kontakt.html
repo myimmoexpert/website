@@ -71,14 +71,15 @@
     }
 
     .container {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 48px;
-      max-width: 900px;
+      max-width: 560px;
       width: 100%;
       position: relative;
       z-index: 1;
+      text-align: center;
     }
+
+    .left .contact-info { align-items: center; }
+    .left .contact-item { justify-content: center; text-align: left; }
 
     /* LEFT */
     .left .badge {
@@ -136,74 +137,6 @@
     .contact-item a { color: var(--white); text-decoration: none; font-size: 0.9rem; font-weight: 500; }
     .contact-item a:hover { color: var(--gold); }
 
-    /* RIGHT – FORM */
-    .form-card {
-      background: var(--navy2);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 20px;
-      padding: 40px;
-    }
-
-    .field { margin-bottom: 18px; }
-
-    label {
-      display: block;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 8px;
-    }
-
-    input, textarea {
-      width: 100%;
-      background: var(--navy3);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 10px;
-      padding: 13px 16px;
-      color: var(--white);
-      font-size: 0.95rem;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.2s;
-      resize: vertical;
-    }
-
-    input:focus, textarea:focus { border-color: var(--gold); }
-    input::placeholder, textarea::placeholder { color: rgba(138,151,170,0.6); }
-
-    textarea { min-height: 120px; }
-
-    .btn-submit {
-      width: 100%;
-      background: var(--gold);
-      color: var(--navy);
-      border: none;
-      padding: 14px;
-      border-radius: 10px;
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: background 0.2s, transform 0.15s;
-      margin-top: 4px;
-    }
-
-    .btn-submit:hover { background: var(--gold2); transform: translateY(-1px); }
-
-    .success-msg {
-      display: none;
-      background: rgba(62,207,142,0.1);
-      border: 1px solid rgba(62,207,142,0.3);
-      color: var(--green);
-      border-radius: 10px;
-      padding: 14px 18px;
-      font-size: 0.9rem;
-      text-align: center;
-      margin-top: 16px;
-    }
-
     footer {
       border-top: 1px solid rgba(255,255,255,0.07);
       padding: 36px 60px;
@@ -250,31 +183,10 @@
             <div class="contact-icon">✉️</div>
             <div>
               <span>E-Mail</span><br />
-              <a href="mailto:immoexpertdeutschland@gmail.com">immoexpertdeutschland@gmail.com</a>
+              <a href="mailto:hello@myimmoexpert.de">hello@myimmoexpert.de</a>
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="form-card">
-        <div class="field">
-          <label>Name</label>
-          <input type="text" placeholder="Max Mustermann" id="contact-name" />
-        </div>
-        <div class="field">
-          <label>E-Mail</label>
-          <input type="email" placeholder="ihre@email.de" id="contact-email" />
-        </div>
-        <div class="field">
-          <label>Betreff</label>
-          <input type="text" placeholder="Womit können wir helfen?" id="contact-subject" />
-        </div>
-        <div class="field">
-          <label>Nachricht</label>
-          <textarea placeholder="Ihre Nachricht…" id="contact-message"></textarea>
-        </div>
-        <button class="btn-submit" onclick="sendMessage()">Nachricht senden</button>
-        <div class="success-msg" id="success-msg">✓ Ihre Nachricht wurde gesendet. Wir melden uns bald!</div>
       </div>
 
     </div>
@@ -289,16 +201,6 @@
     </ul>
     <span class="footer-copy">© 2026 Immo.Expert</span>
   </footer>
-
-  <script>
-    function sendMessage() {
-      const fields = ['contact-name', 'contact-email', 'contact-message'];
-      const empty = fields.some(f => !document.getElementById(f).value.trim());
-      if (empty) return;
-      // Platzhalter – wird durch Formspree o.ä. ersetzt
-      document.getElementById('success-msg').style.display = 'block';
-    }
-  </script>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="notifications.js" defer></script>
@@ -316,6 +218,4 @@
       })
     })()
   </script>
-  <script src="password-gate.js"></script>
-</body>
-</html>
+  <script 
