@@ -538,6 +538,152 @@
     }
     .saved-delete:hover { color: var(--red); }
 
+    /* ── ANSCHREIBEN ── */
+    .letter-launch {
+      background: var(--navy2);
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .letter-launch-label {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .letter-launch-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn-letter {
+      background: var(--gold);
+      color: var(--navy);
+      border: none;
+      padding: 11px 22px;
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-letter:hover { background: var(--gold2); transform: translateY(-1px); }
+
+    .letter-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(6,12,22,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 20px;
+      overflow-y: auto;
+    }
+    .letter-overlay.visible { display: flex; }
+    .letter-modal {
+      background: var(--navy2);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 28px;
+      width: 100%;
+      max-width: 620px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+    }
+    .letter-modal-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .letter-modal-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 3px; }
+    .letter-modal-sub { font-size: 0.85rem; color: var(--muted); }
+    .letter-close {
+      background: none; border: none; color: var(--muted);
+      font-size: 1.2rem; cursor: pointer; padding: 4px; line-height: 1;
+      transition: color 0.2s;
+    }
+    .letter-close:hover { color: var(--white); }
+
+    .letter-controls {
+      display: none;
+      background: var(--navy3);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 16px 18px;
+      margin-bottom: 18px;
+    }
+    .letter-controls.visible { display: block; }
+    .letter-ctrl-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+    .letter-ctrl-row { display: flex; align-items: center; gap: 14px; }
+    .letter-num {
+      width: 90px;
+      background: var(--navy);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: var(--white);
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+    }
+    .letter-num:focus { border-color: var(--gold); }
+    .letter-ctrl-hint { font-size: 0.85rem; color: var(--muted); }
+    .letter-ctrl-hint strong { color: var(--gold); }
+
+    .letter-text {
+      width: 100%;
+      min-height: 340px;
+      background: var(--navy3);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 16px 18px;
+      color: var(--white);
+      font-size: 0.92rem;
+      font-family: inherit;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+    }
+    .letter-text:focus { border-color: var(--gold); }
+
+    .letter-modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+    .btn-copy {
+      background: var(--green);
+      color: var(--navy);
+      border: none;
+      padding: 12px 24px;
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      margin-left: auto;
+      transition: opacity 0.2s;
+    }
+    .btn-copy:hover { opacity: 0.85; }
+    #refineBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .letter-note { font-size: 0.76rem; color: var(--muted); margin-top: 14px; line-height: 1.5; }
+
     /* ── FOOTER ── */
     footer {
       border-top: 1px solid rgba(255,255,255,0.07);
@@ -703,10 +849,48 @@
       <p class="rating-summary" id="ratingSummary">–</p>
     </div>
 
+    <!-- Anschreiben -->
+    <div class="letter-launch">
+      <span class="letter-launch-label">Anschreiben für dieses Inserat</span>
+      <div class="letter-launch-btns">
+        <button class="btn-letter" onclick="openLetter('kaufen')">✉️ Kaufen</button>
+        <button class="btn-letter" onclick="openLetter('verhandeln')">💬 Verhandeln</button>
+      </div>
+    </div>
+
     <!-- Actions -->
     <div class="actions">
       <button class="btn-secondary" onclick="resetForm()">Neues Inserat analysieren</button>
       <button class="btn-save" id="saveBtn" onclick="saveSteckbrief()">Steckbrief speichern</button>
+    </div>
+  </div>
+
+  <!-- ANSCHREIBEN-MODAL -->
+  <div class="letter-overlay" id="letterOverlay" onclick="if(event.target===this)closeLetter()">
+    <div class="letter-modal">
+      <div class="letter-modal-head">
+        <div>
+          <div class="letter-modal-title" id="letterTitle">Anschreiben</div>
+          <div class="letter-modal-sub" id="letterSub">–</div>
+        </div>
+        <button class="letter-close" onclick="closeLetter()" title="Schließen">✕</button>
+      </div>
+
+      <div class="letter-controls" id="letterControls">
+        <label class="letter-ctrl-label" for="zielfaktorInput">Zielfaktor (Kaufpreis ÷ Jahresmiete)</label>
+        <div class="letter-ctrl-row">
+          <input type="number" id="zielfaktorInput" class="letter-num" min="5" max="40" step="0.5" value="20" oninput="recalcOffer()" />
+          <span class="letter-ctrl-hint" id="offerHint">–</span>
+        </div>
+      </div>
+
+      <textarea class="letter-text" id="letterText" spellcheck="false"></textarea>
+
+      <div class="letter-modal-actions">
+        <button class="btn-secondary" id="refineBtn" onclick="refineLetter()">✨ Mit KI verfeinern</button>
+        <button class="btn-copy" id="copyBtn" onclick="copyLetter()">Kopieren</button>
+      </div>
+      <p class="letter-note">Platzhalter wie [E-Mail] und [Telefon] bitte vor dem Versand ersetzen. Alle Angaben ohne Gewähr – Text vor dem Senden prüfen.</p>
     </div>
   </div>
 
@@ -941,6 +1125,196 @@
         tagsEl.appendChild(span)
       })
     }
+
+    /* ── ANSCHREIBEN ── */
+    const GEN_MSG_URL = SUPABASE_URL + '/functions/v1/generate-message'
+    let currentLetterMode = null
+
+    function parseNumber(str) {
+      if (!str) return null
+      const m = String(str).match(/[\d.,]+/)
+      if (!m) return null
+      const n = parseFloat(m[0].replace(/\./g, '').replace(',', '.'))
+      return isNaN(n) ? null : n
+    }
+
+    function getUserName() {
+      const meta = (session && session.user && session.user.user_metadata) || {}
+      const first = meta.first_name || meta.given_name || ''
+      const last  = meta.last_name  || meta.family_name || ''
+      const full  = [first, last].filter(Boolean).join(' ')
+      if (full) return full
+      if (session && session.user && session.user.email) return session.user.email.split('@')[0]
+      return '[Ihr Name]'
+    }
+
+    function getRooms() {
+      const sources = [currentData.dWohnflaeche, currentData.title, currentData.subtitle]
+      for (const s of sources) {
+        if (!s) continue
+        const m = String(s).match(/([\d]+(?:[.,]\d+)?)\s*-?\s*Zimmer/i)
+        if (m) return m[1].replace('.', ',')
+      }
+      return null
+    }
+
+    function getObjekt() {
+      const art = (currentData.dObjektart || '').toLowerCase()
+      if (art.includes('haus')) return { word: 'Haus', article: 'das' }
+      if (art.includes('wohnung') || art.includes('apartment') || art.includes('etage')) return { word: 'Wohnung', article: 'die' }
+      return { word: 'Immobilie', article: 'die' }
+    }
+
+    function objektPhrase() {
+      const o = getObjekt()
+      const rooms = getRooms()
+      const phrase = rooms ? `${rooms}-Zimmer-${o.word}` : o.word
+      return { article: o.article, phrase }
+    }
+
+    function portalName() {
+      if (currentUrl && currentUrl.includes('immowelt')) return 'Immowelt'
+      return 'ImmobilienScout24'
+    }
+
+    function buildKaufen() {
+      const { article, phrase } = objektPhrase()
+      const portal = portalName()
+      const name = getUserName()
+      return `Hallo Herr/Frau [Name],
+
+ich interessiere mich sehr für ${article} ${phrase} aus Ihrem Inserat und würde dieses Objekt als reine Kapitalanlage erwerben wollen. Über noch tiefergehende Informationen würde ich mich daher sehr freuen. Können Sie mir zum Objekt noch die folgenden Informationen und Unterlagen zur Verfügung stellen?
+
+- Höhe der monatlichen Nettokaltmiete
+- Die Beschlüsse der letzten Eigentümerversammlungen
+- Abrechnung des Hausgeldes / Wirtschaftspläne der Eigentümergemeinschaft der letzten Jahre
+
+Ebenfalls bin ich daran interessiert, das Objekt zu besichtigen, sollten Sie bereits einen Besichtigungstermin planen. Ich würde mich sehr über eine Rückmeldung freuen. Gerne stehe ich hierzu über die Nachrichtenfunktion von ${portal}, per E-Mail unter [E-Mail] oder telefonisch unter [Telefon] zur Verfügung.
+
+Viele Grüße und einen schönen Tag,
+${name}`
+    }
+
+    function computeOffer() {
+      const miete = parseNumber(currentData.kpiNettokaltmiete)
+      const faktor = parseFloat(document.getElementById('zielfaktorInput').value)
+      if (!miete || !faktor) return null
+      const raw = miete * 12 * faktor
+      return Math.round(raw / 1000) * 1000
+    }
+
+    function fmtEuro(n) { return n.toLocaleString('de-DE') + ' €' }
+
+    function buildVerhandeln() {
+      const { article, phrase } = objektPhrase()
+      const name = getUserName()
+      const kp = parseNumber(currentData.kpiKaufpreis) || parseNumber(currentData.dKaufpreis)
+      const kaufpreisStr = kp ? fmtEuro(kp) : (currentData.kpiKaufpreis || '[Kaufpreis]')
+      const offer = computeOffer()
+      const angebotStr = offer ? fmtEuro(offer) : '[Wunschpreis]'
+      return `Hallo Herr/Frau [Name],
+
+ich bin sehr daran interessiert, ${article} ${phrase} aus Ihrem Inserat als reine Kapitalanlage zu erwerben. Dabei bin ich an einer schnellen Abwicklung (auch/besonders mit den Banken) interessiert.
+
+Bei der aktuellen Kaltmiete kann ich den Kaufpreis von ${kaufpreisStr} leider nicht mitgehen. Für einen Kaufpreis iHv. ${angebotStr} würde ich das Objekt sehr gerne erwerben (vorbehaltlich Besichtigung). Um beiden Seiten potenziellen Aufwand zu ersparen, wollte ich dies vor einer möglichen Besichtigung transparent kommunizieren. Sollte der Kaufpreis für die aktuellen Eigentümer von Interesse sein, würde ich mich sehr freuen, das Objekt zu besichtigen und den Kauf schnell abzuwickeln.
+
+Viele Grüße und einen schönen Tag,
+${name}
+
+mobil: [Telefon]`
+    }
+
+    function recalcOffer() {
+      const offer = computeOffer()
+      const kp = parseNumber(currentData.kpiKaufpreis) || parseNumber(currentData.dKaufpreis)
+      const hint = document.getElementById('offerHint')
+      if (offer) {
+        const diff = kp ? ` (aktuell ${fmtEuro(kp)})` : ''
+        hint.innerHTML = `Angebot: <strong>${fmtEuro(offer)}</strong>${diff}`
+      } else {
+        hint.textContent = 'Keine Nettokaltmiete erkannt – Preis im Text manuell anpassen.'
+      }
+      if (currentLetterMode === 'verhandeln') {
+        document.getElementById('letterText').value = buildVerhandeln()
+      }
+    }
+
+    function openLetter(mode) {
+      if (!currentData) return
+      currentLetterMode = mode
+      document.getElementById('letterTitle').textContent = mode === 'kaufen'
+        ? 'Anschreiben – Kaufanfrage'
+        : 'Anschreiben – Preisverhandlung'
+      document.getElementById('letterSub').textContent = currentData.title || ''
+
+      const controls = document.getElementById('letterControls')
+      const copyBtn = document.getElementById('copyBtn')
+      copyBtn.textContent = 'Kopieren'
+
+      if (mode === 'verhandeln') {
+        controls.classList.add('visible')
+        recalcOffer()
+        document.getElementById('letterText').value = buildVerhandeln()
+      } else {
+        controls.classList.remove('visible')
+        document.getElementById('letterText').value = buildKaufen()
+      }
+      document.getElementById('letterOverlay').classList.add('visible')
+    }
+
+    function closeLetter() {
+      document.getElementById('letterOverlay').classList.remove('visible')
+    }
+
+    function copyLetter() {
+      const txt = document.getElementById('letterText').value
+      navigator.clipboard.writeText(txt).then(() => {
+        const b = document.getElementById('copyBtn')
+        b.textContent = '✓ Kopiert'
+        setTimeout(() => { b.textContent = 'Kopieren' }, 2000)
+      })
+    }
+
+    async function refineLetter() {
+      const btn = document.getElementById('refineBtn')
+      const ta = document.getElementById('letterText')
+      const original = btn.textContent
+      btn.disabled = true
+      btn.textContent = '✨ Verfeinere…'
+
+      const kp = parseNumber(currentData.kpiKaufpreis) || parseNumber(currentData.dKaufpreis)
+      const offer = currentLetterMode === 'verhandeln' ? computeOffer() : null
+      const facts = [
+        `Objekt: ${currentData.title || '–'}`,
+        `Typ: ${currentData.dObjektart || '–'}`,
+        currentData.dWohnflaeche ? `Fläche/Zimmer: ${currentData.dWohnflaeche}` : '',
+        currentData.kpiKaufpreis ? `Kaufpreis: ${currentData.kpiKaufpreis}` : '',
+        currentData.kpiNettokaltmiete ? `Nettokaltmiete: ${currentData.kpiNettokaltmiete}` : '',
+        currentData.dVermietet ? `Vermietet: ${currentData.dVermietet}` : '',
+        offer ? `Angebotspreis (nicht ändern): ${fmtEuro(offer)}` : ''
+      ].filter(Boolean).join('\n')
+
+      try {
+        const headers = { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY }
+        if (session) headers['Authorization'] = 'Bearer ' + session.access_token
+        const res = await fetch(GEN_MSG_URL, {
+          method: 'POST', headers,
+          body: JSON.stringify({ mode: currentLetterMode, baseText: ta.value, facts })
+        })
+        const data = await res.json()
+        if (data.error) throw new Error(data.error)
+        if (data.message) ta.value = data.message
+      } catch (err) {
+        alert('KI-Verfeinerung fehlgeschlagen: ' + err.message)
+      } finally {
+        btn.disabled = false
+        btn.textContent = original
+      }
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeLetter()
+    })
 
     function resetForm() {
       document.getElementById('urlInput').value = ''
