@@ -1009,6 +1009,14 @@
       if (!liqData.cells)     liqData.cells = {}
       if (!liqData.overrides) liqData.overrides = {}
       if (!liqData.notes)     liqData.notes = {}
+      // Bestandsdaten: Start auf den Januar des Kaufjahres vorziehen (Zellen bleiben unberührt,
+      // da sie am Monat hängen – es kommen lediglich leere Monate davor dazu).
+      const janKaufjahr = (data.kaufdatum || '').slice(0, 4)
+      if (janKaufjahr && liqData.startMonth > janKaufjahr + '-01') {
+        const [y, mo] = liqData.startMonth.split('-').map(Number)
+        liqData.monthCount += (y - Number(janKaufjahr)) * 12 + (mo - 1)
+        liqData.startMonth = janKaufjahr + '-01'
+      }
       document.getElementById('liqStart').value = liqData.startMonth
       liqRender()
     }
@@ -1079,23 +1087,27 @@
 
     // Erstbefüllung automatisch aus Stammdaten + Überblick > "Finanzierung und Liquidität"
     function liqDefaults(data, count = 24) {
-      const start = (data.kaufdatum || new Date().toISOString()).slice(0, 7)
-      const d = { startMonth: start, monthCount: count, cells: {}, overrides: {} }
+      // Kaufmonat aus den Stammdaten, Planungsstart immer der Januar des Kaufjahres
+      const kaufMonat = (data.kaufdatum || new Date().toISOString()).slice(0, 7)
+      const start     = kaufMonat.slice(0, 4) + '-01'
+      const offset    = Number(kaufMonat.slice(5, 7)) - 1   // Monate zwischen Januar und Kaufmonat
+      const total     = count + offset                      // Zeitraum nach dem Kauf bleibt gleich lang
+      const d = { startMonth: start, monthCount: total, cells: {}, overrides: {} }
       const set = (row, month, val) => {
         if (!d.cells[row]) d.cells[row] = {}
         d.cells[row][month] = val
       }
       const cl = data.checkliste || {}
       const kp = liqParse(cl.kaufpreisDetail) ?? data.kaufpreis
-      if (kp) set('kaufpreis', start, -Math.abs(kp))
+      if (kp) set('kaufpreis', kaufMonat, -Math.abs(kp))
       const fk = liqParse(cl.darlehenssumme)
-      if (fk) set('einzahlungFk', start, Math.abs(fk))
+      if (fk) set('einzahlungFk', kaufMonat, Math.abs(fk))
       // Wiederkehrende Positionen ab dem Folgemonat des Kaufs
       const nkm = liqParse(cl.nkm) ?? data.kaltmiete
       const nk  = liqParse(cl.nebenkosten)
       const wm  = liqParse(cl.weitereMiete)
-      const hg  = liqParse(cl.hausgeld)
-      liqMonthList(start, count).slice(1).forEach(m => {
+      const hg  = liqParse(cl.hausgeld) ?? data.hausgeld
+      liqMonthList(start, total).slice(offset + 1).forEach(m => {
         if (nkm) set('nkm', m, Math.abs(nkm))
         if (nk)  set('nk', m, Math.abs(nk))
         if (wm)  set('weitereMiete', m, Math.abs(wm))

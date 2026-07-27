@@ -313,9 +313,15 @@
           <input type="date" id="fKaufdatum" />
         </div>
       </div>
-      <div class="form-group">
-        <label>Kaltmiete / Monat (€)</label>
-        <input type="number" id="fKaltmiete" placeholder="z.B. 1100" min="0" />
+      <div class="form-row">
+        <div class="form-group">
+          <label>Kaltmiete / Monat (€)</label>
+          <input type="number" id="fKaltmiete" placeholder="z.B. 1100" min="0" />
+        </div>
+        <div class="form-group">
+          <label>Hausgeld / Monat (€)</label>
+          <input type="number" id="fHausgeld" placeholder="z.B. 320" min="0" />
+        </div>
       </div>
 
       <div class="modal-actions">
@@ -471,7 +477,7 @@
       document.getElementById('addModal').classList.remove('visible')
       document.body.style.overflow = ''
       // Felder zurücksetzen
-      ['fBezeichnung','fObjektart','fAdresse','fKaufpreis','fKaufdatum','fKaltmiete']
+      ['fBezeichnung','fObjektart','fAdresse','fKaufpreis','fKaufdatum','fKaltmiete','fHausgeld']
         .forEach(id => { const el = document.getElementById(id); if(el) el.value = '' })
     }
 
@@ -486,6 +492,7 @@
       const kaufpreis   = parseFloat(document.getElementById('fKaufpreis').value) || null
       const kaufdatum   = document.getElementById('fKaufdatum').value || null
       const kaltmiete   = parseFloat(document.getElementById('fKaltmiete').value) || null
+      const hausgeld    = parseFloat(document.getElementById('fHausgeld').value) || null
 
       if (!bezeichnung) {
         alert('Bitte eine Bezeichnung eingeben.')
@@ -499,7 +506,7 @@
 
       const { error } = await sb.from('portfolio').insert({
         user_id:     session.user.id,
-        bezeichnung, objektart, adresse, kaufpreis, kaufdatum, kaltmiete
+        bezeichnung, objektart, adresse, kaufpreis, kaufdatum, kaltmiete, hausgeld
       })
 
       btn.disabled = false
