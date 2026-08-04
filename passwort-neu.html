@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <script>if(sessionStorage.getItem('ie_gate')!=='1')document.documentElement.style.visibility='hidden'</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neues Passwort – Immo.Expert</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:  #0f1c2e;
+      --navy2: #172540;
+      --navy3: #1e2f50;
+      --gold:  #c9a84c;
+      --gold2: #e0bf74;
+      --muted: #8a97aa;
+      --white: #ffffff;
+      --red:   #f87171;
+      --green: #3ecf8e;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 60px;
+      background: rgba(15, 28, 46, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(201,168,76,0.15);
+    }
+
+    .logo { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; color: var(--white); text-decoration: none; }
+    .logo span { color: var(--gold); }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    main::before {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%);
+      top: -100px; left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .card {
+      background: var(--navy2);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 48px;
+      width: 100%;
+      max-width: 440px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-logo { text-align: center; font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
+    .card-logo span { color: var(--gold); }
+    .card-subtitle { text-align: center; color: var(--muted); font-size: 0.9rem; margin-bottom: 32px; }
+
+    h1 { font-size: 1.15rem; font-weight: 600; margin-bottom: 8px; text-align: center; }
+    .lead { color: var(--muted); font-size: 0.9rem; line-height: 1.6; text-align: center; margin-bottom: 28px; }
+
+    .field { margin-bottom: 18px; position: relative; }
+    label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+
+    input[type="password"], input[type="text"] {
+      width: 100%; background: var(--navy3); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; padding: 13px 46px 13px 16px; color: var(--white);
+      font-size: 0.95rem; font-family: inherit; outline: none; transition: border-color 0.2s;
+    }
+    input:focus { border-color: var(--gold); }
+    input::placeholder { color: rgba(138,151,170,0.6); }
+
+    .toggle-pw {
+      position: absolute; right: 12px; top: 33px;
+      background: none; border: none; cursor: pointer; padding: 6px;
+      color: var(--muted); line-height: 0; transition: color 0.2s;
+    }
+    .toggle-pw:hover { color: var(--gold); }
+
+    .hint { font-size: 0.78rem; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+
+    .meter { height: 4px; border-radius: 4px; background: rgba(255,255,255,0.08); margin-top: 10px; overflow: hidden; }
+    .meter > div { height: 100%; width: 0; border-radius: 4px; transition: width 0.25s, background 0.25s; }
+
+    .btn-submit {
+      width: 100%; background: var(--gold); color: var(--navy); border: none;
+      padding: 14px; border-radius: 10px; font-size: 1rem; font-weight: 700;
+      cursor: pointer; font-family: inherit; transition: background 0.2s, transform 0.15s; margin-top: 10px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-submit:hover:not(:disabled) { background: var(--gold2); transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .btn-secondary {
+      display: block; width: 100%; text-align: center; background: transparent;
+      color: var(--white); border: 1px solid rgba(255,255,255,0.15);
+      padding: 13px; border-radius: 10px; font-size: 0.95rem; font-weight: 500;
+      cursor: pointer; font-family: inherit; text-decoration: none; transition: border-color 0.2s;
+    }
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.35); }
+
+    .alert {
+      border-radius: 8px; padding: 12px 14px; font-size: 0.85rem;
+      margin-bottom: 18px; display: none; line-height: 1.5;
+    }
+    .alert-error { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: var(--red); }
+    .alert-success { background: rgba(62,207,142,0.1); border: 1px solid rgba(62,207,142,0.3); color: var(--green); }
+
+    .spinner-sm {
+      width: 16px; height: 16px; border: 2px solid rgba(15,28,46,0.3);
+      border-top-color: var(--navy); border-radius: 50%;
+      animation: spin 0.7s linear infinite; display: none;
+    }
+    .spinner-lg {
+      width: 30px; height: 30px; border: 3px solid rgba(255,255,255,0.12);
+      border-top-color: var(--gold); border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin: 0 auto 18px auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .state { display: none; }
+    .state.active { display: block; }
+    .center { text-align: center; }
+
+    .icon-circle {
+      width: 56px; height: 56px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 18px auto; font-size: 1.6rem; font-weight: 700;
+    }
+    .icon-ok  { background: rgba(62,207,142,0.12); color: var(--green); border: 1px solid rgba(62,207,142,0.35); }
+    .icon-bad { background: rgba(248,113,113,0.10); color: var(--red);  border: 1px solid rgba(248,113,113,0.35); }
+
+    footer { border-top: 1px solid rgba(255,255,255,0.07); padding: 24px 60px; display: flex; justify-content: center; gap: 28px; flex-wrap: wrap; }
+    footer a { color: var(--muted); text-decoration: none; font-size: 0.82rem; }
+    footer a:hover { color: var(--white); }
+
+    @media (max-width: 500px) {
+      nav { padding: 18px 24px; }
+      .card { padding: 32px 24px; }
+      footer { padding: 20px 24px; gap: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="logo">Immo<span>.Expert</span></a>
+  </nav>
+
+  <main>
+    <div class="card">
+      <div class="card-logo">Immo<span>.Expert</span></div>
+      <div class="card-subtitle">Ihr Immobilien-Assistent</div>
+
+      <!-- 1) Link wird geprüft -->
+      <div class="state active" id="state-loading">
+        <div class="spinner-lg"></div>
+        <p class="lead" style="margin-bottom:0;">Link wird überprüft …</p>
+      </div>
+
+      <!-- 2) Formular -->
+      <div class="state" id="state-form">
+        <h1>Neues Passwort festlegen</h1>
+        <p class="lead" id="form-lead">Bitte vergeben Sie ein neues Passwort für Ihr Konto.</p>
+
+        <div class="alert alert-error" id="form-error"></div>
+
+        <div class="field">
+          <label for="pw1">Neues Passwort</label>
+          <input type="password" id="pw1" placeholder="Mindestens 8 Zeichen" autocomplete="new-password" />
+          <button class="toggle-pw" type="button" onclick="togglePw('pw1', this)" aria-label="Passwort anzeigen">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <div class="meter"><div id="pw-meter"></div></div>
+          <div class="hint" id="pw-hint">Mindestens 8 Zeichen. Empfohlen: Groß- und Kleinbuchstaben, Zahlen und Sonderzeichen.</div>
+        </div>
+
+        <div class="field">
+          <label for="pw2">Passwort wiederholen</label>
+          <input type="password" id="pw2" placeholder="••••••••" autocomplete="new-password" />
+          <button class="toggle-pw" type="button" onclick="togglePw('pw2', this)" aria-label="Passwort anzeigen">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+
+        <button class="btn-submit" id="save-btn" onclick="handleSave()">
+          <div class="spinner-sm" id="save-spinner"></div>
+          <span id="save-btn-text">Passwort speichern</span>
+        </button>
+      </div>
+
+      <!-- 3) Erfolg -->
+      <div class="state center" id="state-success">
+        <div class="icon-circle icon-ok">✓</div>
+        <h1>Passwort geändert</h1>
+        <p class="lead">Ihr neues Passwort ist ab sofort gültig. Sie werden in Kürze weitergeleitet …</p>
+        <a href="profil.html" class="btn-secondary">Zum Profil</a>
+      </div>
+
+      <!-- 4) Link ungültig / abgelaufen -->
+      <div class="state center" id="state-invalid">
+        <div class="icon-circle icon-bad">!</div>
+        <h1>Link ungültig oder abgelaufen</h1>
+        <p class="lead" id="invalid-text">
+          Dieser Link zum Zurücksetzen ist nicht mehr gültig. Links gelten eine Stunde und können nur einmal verwendet werden.
+        </p>
+        <a href="login.html" class="btn-secondary">Neuen Link anfordern</a>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    <a href="impressum.html">Impressum</a>
+    <a href="datenschutz.html">Datenschutz</a>
+    <a href="index.html">Zurück zur Startseite</a>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    const SUPABASE_URL = 'https://awvnfocepqkkncgqgaka.supabase.co'
+    const SUPABASE_KEY = 'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
+    const { createClient } = window.supabase
+
+    // detectSessionInUrl aus: Token-Auswertung erfolgt unten kontrolliert
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: { detectSessionInUrl: false, flowType: 'implicit' }
+    })
+
+    /* ---------- UI-Helfer ---------- */
+
+    function showState(id) {
+      document.querySelectorAll('.state').forEach(el => el.classList.remove('active'))
+      document.getElementById(id).classList.add('active')
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('form-error')
+      el.textContent = msg
+      el.style.display = 'block'
+    }
+
+    function hideError() {
+      document.getElementById('form-error').style.display = 'none'
+    }
+
+    function showInvalid(msg) {
+      if (msg) document.getElementById('invalid-text').textContent = msg
+      showState('state-invalid')
+    }
+
+    function setLoading(loading) {
+      document.getElementById('save-btn').disabled = loading
+      document.getElementById('save-spinner').style.display = loading ? 'block' : 'none'
+      document.getElementById('save-btn-text').textContent = loading ? 'Wird gespeichert …' : 'Passwort speichern'
+    }
+
+    function togglePw(id, btn) {
+      const input = document.getElementById(id)
+      const visible = input.type === 'text'
+      input.type = visible ? 'password' : 'text'
+      btn.innerHTML = visible
+        ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+        : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+    }
+
+    /* ---------- Passwortstärke ---------- */
+
+    function scorePw(pw) {
+      let s = 0
+      if (pw.length >= 8)  s++
+      if (pw.length >= 12) s++
+      if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) s++
+      if (/\d/.test(pw)) s++
+      if (/[^A-Za-z0-9]/.test(pw)) s++
+      return Math.min(s, 4)
+    }
+
+    document.getElementById('pw1').addEventListener('input', e => {
+      const pw = e.target.value
+      const meter = document.getElementById('pw-meter')
+      const hint = document.getElementById('pw-hint')
+      if (!pw) {
+        meter.style.width = '0'
+        hint.textContent = 'Mindestens 8 Zeichen. Empfohlen: Groß- und Kleinbuchstaben, Zahlen und Sonderzeichen.'
+        hint.style.color = 'var(--muted)'
+        return
+      }
+      const s = scorePw(pw)
+      const labels = ['Sehr schwach', 'Schwach', 'Mittel', 'Stark', 'Sehr stark']
+      const colors = ['#f87171', '#f87171', '#c9a84c', '#3ecf8e', '#3ecf8e']
+      meter.style.width = ((s + 1) * 20) + '%'
+      meter.style.background = colors[s]
+      hint.textContent = 'Passwortstärke: ' + labels[s]
+      hint.style.color = colors[s]
+    })
+
+    /* ---------- Recovery-Link auswerten ---------- */
+
+    function parseHash() {
+      const h = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash
+      return new URLSearchParams(h)
+    }
+
+    function cleanUrl() {
+      history.replaceState(null, '', window.location.pathname)
+    }
+
+    async function initRecovery() {
+      const query = new URLSearchParams(window.location.search)
+      const hash  = parseHash()
+
+      // Fehler direkt aus dem Link (z. B. abgelaufen / bereits verwendet)
+      const errCode = hash.get('error_code') || query.get('error_code')
+      const errDesc = hash.get('error_description') || query.get('error_description')
+      if (errCode || errDesc) {
+        cleanUrl()
+        const desc = (errDesc || '').replace(/\+/g, ' ')
+        if (/expired/i.test(desc) || errCode === 'otp_expired') {
+          showInvalid('Dieser Link ist abgelaufen. Links zum Zurücksetzen gelten eine Stunde und können nur einmal verwendet werden. Bitte fordern Sie einen neuen Link an.')
+        } else {
+          showInvalid(desc || 'Dieser Link ist nicht mehr gültig. Bitte fordern Sie einen neuen Link an.')
+        }
+        return
+      }
+
+      // Variante A: Implicit Flow — Tokens im Hash
+      const accessToken  = hash.get('access_token')
+      const refreshToken = hash.get('refresh_token')
+      if (accessToken && refreshToken) {
+        const { error } = await sb.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        })
+        cleanUrl()
+        if (error) { showInvalid(); return }
+        showState('state-form')
+        document.getElementById('pw1').focus()
+        return
+      }
+
+      // Variante B: PKCE Flow — ?code=...
+      const code = query.get('code')
+      if (code) {
+        const { error } = await sb.auth.exchangeCodeForSession(code)
+        cleanUrl()
+        if (error) { showInvalid(); return }
+        showState('state-form')
+        document.getElementById('pw1').focus()
+        return
+      }
+
+      // Variante C: Token-Hash Flow — ?token_hash=...&type=recovery
+      const tokenHash = query.get('token_hash') || query.get('token')
+      const type = query.get('type') || 'recovery'
+      if (tokenHash) {
+        const { error } = await sb.auth.verifyOtp({ token_hash: tokenHash, type: type })
+        cleanUrl()
+        if (error) { showInvalid(); return }
+        showState('state-form')
+        document.getElementById('pw1').focus()
+        return
+      }
+
+      // Kein Token im Link — evtl. besteht bereits eine gültige Sitzung
+      const { data: { session } } = await sb.auth.getSession()
+      if (session) {
+        document.getElementById('form-lead').textContent =
+          'Sie sind angemeldet. Hier können Sie ein neues Passwort vergeben.'
+        showState('state-form')
+        document.getElementById('pw1').focus()
+        return
+      }
+
+      showInvalid('Dieser Aufruf enthält keinen gültigen Link zum Zurücksetzen. Bitte fordern Sie über die Anmeldeseite einen neuen Link an.')
+    }
+
+    /* ---------- Speichern ---------- */
+
+    async function handleSave() {
+      hideError()
+      const pw1 = document.getElementById('pw1').value
+      const pw2 = document.getElementById('pw2').value
+
+      if (!pw1 || !pw2) { showError('Bitte beide Felder ausfüllen.'); return }
+      if (pw1.length < 8) { showError('Das Passwort muss mindestens 8 Zeichen haben.'); return }
+      if (pw1 !== pw2) { showError('Die Passwörter stimmen nicht überein.'); return }
+
+      setLoading(true)
+
+      const { data: { session } } = await sb.auth.getSession()
+      if (!session) {
+        setLoading(false)
+        showInvalid('Ihre Sitzung ist abgelaufen. Bitte fordern Sie einen neuen Link zum Zurücksetzen an.')
+        return
+      }
+
+      const { error } = await sb.auth.updateUser({ password: pw1 })
+      setLoading(false)
+
+      if (error) {
+        const m = (error.message || '').toLowerCase()
+        if (m.includes('should be different') || m.includes('same as')) {
+          showError('Das neue Passwort muss sich vom bisherigen unterscheiden.')
+        } else if (m.includes('weak') || m.includes('password')) {
+          showError('Passwort abgelehnt: ' + error.message)
+        } else if (m.includes('session') || m.includes('jwt') || m.includes('expired')) {
+          showInvalid('Ihre Sitzung ist abgelaufen. Bitte fordern Sie einen neuen Link zum Zurücksetzen an.')
+        } else {
+          showError('Fehler: ' + error.message)
+        }
+        return
+      }
+
+      showState('state-success')
+      setTimeout(() => { window.location.href = 'profil.html' }, 2500)
+    }
+
+    // Enter-Taste im Formular
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && document.getElementById('state-form').classList.contains('active')) handleSave()
+    })
+
+    initRecovery()
+  </script>
+
+  <script src="password-gate.js"></script>
+</body>
+</html>

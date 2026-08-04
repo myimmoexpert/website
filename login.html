@@ -332,7 +332,7 @@
       const email = document.getElementById('login-email').value.trim()
       if (!email) { showAlert('login-error', 'Bitte zuerst E-Mail eingeben.'); return }
       const { error } = await sb.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://myimmoexpert.de/login.html'
+        redirectTo: window.location.origin + '/passwort-neu.html'
       })
       if (error) {
         showAlert('login-error', 'Fehler: ' + error.message)
