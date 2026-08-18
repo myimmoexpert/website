@@ -39,7 +39,7 @@
   var PROP_VIEWS = [
     { key: 'uberblick',   label: 'Überblick' },
     { key: 'liquiditaet', label: 'Liquidität' },
-    { key: 'nebenkosten', label: 'Nebenkostenabrechnung' },
+    { key: 'nebenkosten', label: 'NK-Abrechnung' },
     { key: 'weitere', label: 'Weitere', children: [
       { key: 'checkliste', label: 'Checkliste Kauf' },
       { key: 'dateien',    label: 'Dateien' },

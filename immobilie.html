@@ -270,6 +270,78 @@
       .cl-row { grid-template-columns: 140px 1fr 36px; }
       footer { padding: 28px 24px; flex-direction: column; align-items: flex-start; }
     }
+
+    /* ── NK-Abrechnung ── */
+    .nk-jahrwahl { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+    .nk-jahrwahl label { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+    .nk-jahrwahl select { background: var(--navy2); border: 1px solid rgba(16,26,43,0.14);
+      border-radius: 8px; color: var(--white); font-family: inherit; font-size: 0.9rem;
+      font-weight: 600; padding: 8px 12px; }
+    .nk-jahr-hint { font-size: 0.78rem; color: var(--muted); }
+    .nk-block { background: var(--navy2); border: 1px solid rgba(16,26,43,0.09);
+      border-radius: var(--radius); padding: 22px 24px; margin-bottom: 22px; }
+    .nk-block-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 18px; }
+    .nk-num { flex: 0 0 24px; width: 24px; height: 24px; border-radius: 50%;
+      background: rgba(43,122,140,0.12); color: var(--gold); display: flex;
+      align-items: center; justify-content: center; font: 700 0.76rem/1 'Inter', sans-serif; }
+    .nk-block-title { font-size: 0.98rem; font-weight: 700; }
+    .nk-block-sub { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .nk-step { border: 1px solid rgba(16,26,43,0.09); border-radius: 10px;
+      padding: 14px 16px; margin-bottom: 14px; }
+    .nk-step.done { border-color: rgba(21,128,61,0.35); background: #f4faf6; }
+    .nk-check { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+    .nk-check input { width: 16px; height: 16px; accent-color: #15803d; }
+    .nk-step-body { margin: 12px 0 0 26px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+    .nk-inline { display: flex; align-items: center; gap: 8px; }
+    .nk-inline label { font-size: 0.78rem; color: var(--muted); }
+    .nk-inline input, .nk-field-in input { background: var(--navy); border: 1px solid rgba(16,26,43,0.14);
+      border-radius: 8px; color: var(--white); font-family: inherit; font-size: 0.86rem; padding: 8px 11px; outline: none; }
+    .nk-inline input:focus, .nk-field-in input:focus { border-color: var(--gold); }
+    .nk-upload { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .nk-btn { background: transparent; border: 1px solid rgba(16,26,43,0.16); border-radius: 8px;
+      padding: 8px 14px; font: 500 0.83rem/1 'Inter', sans-serif; color: var(--white); cursor: pointer; }
+    .nk-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .nk-btn.ghost { color: var(--muted); }
+    .nk-btn.primary { background: var(--gold); color: #fff; border-color: var(--gold); font-weight: 600; }
+    .nk-btn.primary:hover { background: var(--gold2); color: #fff; }
+    .nk-status { font-size: 0.8rem; color: var(--muted); }
+    .nk-status.ok { color: var(--green); }
+    .nk-status.err { color: var(--red); }
+    .nk-status.busy { color: var(--gold); }
+    .nk-hinweis { margin-top: 10px; font-size: 0.79rem; color: var(--muted); line-height: 1.5; }
+    .nk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-bottom: 16px; }
+    .nk-field { display: flex; flex-direction: column; gap: 6px; }
+    .nk-field.wide { grid-column: span 1; }
+    .nk-field label { font-size: 0.74rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.4px; color: var(--muted); }
+    .nk-field-in { display: flex; align-items: center; gap: 7px; }
+    .nk-field-in input { flex: 1; min-width: 0; text-align: right; }
+    .nk-field-in input[type="date"] { text-align: left; }
+    .nk-field-hint { font-size: 0.72rem; color: var(--muted); line-height: 1.45; }
+    .nk-field-hint a { color: var(--gold); }
+    .nk-unit { font-size: 0.86rem; color: var(--muted); font-weight: 600; }
+    .nk-result { display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      border: 1px solid rgba(16,26,43,0.1); border-radius: 10px; padding: 16px 18px;
+      margin-bottom: 14px; flex-wrap: wrap; }
+    .nk-result.pos { border-color: rgba(21,128,61,0.35); background: #f4faf6; }
+    .nk-result.neg { border-color: rgba(220,38,38,0.3); background: #fdf5f5; }
+    .nk-result-label { display: block; font-size: 0.88rem; font-weight: 700; }
+    .nk-result-sub { display: block; font-size: 0.76rem; color: var(--muted); margin-top: 3px; }
+    .nk-result-row { display: flex; align-items: center; gap: 7px; }
+    .nk-result-input { width: 130px; background: var(--navy); border: 1px solid rgba(16,26,43,0.14);
+      border-radius: 8px; color: var(--white); font: 700 1rem/1 'Inter', sans-serif;
+      padding: 9px 11px; text-align: right; outline: none; }
+    .nk-result-big { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.4px; }
+    .nk-result.pos .nk-result-big { color: var(--green); }
+    .nk-result.neg .nk-result-big { color: var(--red); }
+    .nk-pos, .nk-brief { margin-top: 6px; }
+    .nk-pos summary, .nk-brief summary { cursor: pointer; font-size: 0.82rem; color: var(--gold); padding: 6px 0; }
+    .nk-pos-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-top: 8px; }
+    .nk-pos-table th { text-align: left; font-size: 0.68rem; text-transform: uppercase;
+      letter-spacing: 0.4px; color: var(--muted); padding: 6px 8px; background: #e9eef5; }
+    .nk-pos-table td { padding: 6px 8px; border-top: 1px solid rgba(16,26,43,0.06); }
+    .nk-actions { display: flex; align-items: center; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+    .nk-pos-table .ta-r, .nk-block .ta-r { text-align: right; }
   </style>
   <link rel="stylesheet" href="app.css" />
   <style>
@@ -526,16 +598,42 @@
   <!-- ══ ANSICHT: NEBENKOSTENABRECHNUNG ══ -->
   <div class="tab-pane" id="pane-nebenkosten">
     <div class="tab-content">
-      <div class="section-head" style="margin-bottom:20px;">
-        <h3>Nebenkosten<span style="color:var(--gold)">abrechnung</span></h3>
+
+      <div class="section-head" style="margin-bottom:16px;">
+        <h3>NK-<span style="color:var(--gold)">Abrechnung</span></h3>
+        <div class="save-indicator" id="siNk"></div>
       </div>
-      <div class="ie-placeholder">
-        <div class="ie-ph-icon">🧾</div>
-        <h3>Wird gerade gebaut</h3>
-        <p>Hier entsteht die Nebenkostenabrechnung für dieses Objekt – Abrechnungszeitraum,
-           umlagefähige und nicht umlagefähige Kosten, Vorauszahlungen und das Ergebnis
-           für den Mieter. Der Bereich ist angelegt und wird im nächsten Schritt gefüllt.</p>
+
+      <div class="nk-jahrwahl">
+        <label for="nkJahr">Abrechnungsjahr</label>
+        <select id="nkJahr" onchange="nkWechsleJahr(this.value)"></select>
+        <span class="nk-jahr-hint" id="nkJahrHint"></span>
       </div>
+
+      <!-- ── Abschnitt 1 ── -->
+      <div class="nk-block">
+        <div class="nk-block-head">
+          <span class="nk-num">1</span>
+          <div>
+            <div class="nk-block-title">Nebenkostenabrechnung der Hausverwaltung</div>
+            <div class="nk-block-sub">Was die Verwaltung Ihnen als Eigentümer berechnet.</div>
+          </div>
+        </div>
+        <div id="nkHv"></div>
+      </div>
+
+      <!-- ── Abschnitt 2 ── -->
+      <div class="nk-block">
+        <div class="nk-block-head">
+          <span class="nk-num">2</span>
+          <div>
+            <div class="nk-block-title">Nebenkostenabrechnung mit dem Mieter</div>
+            <div class="nk-block-sub">Was Sie an den Mieter weitergeben.</div>
+          </div>
+        </div>
+        <div id="nkMieter"></div>
+      </div>
+
     </div>
   </div>
 
@@ -582,6 +680,7 @@
     if (!id) window.location.href = 'portfolio.html'
 
     let currentUserId = null
+    let currentToken  = null
 
     sb.auth.getSession().then(({ data }) => {
       if (!data.session) {
@@ -590,6 +689,7 @@
         return
       }
       currentUserId = data.session.user.id
+      currentToken  = data.session.access_token
       loadImmobilie()
     })
 
@@ -615,6 +715,7 @@
       initTodos(data.todos)
       initNotes(data.notes)
       initDateien(data.dateien)
+      initNk(data)
     }
 
     // ════════════════════════════════════════
@@ -2047,7 +2148,7 @@
     // ════════════════════════════════════════
     // AUTO-SAVE (geteilt für alle Tabs)
     // ════════════════════════════════════════
-    const SAVE_INDICATORS = { u: 'siUberblick', c: 'siKontakte', k: 'siCheckliste', m: 'siMiet', l: 'siLiq', n: 'siNotes', s: 'siUberblick', t: 'siTodos' }
+    const SAVE_INDICATORS = { u: 'siUberblick', c: 'siKontakte', k: 'siCheckliste', m: 'siMiet', l: 'siLiq', n: 'siNotes', s: 'siUberblick', t: 'siTodos', x: 'siNk' }
 
     function scheduleSave(type) {
       const ind = document.getElementById(SAVE_INDICATORS[type])
@@ -2060,6 +2161,7 @@
       if (type === 'n') { clearTimeout(nTimer); nTimer = setTimeout(() => doSave('n'), 900) }
       if (type === 's') { clearTimeout(sTimer); sTimer = setTimeout(() => doSave('s'), 900) }
       if (type === 't') { clearTimeout(tTimer); tTimer = setTimeout(() => doSave('t'), 900) }
+      if (type === 'x') { clearTimeout(xTimer); xTimer = setTimeout(() => doSave('x'), 900) }
     }
 
     async function doSave(type) {
@@ -2071,6 +2173,7 @@
       if (type === 'n') { updateObj = { notes: document.getElementById('notesArea').value } }
       if (type === 's') { updateObj = collectStammdaten() }
       if (type === 't') { updateObj = { todos: todosData } }
+      if (type === 'x') { updateObj = { nebenkosten: nkData } }
 
       const ind = document.getElementById(SAVE_INDICATORS[type])
       const { error } = await sb.from('portfolio').update(updateObj).eq('id', id)
@@ -2081,6 +2184,418 @@
       } else {
         ind.textContent = '⚠ Fehler beim Speichern'; ind.className = 'save-indicator'; ind.style.color = 'var(--red)'
         setTimeout(() => { ind.textContent = ''; ind.style.color = '' }, 4000)
+      }
+    }
+
+
+    // ════════════════════════════════════════
+    // NK-ABRECHNUNG
+    // ════════════════════════════════════════
+    const NK_FN_URL = SUPABASE_URL + '/functions/v1/read-nk-abrechnung'
+    const NK_VORLAGE = 'nk-abrechnung-vorlage.docx'
+
+    let nkData = null, nkJahr = null, xTimer = null
+
+    function initNk(data) {
+      nkData = data.nebenkosten || {}
+      if (!nkData.jahre) nkData.jahre = {}
+      if (!nkData.brief) nkData.brief = {}
+      const jetzt = new Date().getFullYear()
+      const start = Number((data.kaufdatum || '').slice(0, 4)) || jetzt
+      const jahre = []
+      for (let j = jetzt; j >= start; j--) jahre.push(j)
+      if (!jahre.length) jahre.push(jetzt)
+      // Vorgabe: das letzte abgeschlossene Jahr
+      nkJahr = String(jahre.includes(jetzt - 1) ? jetzt - 1 : jahre[0])
+      const sel = document.getElementById('nkJahr')
+      sel.innerHTML = jahre.map(j => `<option value="${j}" ${String(j) === nkJahr ? 'selected' : ''}>${j}</option>`).join('')
+      nkRender()
+    }
+
+    function nkJ() {
+      if (!nkData.jahre[nkJahr]) nkData.jahre[nkJahr] = { hv: {}, mieter: {} }
+      const j = nkData.jahre[nkJahr]
+      if (!j.hv) j.hv = {}
+      if (!j.mieter) j.mieter = {}
+      return j
+    }
+
+    function nkWechsleJahr(v) { nkJahr = String(v); nkRender() }
+
+    // Vorauszahlungen des Mieters aus der Liquiditätsplanung des Jahres
+    function nkVorauszahlungAuto() {
+      let s = 0
+      for (let m = 1; m <= 12; m++) {
+        const k = nkJahr + '-' + String(m).padStart(2, '0')
+        s += Number(liqData?.cells?.nk?.[k]) || 0
+      }
+      return Math.round(s * 100) / 100
+    }
+
+    const nkNum = v => (v === null || v === undefined || v === '') ? null : Number(v)
+    const nkEur = v => (v === null || v === undefined || isNaN(v))
+      ? '–' : new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR',
+          minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v)
+
+    function nkSet(pfad, wert) {
+      const j = nkJ()
+      const [bereich, feld] = pfad.split('.')
+      const ziel = bereich === 'brief' ? nkData.brief : j[bereich]
+      ziel[feld] = wert
+      scheduleSave('x')
+      nkRender()
+    }
+
+    function nkSetStill(pfad, wert) {
+      const j = nkJ()
+      const [bereich, feld] = pfad.split('.')
+      const ziel = bereich === 'brief' ? nkData.brief : j[bereich]
+      ziel[feld] = wert
+      scheduleSave('x')
+    }
+
+    // ── Abschnitt 1: Hausverwaltung ──
+    function nkRenderHv() {
+      const hv = nkJ().hv
+      const gesamt = (hv.umlagefaehigBetriebskosten || 0) + (hv.heizkosten || 0) + (hv.nichtUmlagefaehig || 0)
+      const erg = nkNum(hv.ergebnisEigentuemer)
+      const ergText = erg === null ? 'noch offen'
+        : erg >= 0 ? 'Erstattung von der Hausverwaltung' : 'Nachzahlung an die Hausverwaltung'
+
+      document.getElementById('nkHv').innerHTML = `
+        <div class="nk-step ${hv.erhalten ? 'done' : ''}">
+          <label class="nk-check">
+            <input type="checkbox" ${hv.erhalten ? 'checked' : ''} onchange="nkSet('hv.erhalten', this.checked)" />
+            <span>Jahresabrechnung der Hausverwaltung erhalten</span>
+          </label>
+          <div class="nk-step-body">
+            <div class="nk-inline">
+              <label>Erhalten am</label>
+              <input type="date" value="${hv.erhaltenAm || ''}" onchange="nkSet('hv.erhaltenAm', this.value)" />
+            </div>
+            <div class="nk-upload">
+              <button class="nk-btn" onclick="document.getElementById('nkFile').click()">
+                ${hv.datei ? 'Andere Datei auswerten' : 'Abrechnung hochladen und auswerten'}
+              </button>
+              <input type="file" id="nkFile" accept="application/pdf,image/*" style="display:none" onchange="nkLese(event)" />
+              ${hv.datei ? `<button class="nk-btn ghost" onclick="nkOeffneDatei()">Hinterlegte Datei öffnen</button>` : ''}
+              <span class="nk-status" id="nkStatus"></span>
+            </div>
+            ${hv.hinweis ? `<div class="nk-hinweis">Hinweis aus der Auswertung: ${esc(hv.hinweis)}</div>` : ''}
+          </div>
+        </div>
+
+        <div class="nk-grid">
+          ${nkFeld('Abrechnungszeitraum von', 'hv.zeitraumVon', hv.zeitraumVon, 'date')}
+          ${nkFeld('bis', 'hv.zeitraumBis', hv.zeitraumBis, 'date')}
+          ${nkFeld('Umlagefähige Betriebskosten', 'hv.umlagefaehigBetriebskosten', hv.umlagefaehigBetriebskosten, 'num')}
+          ${nkFeld('Heizkosten', 'hv.heizkosten', hv.heizkosten, 'num')}
+          ${nkFeld('Nicht umlagefähig', 'hv.nichtUmlagefaehig', hv.nichtUmlagefaehig, 'num')}
+          ${nkFeld('Vorauszahlungen (Hausgeld)', 'hv.vorauszahlungEigentuemer', hv.vorauszahlungEigentuemer, 'num')}
+        </div>
+
+        <div class="nk-result ${erg === null ? '' : erg >= 0 ? 'pos' : 'neg'}">
+          <div>
+            <span class="nk-result-label">Ergebnis für Sie als Eigentümer</span>
+            <span class="nk-result-sub">${ergText} · Gesamtkosten laut Abrechnung ${nkEur(gesamt || null)}</span>
+          </div>
+          <div class="nk-result-row">
+            <input class="nk-result-input" type="text" value="${erg === null ? '' : String(erg).replace('.', ',')}"
+                   placeholder="0,00" onchange="nkSetZahl('hv.ergebnisEigentuemer', this.value)" />
+            <span class="nk-unit">€</span>
+          </div>
+        </div>
+
+        <div class="nk-step ${nkJ().hv.beglichen ? 'done' : ''}">
+          <label class="nk-check">
+            <input type="checkbox" ${hv.beglichen ? 'checked' : ''} onchange="nkSet('hv.beglichen', this.checked)" />
+            <span>${erg !== null && erg < 0 ? 'Nachzahlung ist vom Konto abgegangen' : 'Erstattung ist auf dem Konto eingegangen'}</span>
+          </label>
+          <div class="nk-step-body">
+            <div class="nk-inline">
+              <label>Am</label>
+              <input type="date" value="${hv.beglichenAm || ''}" onchange="nkSet('hv.beglichenAm', this.value)" />
+            </div>
+          </div>
+        </div>
+
+        ${(hv.positionen || []).length ? `
+          <details class="nk-pos">
+            <summary>${hv.positionen.length} erkannte Positionen anzeigen</summary>
+            <table class="nk-pos-table">
+              <thead><tr><th>Position</th><th class="ta-r">Betrag</th><th>Umlagefähig</th></tr></thead>
+              <tbody>${hv.positionen.map(p => `
+                <tr><td>${esc(p.bezeichnung)}</td><td class="ta-r">${nkEur(p.betrag)}</td>
+                <td>${p.umlagefaehig ? 'ja' : 'nein'}</td></tr>`).join('')}</tbody>
+            </table>
+          </details>` : ''}
+      `
+    }
+
+    function nkFeld(label, pfad, wert, art) {
+      const v = art === 'date' ? (wert || '')
+        : (wert === null || wert === undefined ? '' : String(wert).replace('.', ','))
+      return `<div class="nk-field">
+        <label>${esc(label)}</label>
+        <div class="nk-field-in">
+          <input type="${art === 'date' ? 'date' : 'text'}" value="${v}" ${art === 'num' ? 'inputmode="decimal" placeholder="0,00"' : ''}
+                 onchange="${art === 'num' ? `nkSetZahl('${pfad}', this.value)` : `nkSet('${pfad}', this.value)`}" />
+          ${art === 'num' ? '<span class="nk-unit">€</span>' : ''}
+        </div>
+      </div>`
+    }
+
+    function nkSetZahl(pfad, roh) {
+      let s = String(roh).replace(/[\s€]/g, '')
+      if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.')
+      const n = s === '' ? null : parseFloat(s)
+      nkSet(pfad, (n === null || isNaN(n)) ? null : Math.round(n * 100) / 100)
+    }
+
+    // ── Datei hochladen und auswerten ──
+    async function nkLese(e) {
+      const f = e.target.files && e.target.files[0]
+      e.target.value = ''
+      if (!f) return
+      // Nach jedem nkRender() ist das Element neu – deshalb frisch suchen
+      const setSt = (t, k) => {
+        const st = document.getElementById('nkStatus')
+        if (st) { st.textContent = t; st.className = 'nk-status ' + (k || '') }
+      }
+
+      if (f.size > 15 * 1024 * 1024) { setSt('Die Datei ist größer als 15 MB.', 'err'); return }
+      setSt('Wird ausgewertet …', 'busy')
+
+      try {
+        const b64 = await new Promise((res, rej) => {
+          const fr = new FileReader()
+          fr.onload = () => res(String(fr.result).split(',')[1])
+          fr.onerror = rej
+          fr.readAsDataURL(f)
+        })
+
+        // Original im Storage ablegen, damit es später greifbar bleibt
+        const endung = (f.name.split('.').pop() || 'pdf').toLowerCase()
+        const pfad = `${currentUserId}/nk/${id}/${nkJahr}.${endung}`
+        const up = await sb.storage.from('dokumente').upload(pfad, f, { upsert: true, contentType: f.type })
+        if (!up.error) nkJ().hv.datei = pfad
+
+        const res = await fetch(NK_FN_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + currentToken },
+          body: JSON.stringify({ datei: b64, mime: f.type, jahr: nkJahr,
+                                 objekt: (propData?.bezeichnung || '') + ' ' + (propData?.adresse || '') }),
+        })
+        const d = await res.json()
+        if (!res.ok) throw new Error(d.error || ('Status ' + res.status))
+
+        const hv = nkJ().hv
+        ;['zeitraumVon', 'zeitraumBis', 'umlagefaehigBetriebskosten', 'heizkosten',
+          'nichtUmlagefaehig', 'gesamtkosten', 'vorauszahlungEigentuemer',
+          'ergebnisEigentuemer'].forEach(k => { if (d[k] !== null && d[k] !== undefined) hv[k] = d[k] })
+        hv.positionen = d.positionen || []
+        hv.hinweis = d.hinweis || ''
+        hv.erhalten = true
+        if (!hv.erhaltenAm) hv.erhaltenAm = new Date().toISOString().slice(0, 10)
+
+        scheduleSave('x')
+        nkRender()
+        setSt('Abrechnung ausgewertet. Bitte die Zahlen kurz prüfen.', 'ok')
+      } catch (err) {
+        setSt('Fehler: ' + err.message, 'err')
+      }
+    }
+
+    async function nkOeffneDatei() {
+      const p = nkJ().hv.datei
+      if (!p) return
+      const { data } = await sb.storage.from('dokumente').createSignedUrl(p, 300)
+      if (data?.signedUrl) window.open(data.signedUrl, '_blank')
+    }
+
+    // ── Abschnitt 2: Mieter ──
+    function nkRenderMieter() {
+      const j = nkJ(), hv = j.hv, mi = j.mieter
+      const vorausAuto = nkVorauszahlungAuto()
+      const voraus = mi.vorauszahlung !== null && mi.vorauszahlung !== undefined
+        ? Number(mi.vorauszahlung) : vorausAuto
+      const umlageAuto = (hv.umlagefaehigBetriebskosten || 0) + (hv.heizkosten || 0)
+      const umlage = mi.umlagefaehig !== null && mi.umlagefaehig !== undefined
+        ? Number(mi.umlagefaehig) : umlageAuto
+      const erg = Math.round((voraus - umlage) * 100) / 100
+      const erstattung = erg >= 0
+
+      const b = nkData.brief
+      const mv = (mietData && (mietData.aktuell || mietData)) || {}
+
+      document.getElementById('nkMieter').innerHTML = `
+        <div class="nk-grid">
+          <div class="nk-field wide">
+            <label>Vorauszahlungen des Mieters ${nkJahr}</label>
+            <div class="nk-field-in">
+              <input type="text" value="${String(voraus).replace('.', ',')}" inputmode="decimal"
+                     onchange="nkSetZahl('mieter.vorauszahlung', this.value)" />
+              <span class="nk-unit">€</span>
+            </div>
+            <span class="nk-field-hint">
+              Aus der Liquiditätsplanung, Zeile Nebenkostenvorauszahlungen: ${nkEur(vorausAuto)}.
+              ${mi.vorauszahlung !== null && mi.vorauszahlung !== undefined
+                ? `<a href="#" onclick="event.preventDefault();nkSet('mieter.vorauszahlung',null)">zurück zum berechneten Wert</a>` : ''}
+            </span>
+          </div>
+          <div class="nk-field wide">
+            <label>Umlagefähig laut Jahresabrechnung</label>
+            <div class="nk-field-in">
+              <input type="text" value="${String(umlage).replace('.', ',')}" inputmode="decimal"
+                     onchange="nkSetZahl('mieter.umlagefaehig', this.value)" />
+              <span class="nk-unit">€</span>
+            </div>
+            <span class="nk-field-hint">
+              Umlagefähige Betriebskosten + Heizkosten aus Abschnitt 1: ${nkEur(umlageAuto)}.
+              ${mi.umlagefaehig !== null && mi.umlagefaehig !== undefined
+                ? `<a href="#" onclick="event.preventDefault();nkSet('mieter.umlagefaehig',null)">zurück zum berechneten Wert</a>` : ''}
+            </span>
+          </div>
+        </div>
+
+        <div class="nk-result ${erstattung ? 'pos' : 'neg'}">
+          <div>
+            <span class="nk-result-label">${erstattung ? 'Erstattung an den Mieter' : 'Nachzahlung durch den Mieter'}</span>
+            <span class="nk-result-sub">Vorauszahlungen ${nkEur(voraus)} − umlagefähig ${nkEur(umlage)}</span>
+          </div>
+          <div class="nk-result-big">${nkEur(Math.abs(erg))}</div>
+        </div>
+
+        <details class="nk-brief" ${nkBriefVollstaendig() ? '' : 'open'}>
+          <summary>Angaben für das Anschreiben</summary>
+          <div class="nk-grid">
+            ${nkBriefFeld('Briefkopf (Ihr Name und Anschrift)', 'briefkopf', b.briefkopf)}
+            ${nkBriefFeld('Ort für die Datumszeile', 'ort', b.ort)}
+            ${nkBriefFeld('Mieter – Name', 'mieterName', b.mieterName ?? (mv.mieter || ''))}
+            ${nkBriefFeld('Mieter – Straße und Hausnummer', 'mieterStrasse', b.mieterStrasse)}
+            ${nkBriefFeld('Mieter – PLZ und Ort', 'mieterPlzOrt', b.mieterPlzOrt)}
+            ${nkBriefFeld('Wohnungsbezeichnung im Brief', 'wohnung', b.wohnung ?? ((propData?.adresse) || ''))}
+            ${nkBriefFeld('Kontoempfänger', 'kontoempfaenger', b.kontoempfaenger)}
+            ${nkBriefFeld('IBAN', 'iban', b.iban)}
+            ${nkBriefFeld('Verwendungszweck', 'verwendungszweck', b.verwendungszweck)}
+            ${nkBriefFeld('Absender – Name', 'absenderName', b.absenderName)}
+            ${nkBriefFeld('Absender – Firma', 'absenderFirma', b.absenderFirma)}
+          </div>
+        </details>
+
+        <div class="nk-actions">
+          <button class="nk-btn primary" onclick="nkDokument()">NK-Abrechnung als Word-Datei erstellen</button>
+          <span class="nk-status" id="nkDocStatus"></span>
+        </div>
+      `
+    }
+
+    function nkBriefFeld(label, feld, wert) {
+      return `<div class="nk-field wide">
+        <label>${esc(label)}</label>
+        <div class="nk-field-in">
+          <input type="text" value="${esc(wert || '')}" onchange="nkSetBrief('${feld}', this.value)" />
+        </div>
+      </div>`
+    }
+    function nkSetBrief(feld, wert) { nkData.brief[feld] = wert; scheduleSave('x') }
+    function nkBriefVollstaendig() {
+      const b = nkData.brief
+      return !!(b.briefkopf && b.ort && b.mieterName && b.mieterPlzOrt)
+    }
+
+    function nkRender() {
+      if (!nkData) return
+      document.getElementById('nkJahrHint').textContent =
+        Number(nkJahr) >= new Date().getFullYear() ? 'läuft noch' : ''
+      nkRenderHv()
+      nkRenderMieter()
+    }
+
+    // ── Word-Dokument aus der Vorlage erzeugen ──
+    function nkXmlEsc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    }
+
+    // Entfernt alle Absätze, die eine bestimmte Markierung enthalten
+    function nkEntferneAbsaetze(xml, marke) {
+      const teile = xml.split('</w:p>')
+      const rest = teile.filter((t, i) => i === teile.length - 1 || !t.includes(marke))
+      return rest.join('</w:p>')
+    }
+
+    async function nkDokument() {
+      const st = document.getElementById('nkDocStatus')
+      const setSt = (t, k) => { if (st) { st.textContent = t; st.className = 'nk-status ' + (k || '') } }
+
+      if (typeof JSZip === 'undefined') { setSt('Bibliothek nicht geladen – Seite neu laden.', 'err'); return }
+
+      const j = nkJ(), hv = j.hv, mi = j.mieter, b = nkData.brief
+      const vorausAuto = nkVorauszahlungAuto()
+      const voraus = mi.vorauszahlung ?? vorausAuto
+      const umlage = mi.umlagefaehig ?? ((hv.umlagefaehigBetriebskosten || 0) + (hv.heizkosten || 0))
+      const erg = Math.round((voraus - umlage) * 100) / 100
+      const erstattung = erg >= 0
+      const mv = (mietData && (mietData.aktuell || mietData)) || {}
+
+      const geld = v => new Intl.NumberFormat('de-DE',
+        { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v || 0) + ' €'
+
+      const werte = {
+        BRIEFKOPF: b.briefkopf || '',
+        MIETER_NAME: b.mieterName || mv.mieter || '',
+        MIETER_STRASSE: b.mieterStrasse || '',
+        MIETER_PLZORT: b.mieterPlzOrt || '',
+        ORT: b.ort || '',
+        DATUM: new Date().toLocaleDateString('de-DE'),
+        JAHR: nkJahr,
+        WOHNUNG: b.wohnung || propData?.adresse || propData?.bezeichnung || '',
+        BETRIEBSKOSTEN: geld(hv.umlagefaehigBetriebskosten),
+        HEIZKOSTEN: geld(hv.heizkosten),
+        GESAMTKOSTEN: geld(umlage),
+        VORAUSZAHLUNG: geld(voraus),
+        ERGEBNIS: geld(Math.abs(erg)),
+        ERGEBNIS_ABS: new Intl.NumberFormat('de-DE',
+          { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(erg)),
+        ERGEBNIS_ART: erstattung ? 'Erstattung' : 'Nachzahlung',
+        KONTOEMPFAENGER: b.kontoempfaenger || '',
+        IBAN: b.iban || '',
+        VERWENDUNGSZWECK: b.verwendungszweck || `Nebenkostenabrechnung ${nkJahr}`,
+        ABSENDER_NAME: b.absenderName || '',
+        ABSENDER_FIRMA: b.absenderFirma || '',
+      }
+
+      try {
+        setSt('Dokument wird erstellt …', 'busy')
+        const res = await fetch(NK_VORLAGE)
+        if (!res.ok) throw new Error('Vorlage nicht gefunden (' + NK_VORLAGE + ')')
+        const zip = await JSZip.loadAsync(await res.arrayBuffer())
+        let xml = await zip.file('word/document.xml').async('string')
+
+        // Nur der passende Schlussabsatz bleibt stehen
+        xml = nkEntferneAbsaetze(xml, erstattung ? '{{IF_NACHZAHLUNG}}' : '{{IF_ERSTATTUNG}}')
+        xml = xml.split('{{IF_ERSTATTUNG}}').join('').split('{{IF_NACHZAHLUNG}}').join('')
+
+        Object.keys(werte).forEach(k => {
+          xml = xml.split('{{' + k + '}}').join(nkXmlEsc(werte[k]))
+        })
+
+        zip.file('word/document.xml', xml)
+        const blob = await zip.generateAsync({
+          type: 'blob',
+          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        })
+
+        const name = `Nebenkostenabrechnung ${nkJahr} – ${(propData?.bezeichnung || 'Wohnung')}.docx`
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(blob)
+        a.download = name
+        a.click()
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000)
+        setSt('Fertig – die Datei liegt in Ihren Downloads.', 'ok')
+      } catch (err) {
+        setSt('Fehler: ' + err.message, 'err')
       }
     }
 
@@ -2148,6 +2663,7 @@
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
     }
   </script>
+  <script src="jszip.min.js"></script>
   <script src="password-gate.js"></script>
 </body>
 </html>
