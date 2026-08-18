@@ -142,6 +142,21 @@
     .liq-table th, .liq-table td { border-bottom: 1px solid rgba(16,26,43,0.05); padding: 0; }
     .liq-table thead th { font-size: 0.68rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px; text-align: right; background: #e9eef5; white-space: nowrap; position: sticky; top: 0; z-index: 3; }
     .liq-table thead th.liq-label { z-index: 4; background: #e9eef5; }
+    /* Höhere Spezifität als `.liq-table td { padding: 0 }` – sonst klebt die
+       Beschriftung am linken Rand der Zelle. */
+    .liq-table td.liq-label, .liq-table th.liq-label { padding: 9px 20px 9px 22px; }
+    .liq-table thead th.liq-label { text-align: center; padding-left: 12px; padding-right: 12px; }
+    .liq-toggle {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 17px; height: 17px; margin-right: 9px; vertical-align: -3px;
+      border: 1px solid rgba(16,26,43,0.18); border-radius: 5px;
+      background: var(--navy); color: var(--muted);
+      font: 600 0.82rem/1 'Inter', sans-serif; cursor: pointer; padding: 0;
+      transition: border-color .15s, color .15s, background .15s;
+    }
+    .liq-toggle:hover { border-color: var(--gold); color: var(--gold); background: rgba(43,122,140,0.08); }
+    .liq-spacer td { height: 14px; border-bottom: none; background: transparent; }
+    .liq-spacer .liq-label { background: var(--navy2); }
     .liq-label { position: sticky; left: 0; background: var(--navy2); z-index: 2; text-align: left; font-size: 0.82rem; color: var(--muted); padding: 8px 16px; white-space: nowrap; min-width: 160px; border-right: 1px solid rgba(16,26,43,0.08); }
     .liq-row-sub .liq-label { padding-left: 30px; font-size: 0.76rem; font-style: italic; }
     .liq-row-calc .liq-label { color: var(--white); }
@@ -1009,17 +1024,36 @@
       { key: 'ausgabe',               label: 'Zahlung Nebenkosten',      type: 'input' },
       { key: 'weitereAusgaben',       label: 'Weitere Ausgaben',         type: 'input' },
       { key: 'nebenkostenabrechnung', label: 'Nebenkostenabrechnung',    type: 'input' },
-      { key: 'miete',        label: 'Miete',                    type: 'calc',  sep: true },
-      { key: 'nkm',          label: 'Nettokaltmiete',           type: 'input', sub: true },
-      { key: 'nk',           label: 'Nebenkostenvorauszahlung', type: 'input', sub: true },
+      { key: 'miete',        label: 'Miete',             type: 'calc',  sep: true, gap: true, toggle: 'miete' },
+      { key: 'nkm',          label: 'Nettokaltmiete',            type: 'input', sub: true, group: 'miete' },
+      { key: 'nk',           label: 'Nebenkostenvorauszahlungen', type: 'input', sub: true, group: 'miete' },
       { key: 'weitereMiete', label: 'Weitere Miete',     type: 'input' },
       { key: 'grundsteuer',  label: 'Grundsteuer',       type: 'input' },
       { key: 'hausgeld',     label: 'Hausgeld',          type: 'input' },
-      { key: 'zins',         label: 'Zins',              type: 'input' },
-      { key: 'tilgung',      label: 'Tilgung',           type: 'input' },
+      { key: 'bankrate',     label: 'Bankrate',          type: 'calc',  toggle: 'bankrate' },
+      { key: 'zins',         label: 'Zins',              type: 'input', sub: true, group: 'bankrate' },
+      { key: 'tilgung',      label: 'Tilgung',           type: 'input', sub: true, group: 'bankrate' },
       { key: 'cf',           label: 'CF Wohnung',        type: 'calc',  strong: true, sep: true },
       { key: 'guthaben',     label: 'Guthaben',          type: 'calc',  total: true, sep: true },
     ]
+
+    // Aufgeklappte Detailgruppen (Miete, Bankrate) – Einstellung bleibt im Browser
+    let liqOpenGroups = (() => {
+      try { return new Set(JSON.parse(localStorage.getItem('ie_liq_groups') || '[]')) }
+      catch (e) { return new Set() }
+    })()
+
+    function liqToggleGroup(name) {
+      if (liqOpenGroups.has(name)) liqOpenGroups.delete(name)
+      else liqOpenGroups.add(name)
+      try { localStorage.setItem('ie_liq_groups', JSON.stringify([...liqOpenGroups])) } catch (e) {}
+      liqRender()
+    }
+
+    // Zeilen, die gerade sichtbar sind (für Rendering und Tastaturnavigation)
+    function liqVisibleRows() {
+      return LIQ_ROWS.filter(r => !r.group || liqOpenGroups.has(r.group))
+    }
 
     let liqData = null
     let propData = null
@@ -1184,12 +1218,13 @@
       months.forEach(m => {
         LIQ_ROWS.forEach(r => { if (r.type === 'input') out[r.key][m] = inp(r.key, m) })
         const miete    = ov('miete', m)      ?? out.nkm[m] + out.nk[m]                       // Miete = NKM + NK
+        const bankrate = ov('bankrate', m)   ?? out.zins[m] + out.tilgung[m]                 // Bankrate = Zins + Tilgung
         const cf       = ov('cf', m)         ?? miete + out.weitereMiete[m] + out.grundsteuer[m]
-                                               + out.hausgeld[m] + out.zins[m] + out.tilgung[m] // CF Wohnung
+                                               + out.hausgeld[m] + bankrate                  // CF Wohnung
         guthaben       = ov('guthaben', m)   ?? guthaben + out.einzahlungEk[m] + out.einzahlungFk[m]
                                                + out.kaufpreis[m] + out.ausgabe[m] + out.weitereAusgaben[m]
                                                + out.nebenkostenabrechnung[m] + cf            // Guthaben kumuliert
-        out.miete[m] = miete; out.cf[m] = cf; out.guthaben[m] = guthaben
+        out.miete[m] = miete; out.bankrate[m] = bankrate; out.cf[m] = cf; out.guthaben[m] = guthaben
       })
       return { months, out }
     }
@@ -1216,7 +1251,9 @@
         return `<th class="${mo === 1 ? 'liq-yr' : ''}${m === nowM ? ' liq-now' : ''}">${name} ${String(y).slice(2)}</th>`
       }).join('')
 
-      const rows = LIQ_ROWS.map(r => {
+      const spacer = `<tr class="liq-spacer"><td class="liq-label"></td>${months.map(() => '<td></td>').join('')}</tr>`
+
+      const rows = liqVisibleRows().map(r => {
         const cls = ['liq-row-' + r.type,
           r.sub ? 'liq-row-sub' : '', r.sep ? 'liq-sep' : '',
           r.strong ? 'liq-row-strong' : '', r.total ? 'liq-row-total' : ''].filter(Boolean).join(' ')
@@ -1226,7 +1263,15 @@
             <input class="liq-cell" data-row="${r.key}" data-month="${m}" placeholder="0" />
           </td>`
         }).join('')
-        return `<tr class="${cls}"><td class="liq-label">${r.label}</td>${tds}</tr>`
+        const open = r.toggle && liqOpenGroups.has(r.toggle)
+        const label = r.toggle
+          ? `<button class="liq-toggle" onclick="liqToggleGroup('${r.toggle}')"
+                     title="${open ? 'Details ausblenden' : 'Details einblenden'}"
+                     aria-expanded="${open}">${open ? '−' : '+'}</button><span>${r.label}</span>`
+          : r.label
+        // Vor „Miete“ eine Leerzeile: darüber Einmaliges, darunter Wiederkehrendes
+        return (r.gap ? spacer : '') +
+               `<tr class="${cls}"><td class="liq-label">${label}</td>${tds}</tr>`
       }).join('')
 
       document.getElementById('liqScroll').innerHTML =
@@ -1262,7 +1307,7 @@
     function liqKeyNav(e, cell) {
       if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter'].includes(e.key)) return
       const months = liqMonths()
-      const rowKeys = LIQ_ROWS.map(r => r.key)
+      const rowKeys = liqVisibleRows().map(r => r.key)
       let ri = rowKeys.indexOf(cell.dataset.row)
       let mi = months.indexOf(cell.dataset.month)
       const len = cell.value.length
@@ -1294,7 +1339,7 @@
     }
 
     // ── Forward-Edit: geänderte Zelle für alle Folgemonate übernehmen ──
-    const LIQ_FORWARD_ROWS = ['miete', 'nkm', 'nk', 'weitereMiete', 'grundsteuer', 'hausgeld']
+    const LIQ_FORWARD_ROWS = ['miete', 'nkm', 'nk', 'weitereMiete', 'grundsteuer', 'hausgeld', 'bankrate', 'zins', 'tilgung']
     let liqToastTimer = null
 
     function liqMaybeOfferForward(cell) {

@@ -165,6 +165,105 @@
       .cl-row { grid-template-columns: 140px 1fr 36px; }
       footer { padding: 28px 24px; flex-direction: column; align-items: flex-start; }
     }
+
+    /* ── Kontoauszug-Import ── */
+    .bk-drop { border: 2px dashed rgba(43,122,140,0.35); border-radius: var(--radius); padding: 34px 20px;
+      text-align: center; cursor: pointer; transition: background .2s, border-color .2s; background: var(--navy2); }
+    .bk-drop.over, .bk-drop:hover { background: rgba(43,122,140,0.06); border-color: var(--gold); }
+    .bk-drop-icon { font-size: 1.7rem; margin-bottom: 8px; }
+    .bk-drop-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
+    .bk-drop-sub { font-size: 0.8rem; color: var(--muted); }
+    .bk-status { margin-top: 12px; font-size: 0.85rem; color: var(--muted); min-height: 20px; }
+    .bk-status.ok  { color: var(--green); }
+    .bk-status.err { color: var(--red); }
+    .bk-status.busy { color: var(--gold); }
+    .bk-table-wrap { margin-top: 16px; overflow-x: auto; border: 1px solid rgba(16,26,43,0.08);
+      border-radius: var(--radius); background: var(--navy2); }
+    .bk-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    .bk-table th { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted);
+      font-weight: 600; background: #e9eef5; padding: 10px 12px; text-align: left; white-space: nowrap; }
+    .bk-table td { padding: 8px 12px; border-top: 1px solid rgba(16,26,43,0.06); vertical-align: middle; }
+    .bk-table tr.bk-open td { background: rgba(220,38,38,0.05); }
+    .bk-table tr.bk-skip { opacity: 0.4; }
+    .bk-date { white-space: nowrap; color: var(--muted); }
+    .bk-amount { white-space: nowrap; text-align: right; font-weight: 600; }
+    .bk-amount.neg { color: var(--red); }
+    .bk-amount.pos { color: var(--green); }
+    .bk-text { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bk-sel { background: var(--navy); border: 1px solid rgba(16,26,43,0.14); border-radius: 7px;
+      color: var(--white); font-family: inherit; font-size: 0.8rem; padding: 6px 8px; max-width: 210px; }
+    .bk-skipcol { text-align: center; }
+    .bk-actions { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+    .bk-btn-primary { background: var(--gold); color: #fff; border: none; border-radius: 9px;
+      padding: 10px 18px; font: 600 0.86rem/1 'Inter', sans-serif; cursor: pointer; }
+    .bk-btn-primary:hover { background: var(--gold2); }
+    .bk-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+    .bk-btn { background: transparent; border: 1px solid rgba(16,26,43,0.15); border-radius: 9px;
+      padding: 10px 16px; font: 500 0.84rem/1 'Inter', sans-serif; color: var(--muted); cursor: pointer; }
+    .bk-btn:hover { color: var(--white); }
+    .bk-note { font-size: 0.76rem; color: var(--muted); }
+
+    /* ── Monatswechsel ── */
+    .mw-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+    .mw-card { position: relative; background: var(--navy2); border: 1px solid rgba(16,26,43,0.09);
+      border-radius: var(--radius); padding: 22px 24px 20px; }
+    .mw-card.ok   { border-color: rgba(21,128,61,0.35); }
+    .mw-card.warn { border-color: rgba(220,38,38,0.35); }
+    .mw-step { position: absolute; top: 16px; right: 18px; width: 22px; height: 22px; border-radius: 50%;
+      background: rgba(43,122,140,0.12); color: var(--gold); display: flex; align-items: center;
+      justify-content: center; font: 700 0.72rem/1 'Inter', sans-serif; }
+    .mw-label { font-size: 0.74rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--muted); margin-bottom: 12px; padding-right: 30px; }
+    .mw-value { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.5px; }
+    .mw-value.gold { color: var(--gold); }
+    .mw-value.red { color: var(--red); }
+    .mw-value.green { color: var(--green); }
+    .mw-input-row { display: flex; align-items: center; gap: 8px; }
+    .mw-input { flex: 1; background: var(--navy); border: 1px solid rgba(16,26,43,0.14); border-radius: 9px;
+      color: var(--white); font: 700 1.35rem/1 'Inter', sans-serif; padding: 10px 12px; outline: none;
+      text-align: right; min-width: 0; }
+    .mw-input:focus { border-color: var(--gold); }
+    .mw-unit { font-size: 1.1rem; font-weight: 600; color: var(--muted); }
+    .mw-sub { font-size: 0.78rem; color: var(--muted); margin-top: 10px; line-height: 1.45; }
+    .mw-toggle { margin-top: 12px; background: none; border: none; padding: 0; cursor: pointer;
+      font: 500 0.78rem/1 'Inter', sans-serif; color: var(--gold); text-decoration: underline; }
+    .mw-detail { margin-top: 18px; background: var(--navy2); border: 1px solid rgba(16,26,43,0.08);
+      border-radius: var(--radius); padding: 18px 20px; }
+    .mw-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .mw-table th { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted);
+      font-weight: 600; padding: 6px 10px; text-align: left; }
+    .mw-table td { padding: 7px 10px; border-top: 1px solid rgba(16,26,43,0.06); }
+    .mw-table tfoot td { border-top: 2px solid rgba(16,26,43,0.12); font-weight: 700; }
+    .mw-formel { font-size: 0.76rem; color: var(--muted); margin-top: 14px; line-height: 1.55; }
+    .ta-r { text-align: right; }
+    .strong { font-weight: 700; }
+
+    /* ── Cashflow je Wohnung ── */
+    .cf-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;
+      margin-bottom: 16px; }
+    .cf-stat { background: var(--navy2); border: 1px solid rgba(16,26,43,0.09); border-radius: 12px;
+      padding: 16px 20px; display: flex; flex-direction: column; gap: 6px; }
+    .cf-stat-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--muted); }
+    .cf-stat-value { font-size: 1.25rem; font-weight: 700; }
+    .cf-stat-value.red { color: var(--red); }
+    .cf-stat-value.green { color: var(--green); }
+    .cf-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+    .cf-table th { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted);
+      font-weight: 600; background: #e9eef5; padding: 10px 14px; text-align: left; white-space: nowrap; }
+    .cf-table td { padding: 11px 14px; border-top: 1px solid rgba(16,26,43,0.06); }
+    .cf-row { cursor: pointer; transition: background .13s; }
+    .cf-row:hover { background: rgba(43,122,140,0.05); }
+    .cf-row.neg td:first-child { box-shadow: inset 3px 0 0 var(--red); }
+    .cf-name { font-weight: 600; }
+    .cf-adr { color: var(--muted); font-size: 0.8rem; }
+    .cf-table .red { color: var(--red); }
+    .cf-table .green { color: var(--green); }
+
+    @media (max-width: 700px) {
+      .bk-text { max-width: 140px; }
+      .mw-value { font-size: 1.35rem; }
+    }
   </style>
   <link rel="stylesheet" href="app.css" />
   <style>
@@ -219,14 +318,76 @@
 
   <!-- ══ TAB: LIQUIDITÄT ══ -->
   <div class="tab-pane active" id="pane-liquiditaet">
-    <div class="tab-content" style="max-width:1400px;">
-      <div class="section-head" style="margin-bottom:16px;">
-        <h3>Liquidität <span>gesamt</span></h3>
+    <div class="tab-content">
+
+      <!-- ── 1. Kontoauszug einlesen ── -->
+      <div class="section-head" style="margin-bottom:10px;">
+        <h3>Konto<span>auszug einlesen</span></h3>
+        <div class="save-indicator" id="siImport"></div>
       </div>
-      <div class="liq-controls">
-        <span class="liq-hint">Alle Werte in € · Summe aller Immobilien je Monat · nur Anzeige</span>
+      <p class="ov-intro">
+        Screenshot aus dem Online-Banking hochladen. Die Buchungen werden ausgelesen und,
+        soweit erkennbar, direkt der richtigen Immobilie und Zeile zugeordnet.
+        Was unklar bleibt, wird unten abgefragt. Das Bild wird nicht gespeichert.
+      </p>
+
+      <div class="bk-drop" id="bkDrop">
+        <div class="bk-drop-icon">🧾</div>
+        <div class="bk-drop-title">Screenshot hierher ziehen oder klicken</div>
+        <div class="bk-drop-sub">PNG oder JPG · mehrere Bilder auf einmal möglich</div>
       </div>
-      <div class="liq-scroll" id="liqScroll"></div>
+      <input type="file" id="bkFile" accept="image/png,image/jpeg,image/webp" multiple style="display:none" />
+
+      <div id="bkStatus" class="bk-status"></div>
+      <div id="bkResult"></div>
+
+      <!-- ── 2. Monatswechsel ── -->
+      <div class="section-head" style="margin:46px 0 10px;">
+        <h3>Monats<span>wechsel</span></h3>
+        <div class="save-indicator" id="siKonto"></div>
+      </div>
+      <p class="ov-intro">
+        Reicht das Geld auf dem Konto für die Zahlungen dieses Monats?
+      </p>
+
+      <div class="mw-grid">
+        <div class="mw-card">
+          <div class="mw-step">1</div>
+          <div class="mw-label">Aktueller Kontostand</div>
+          <div class="mw-input-row">
+            <input type="text" id="mwKontostand" class="mw-input" placeholder="0,00" inputmode="decimal" />
+            <span class="mw-unit">€</span>
+          </div>
+          <div class="mw-sub" id="mwKontoDatum">noch nicht eingetragen</div>
+        </div>
+
+        <div class="mw-card">
+          <div class="mw-step">2</div>
+          <div class="mw-label">Empfohlene Liquidität zum Monatswechsel</div>
+          <div class="mw-value gold" id="mwEmpfohlen">–</div>
+          <button class="mw-toggle" id="mwToggle" onclick="mwToggleDetail()">Zusammensetzung anzeigen</button>
+        </div>
+
+        <div class="mw-card" id="mwCardEin">
+          <div class="mw-step">3</div>
+          <div class="mw-label">Einzahlung notwendig</div>
+          <div class="mw-value" id="mwEinzahlung">–</div>
+          <div class="mw-sub" id="mwEinzahlungSub">–</div>
+        </div>
+      </div>
+
+      <div class="mw-detail" id="mwDetail" style="display:none;"></div>
+
+      <!-- ── 3. Cashflow je Wohnung ── -->
+      <div class="section-head" style="margin:46px 0 10px;">
+        <h3>Cash<span>flow je Wohnung</span></h3>
+      </div>
+      <p class="ov-intro">
+        Monatlicher Überschuss beziehungsweise Unterdeckung im laufenden Monat.
+        Zeile anklicken, um die Immobilie zu öffnen.
+      </p>
+      <div id="cfList"></div>
+
     </div>
   </div>
 
@@ -327,6 +488,7 @@
         return
       }
       currentUserId = data.session.user.id
+      window.__ieToken = data.session.access_token
       loadAll()
     })
 
@@ -336,13 +498,20 @@
         sb.from('portfolio_overview').select('*').eq('user_id', currentUserId).maybeSingle(),
       ])
       properties = props || []
-      if (ov) overview = { kontakte: ov.kontakte || [], todos: ov.todos || [], notes: ov.notes || '' }
+      if (ov) overview = {
+        kontakte: ov.kontakte || [], todos: ov.todos || [], notes: ov.notes || '',
+        kontostand: ov.kontostand, kontostandDatum: ov.kontostand_datum,
+        regeln: ov.zuordnung_regeln || [],
+      }
 
       renderUebersicht()
       renderKontakte()
       renderLiquiditaet()
       initTodos()
       initNotes()
+      initBankImport()
+      initMonatswechsel()
+      renderCashflowListe()
 
       // Deep-Link ?tab=…
       const tabParam = new URLSearchParams(window.location.search).get('tab')
@@ -361,10 +530,12 @@
       const c   = k => Number(cells[k]?.[nowM]) || 0
       const ov  = k => { const v = ovs[k]?.[nowM]; return (v === undefined || v === null || v === '') ? null : Number(v) }
       const kaufpreis = Math.abs(sum('kaufpreis')) || p.kaufpreis || 0
-      const miete = ov('miete') ?? c('nkm') + c('nk')
-      const cf = ov('cf') ?? miete + c('weitereMiete') + c('grundsteuer') + c('hausgeld') + c('zins') + c('tilgung')
-      const liq = Math.abs(c('hausgeld') + c('zins') + c('tilgung'))
-      return { kaufpreis, nkm: c('nkm') || p.kaltmiete || 0, cf, liq }
+      const miete    = ov('miete') ?? c('nkm') + c('nk')
+      const bankrate = ov('bankrate') ?? c('zins') + c('tilgung')
+      const cf  = ov('cf') ?? miete + c('weitereMiete') + c('grundsteuer') + c('hausgeld') + bankrate
+      const liq = Math.abs(c('hausgeld') + bankrate)
+      return { kaufpreis, nkm: c('nkm') || p.kaltmiete || 0, cf, liq,
+               hausgeld: c('hausgeld'), bankrate, grundsteuer: c('grundsteuer'), miete }
     }
 
     // ════════════════════════════════════════
@@ -565,6 +736,7 @@
 
     function renderLiquiditaet() {
       const scroll = document.getElementById('liqScroll')
+      if (!scroll) return   // Bereich wurde durch Import/Monatswechsel/Cashflow ersetzt
       const { months, out } = aggregateLiq()
       if (!months.length) {
         scroll.innerHTML = '<div class="ov-empty">Noch keine Liquiditätsdaten in den Immobilien vorhanden.</div>'
@@ -696,7 +868,7 @@
     // ════════════════════════════════════════
     // AUTO-SAVE (eine Zeile in portfolio_overview)
     // ════════════════════════════════════════
-    const SAVE_INDICATORS = { c: 'siKontakte', t: 'siTodos', n: 'siNotes' }
+    const SAVE_INDICATORS = { c: 'siKontakte', t: 'siTodos', n: 'siNotes', k: 'siKonto', i: 'siImport' }
     let saveTimer = null
     let lastType = 'n'
 
@@ -714,6 +886,10 @@
         kontakte: overview.kontakte || [],
         todos: overview.todos || [],
         notes: overview.notes || '',
+        kontostand: (overview.kontostand === undefined || overview.kontostand === null)
+          ? null : Number(overview.kontostand),
+        kontostand_datum: overview.kontostandDatum || null,
+        zuordnung_regeln: overview.regeln || [],
         updated_at: new Date().toISOString(),
       }
       const { error } = await sb.from('portfolio_overview').upsert(payload, { onConflict: 'user_id' })
@@ -741,7 +917,7 @@
       const pane = document.getElementById('pane-' + name)
       if (pane) pane.classList.add('active')
       const HD = {
-        liquiditaet: ['💧', 'Liqui<span>dität</span>', 'Summe aller Immobilien je Monat.'],
+        liquiditaet: ['💧', 'Liqui<span>dität</span>', 'Kontoauszug einlesen, Monatswechsel und Cashflow je Wohnung.'],
         aum:         ['📈', 'AUM <span>Entwicklung</span>', 'Entwicklung des verwalteten Immobilienvermögens.'],
         todos:       ['✅', 'To-<span>Dos</span>', 'Aufgaben über das gesamte Portfolio.'],
         notes:       ['📝', 'No<span>tes</span>', 'Portfolio-weite Notizen.'],
@@ -757,6 +933,437 @@
     }
 
     window.ieSetView = switchTab
+
+
+    // ════════════════════════════════════════
+    // KONTOAUSZUG EINLESEN
+    // ════════════════════════════════════════
+    const BK_FN_URL = SUPABASE_URL + '/functions/v1/read-bank-screenshot'
+
+    const ROW_LABELS = {
+      nkm: 'Nettokaltmiete', nk: 'Nebenkostenvorauszahlungen', weitereMiete: 'Weitere Miete',
+      grundsteuer: 'Grundsteuer', hausgeld: 'Hausgeld', bankrate: 'Bankrate',
+      zins: 'Zins', tilgung: 'Tilgung', nebenkostenabrechnung: 'Nebenkostenabrechnung',
+      weitereAusgaben: 'Weitere Ausgaben', einzahlungEk: 'Einzahlung Eigenkapital',
+      einzahlungFk: 'Valutierung Fremdkapital', kaufpreis: 'Zahlung Kaufpreis',
+      ausgabe: 'Zahlung Nebenkosten',
+    }
+    // Zeilen, die als Zufluss geführt werden (positives Vorzeichen)
+    const EINNAHME_ROWS = ['nkm', 'nk', 'weitereMiete', 'einzahlungEk', 'einzahlungFk']
+    // Zeilen, die in der Immobilie als Formel-Übersteuerung landen
+    const OVERRIDE_ROWS = ['bankrate']
+
+    let bkBuchungen = []
+
+    function initBankImport() {
+      const drop = document.getElementById('bkDrop')
+      const file = document.getElementById('bkFile')
+      if (!drop || !file) return
+      drop.addEventListener('click', () => file.click())
+      drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over') })
+      drop.addEventListener('dragleave', () => drop.classList.remove('over'))
+      drop.addEventListener('drop', e => {
+        e.preventDefault(); drop.classList.remove('over')
+        bkRead([...e.dataTransfer.files])
+      })
+      file.addEventListener('change', e => { bkRead([...e.target.files]); e.target.value = '' })
+    }
+
+    function bkStatus(msg, kind) {
+      const el = document.getElementById('bkStatus')
+      if (el) { el.textContent = msg || ''; el.className = 'bk-status' + (kind ? ' ' + kind : '') }
+    }
+
+    const bkToBase64 = f => new Promise((res, rej) => {
+      const fr = new FileReader()
+      fr.onload = () => res(String(fr.result).split(',')[1])
+      fr.onerror = rej
+      fr.readAsDataURL(f)
+    })
+
+    async function bkRead(files) {
+      const bilder = files.filter(f => f.type.startsWith('image/'))
+      if (!bilder.length) { bkStatus('Bitte Bilddateien auswählen.', 'err'); return }
+
+      // Kontext für die Zuordnung: Bezeichnung, Adresse, Mieter, erwartete Beträge
+      const ctx = properties.map(p => {
+        const st = liqStats(p)
+        const mv = (p.mietverhaeltnis && (p.mietverhaeltnis.aktuell || p.mietverhaeltnis)) || {}
+        return {
+          id: p.id, bezeichnung: p.bezeichnung, adresse: p.adresse,
+          mieter: mv.mieter || undefined,
+          erwartet: { nkm: st.nkm, hausgeld: st.hausgeld, bankrate: st.bankrate },
+        }
+      })
+
+      bkStatus(`${bilder.length} Bild(er) werden ausgelesen …`, 'busy')
+      const neu = []
+
+      for (const f of bilder) {
+        try {
+          const image = await bkToBase64(f)
+          const res = await fetch(BK_FN_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sessionToken() },
+            body: JSON.stringify({ image, mime: f.type, properties: ctx }),
+          })
+          const data = await res.json()
+          if (!res.ok) throw new Error(data.error || ('Status ' + res.status))
+          ;(data.buchungen || []).forEach(b => neu.push(bkApplyRules(b)))
+        } catch (e) {
+          bkStatus('Fehler beim Auslesen: ' + e.message, 'err')
+          return
+        }
+      }
+
+      if (!neu.length) { bkStatus('Es konnten keine Buchungen erkannt werden.', 'err'); return }
+
+      bkBuchungen = neu
+      const offen = neu.filter(b => !b.propId || !b.zeile).length
+      bkStatus(`${neu.length} Buchungen erkannt${offen ? `, davon ${offen} noch zuzuordnen` : ' und alle zugeordnet'}.`, offen ? '' : 'ok')
+      bkRender()
+    }
+
+    // Gelernte Regeln schlagen den Vorschlag des Modells
+    function bkApplyRules(b) {
+      const t = (b.text || '').toLowerCase()
+      const r = (overview.regeln || []).find(x => x.muster && t.includes(String(x.muster).toLowerCase()))
+      if (r) { b.propId = r.propId; b.zeile = r.zeile; b.sicherheit = 'hoch'; b.ausRegel = true }
+      return b
+    }
+
+    // Aus einem Verwendungszweck ein merkbares Stichwort ableiten
+    function bkMuster(text) {
+      const worte = String(text || '')
+        .split(/[^A-Za-zÄÖÜäöüß]+/)
+        .filter(w => w.length >= 4)
+        .sort((a, b) => b.length - a.length)
+      return worte[0] || null
+    }
+
+    function bkRender() {
+      const wrap = document.getElementById('bkResult')
+      if (!bkBuchungen.length) { wrap.innerHTML = ''; return }
+
+      const propOpts = p => properties.map(x =>
+        `<option value="${x.id}" ${x.id === p ? 'selected' : ''}>${esc(x.bezeichnung || 'Immobilie')}</option>`).join('')
+      const rowOpts = z => Object.entries(ROW_LABELS).map(([k, v]) =>
+        `<option value="${k}" ${k === z ? 'selected' : ''}>${esc(v)}</option>`).join('')
+
+      const zeilen = bkBuchungen.map((b, i) => {
+        const offen = !b.propId || !b.zeile
+        return `
+          <tr class="${offen ? 'bk-open' : ''} ${b.skip ? 'bk-skip' : ''}">
+            <td class="bk-date">${esc(b.datum || '–')}</td>
+            <td class="bk-amount ${b.betrag < 0 ? 'neg' : 'pos'}">${formatEurCent(b.betrag)}</td>
+            <td class="bk-text" title="${esc(b.text)}">${esc(b.text)}</td>
+            <td>
+              <select class="bk-sel" onchange="bkSet(${i},'propId',this.value)">
+                <option value="">– Immobilie wählen –</option>${propOpts(b.propId)}
+              </select>
+            </td>
+            <td>
+              <select class="bk-sel" onchange="bkSet(${i},'zeile',this.value)">
+                <option value="">– Zeile wählen –</option>${rowOpts(b.zeile)}
+              </select>
+            </td>
+            <td class="bk-skipcol">
+              <label title="Diese Buchung nicht übernehmen">
+                <input type="checkbox" ${b.skip ? 'checked' : ''} onchange="bkSet(${i},'skip',this.checked)" />
+              </label>
+            </td>
+          </tr>`
+      }).join('')
+
+      const uebernehmbar = bkBuchungen.filter(b => b.propId && b.zeile && !b.skip).length
+
+      wrap.innerHTML = `
+        <div class="bk-table-wrap">
+          <table class="bk-table">
+            <thead><tr>
+              <th>Datum</th><th class="ta-r">Betrag</th><th>Verwendungszweck</th>
+              <th>Immobilie</th><th>Zeile</th><th title="Ignorieren">✕</th>
+            </tr></thead>
+            <tbody>${zeilen}</tbody>
+          </table>
+        </div>
+        <div class="bk-actions">
+          <button class="bk-btn-primary" onclick="bkApply()" ${uebernehmbar ? '' : 'disabled'}>
+            ${uebernehmbar} Buchung${uebernehmbar === 1 ? '' : 'en'} übernehmen
+          </button>
+          <button class="bk-btn" onclick="bkDiscard()">Verwerfen</button>
+          <span class="bk-note">Übernommene Zuordnungen werden gemerkt und beim nächsten Mal automatisch angewendet.</span>
+        </div>`
+    }
+
+    function bkSet(i, feld, wert) {
+      if (!bkBuchungen[i]) return
+      bkBuchungen[i][feld] = (feld === 'skip') ? !!wert : (wert || null)
+      if (feld !== 'skip') bkBuchungen[i].manuell = true
+      bkRender()
+    }
+
+    function bkDiscard() {
+      bkBuchungen = []
+      document.getElementById('bkResult').innerHTML = ''
+      bkStatus('')
+    }
+
+    async function bkApply() {
+      const nehmen = bkBuchungen.filter(b => b.propId && b.zeile && !b.skip)
+      if (!nehmen.length) return
+
+      bkStatus('Wird übernommen …', 'busy')
+
+      const proBezeichnung = {}
+      let uebernommen = 0, doppelt = 0, ausserhalb = 0, ersetzt = 0
+
+      for (const p of properties) {
+        const meine = nehmen.filter(b => b.propId === p.id)
+        if (!meine.length) continue
+
+        const lq = p.liquiditaet && p.liquiditaet.cells
+          ? p.liquiditaet
+          : { startMonth: (p.kaufdatum || new Date().toISOString()).slice(0, 7), monthCount: 60, cells: {}, overrides: {}, notes: {} }
+        if (!lq.cells)     lq.cells = {}
+        if (!lq.overrides) lq.overrides = {}
+        if (!lq.imported)  lq.imported = {}
+        // Merkt sich, in welche Zelle schon einmal importiert wurde
+        if (!lq.importedCells) lq.importedCells = {}
+
+        let geaendert = false
+
+        for (const b of meine) {
+          const monat = (b.datum || '').slice(0, 7)
+          if (!/^\d{4}-\d{2}$/.test(monat)) { ausserhalb++; continue }
+
+          const fp = `${b.datum}|${b.betrag}|${(b.text || '').slice(0, 30)}`
+          if (lq.imported[fp]) { doppelt++; continue }
+
+          if (monat < lq.startMonth) { ausserhalb++; continue }
+          // Planungszeitraum bei Bedarf nach hinten verlängern
+          const [sy, sm] = lq.startMonth.split('-').map(Number)
+          const [by, bm] = monat.split('-').map(Number)
+          const idx = (by - sy) * 12 + (bm - sm)
+          if (idx >= (lq.monthCount || 0)) lq.monthCount = idx + 1
+
+          const positiv = EINNAHME_ROWS.includes(b.zeile)
+          const wert = positiv ? Math.abs(b.betrag) : -Math.abs(b.betrag)
+          const store = OVERRIDE_ROWS.includes(b.zeile) ? lq.overrides : lq.cells
+          if (!store[b.zeile]) store[b.zeile] = {}
+          // Die erste echte Buchung ersetzt den Planwert dieser Zelle.
+          // Jede weitere Buchung desselben Monats wird dazugerechnet.
+          const zelle = b.zeile + '|' + monat
+          const schonImportiert = !!lq.importedCells[zelle]
+          const alt = schonImportiert ? (Number(store[b.zeile][monat]) || 0) : 0
+          if (!schonImportiert && (Number(store[b.zeile][monat]) || 0) !== 0) ersetzt++
+          store[b.zeile][monat] = Math.round((alt + wert) * 100) / 100
+          lq.importedCells[zelle] = true
+
+          lq.imported[fp] = true
+          geaendert = true
+          uebernommen++
+          proBezeichnung[p.bezeichnung || 'Immobilie'] = (proBezeichnung[p.bezeichnung || 'Immobilie'] || 0) + 1
+
+          // Zuordnung merken
+          const muster = bkMuster(b.text)
+          if (muster) {
+            if (!overview.regeln) overview.regeln = []
+            const vorhanden = overview.regeln.find(r => String(r.muster).toLowerCase() === muster.toLowerCase())
+            if (vorhanden) { vorhanden.propId = b.propId; vorhanden.zeile = b.zeile }
+            else overview.regeln.push({ muster, propId: b.propId, zeile: b.zeile })
+          }
+        }
+
+        if (geaendert) {
+          p.liquiditaet = lq
+          const { error } = await sb.from('portfolio').update({ liquiditaet: lq }).eq('id', p.id)
+          if (error) { bkStatus('Fehler beim Speichern: ' + error.message, 'err'); return }
+        }
+      }
+
+      scheduleSave('i')   // gelernte Regeln sichern
+
+      const teile = Object.entries(proBezeichnung).map(([n, c]) => `${n}: ${c}`).join(' · ')
+      let msg = `${uebernommen} Buchung${uebernommen === 1 ? '' : 'en'} übernommen.`
+      if (teile) msg += ' ' + teile + '.'
+      if (ersetzt)    msg += ` ${ersetzt} geplante Werte wurden durch die tatsächliche Buchung ersetzt.`
+      if (doppelt)    msg += ` ${doppelt} bereits früher importiert und übersprungen.`
+      if (ausserhalb) msg += ` ${ausserhalb} lagen vor dem Planungsbeginn und wurden ausgelassen.`
+      bkStatus(msg, 'ok')
+
+      bkBuchungen = []
+      document.getElementById('bkResult').innerHTML = ''
+      renderUebersicht()
+      renderMonatswechsel()
+      renderCashflowListe()
+    }
+
+    function sessionToken() {
+      return (window.__ieToken || '')
+    }
+
+    // ════════════════════════════════════════
+    // MONATSWECHSEL
+    // ════════════════════════════════════════
+    let mwDetailOffen = false
+
+    function initMonatswechsel() {
+      const inp = document.getElementById('mwKontostand')
+      if (!inp) return
+      if (overview.kontostand !== undefined && overview.kontostand !== null) {
+        inp.value = formatEurCent(Number(overview.kontostand)).replace(/\s*€/, '')
+      }
+      inp.addEventListener('input', () => {
+        const n = parseDe(inp.value)
+        overview.kontostand = (n === null) ? null : n
+        overview.kontostandDatum = new Date().toISOString().slice(0, 10)
+        renderMonatswechsel()
+        scheduleSave('k')
+      })
+      inp.addEventListener('blur', () => {
+        if (overview.kontostand !== null && overview.kontostand !== undefined) {
+          inp.value = formatEurCent(Number(overview.kontostand)).replace(/\s*€/, '')
+        }
+      })
+      renderMonatswechsel()
+    }
+
+    function mwToggleDetail() {
+      mwDetailOffen = !mwDetailOffen
+      document.getElementById('mwDetail').style.display = mwDetailOffen ? '' : 'none'
+      document.getElementById('mwToggle').textContent =
+        mwDetailOffen ? 'Zusammensetzung ausblenden' : 'Zusammensetzung anzeigen'
+    }
+
+    function renderMonatswechsel() {
+      const stats = properties.map(p => ({ p, st: liqStats(p) }))
+      const empfohlen = stats.reduce((s, x) => s + x.st.liq, 0)
+      const kontostand = (overview.kontostand === undefined || overview.kontostand === null)
+        ? null : Number(overview.kontostand)
+      const einzahlung = (kontostand === null) ? null : Math.max(0, empfohlen - kontostand)
+
+      document.getElementById('mwEmpfohlen').textContent = formatEurCent(empfohlen)
+
+      const dEl = document.getElementById('mwKontoDatum')
+      dEl.textContent = overview.kontostandDatum
+        ? 'Stand vom ' + new Date(overview.kontostandDatum).toLocaleDateString('de-DE')
+        : 'noch nicht eingetragen'
+
+      const eEl = document.getElementById('mwEinzahlung')
+      const sEl = document.getElementById('mwEinzahlungSub')
+      const card = document.getElementById('mwCardEin')
+      card.classList.remove('ok', 'warn')
+
+      if (kontostand === null) {
+        eEl.textContent = '–'
+        eEl.className = 'mw-value'
+        sEl.textContent = 'Kontostand oben eintragen'
+      } else if (einzahlung <= 0.004) {
+        eEl.textContent = formatEurCent(0)
+        eEl.className = 'mw-value green'
+        sEl.textContent = `Der Kontostand deckt die Zahlungen. Überschuss ${formatEurCent(kontostand - empfohlen)}.`
+        card.classList.add('ok')
+      } else {
+        eEl.textContent = formatEurCent(einzahlung)
+        eEl.className = 'mw-value red'
+        sEl.textContent = `Es fehlen ${formatEurCent(einzahlung)} bis zur empfohlenen Liquidität.`
+        card.classList.add('warn')
+      }
+
+      const zeilen = stats.filter(x => Math.abs(x.st.liq) > 0.004).map(x => `
+        <tr>
+          <td>${esc(x.p.bezeichnung || 'Immobilie')}</td>
+          <td class="ta-r">${formatEurCent(Math.abs(x.st.hausgeld))}</td>
+          <td class="ta-r">${formatEurCent(Math.abs(x.st.bankrate))}</td>
+          <td class="ta-r strong">${formatEurCent(x.st.liq)}</td>
+        </tr>`).join('')
+
+      document.getElementById('mwDetail').innerHTML = `
+        <table class="mw-table">
+          <thead><tr>
+            <th>Immobilie</th><th class="ta-r">Hausgeld</th>
+            <th class="ta-r">Bankrate</th><th class="ta-r">Summe</th>
+          </tr></thead>
+          <tbody>${zeilen || '<tr><td colspan="4" class="ov-empty">Keine Zahlungen im laufenden Monat hinterlegt.</td></tr>'}</tbody>
+          <tfoot><tr>
+            <td>Gesamt</td><td></td><td></td><td class="ta-r strong">${formatEurCent(empfohlen)}</td>
+          </tr></tfoot>
+        </table>
+        <p class="mw-formel">
+          Empfohlene Liquidität = Hausgeld + Bankrate (Zins + Tilgung) des laufenden Monats,
+          über alle Immobilien. Mieteingänge werden bewusst nicht gegengerechnet.
+        </p>`
+    }
+
+    // ════════════════════════════════════════
+    // CASHFLOW JE WOHNUNG
+    // ════════════════════════════════════════
+    function renderCashflowListe() {
+      const el = document.getElementById('cfList')
+      if (!el) return
+      if (!properties.length) {
+        el.innerHTML = '<div class="ov-empty">Noch keine Immobilien angelegt.</div>'
+        return
+      }
+
+      const stats = properties.map(p => ({ p, st: liqStats(p) }))
+                              .sort((a, b) => a.st.cf - b.st.cf)
+      const negativ = stats.filter(x => x.st.cf < -0.004)
+      const summe   = stats.reduce((s, x) => s + x.st.cf, 0)
+      const summeNeg = negativ.reduce((s, x) => s + x.st.cf, 0)
+
+      const zeilen = stats.map(x => {
+        const neg = x.st.cf < -0.004
+        return `
+          <tr class="cf-row ${neg ? 'neg' : ''}" onclick="location.href='immobilie.html?id=${x.p.id}&tab=liquiditaet'">
+            <td class="cf-name">${esc(x.p.bezeichnung || 'Immobilie')}</td>
+            <td class="cf-adr">${esc(x.p.adresse || '')}</td>
+            <td class="ta-r">${formatEurCent(x.st.miete)}</td>
+            <td class="ta-r">${formatEurCent(-(Math.abs(x.st.hausgeld) + Math.abs(x.st.bankrate) + Math.abs(x.st.grundsteuer)))}</td>
+            <td class="ta-r strong ${neg ? 'red' : 'green'}">${formatEurCent(x.st.cf)}</td>
+          </tr>`
+      }).join('')
+
+      el.innerHTML = `
+        <div class="cf-summary">
+          <div class="cf-stat">
+            <span class="cf-stat-label">Wohnungen mit negativem Cashflow</span>
+            <span class="cf-stat-value ${negativ.length ? 'red' : 'green'}">${negativ.length} von ${stats.length}</span>
+          </div>
+          <div class="cf-stat">
+            <span class="cf-stat-label">Summe der Unterdeckungen</span>
+            <span class="cf-stat-value ${summeNeg < -0.004 ? 'red' : 'green'}">${formatEurCent(summeNeg)}</span>
+          </div>
+          <div class="cf-stat">
+            <span class="cf-stat-label">Cashflow gesamt</span>
+            <span class="cf-stat-value ${summe < -0.004 ? 'red' : 'green'}">${formatEurCent(summe)}</span>
+          </div>
+        </div>
+        <div class="ov-table-wrap">
+          <table class="cf-table">
+            <thead><tr>
+              <th>Immobilie</th><th>Adresse</th><th class="ta-r">Miete</th>
+              <th class="ta-r">Ausgaben</th><th class="ta-r">Cashflow</th>
+            </tr></thead>
+            <tbody>${zeilen}</tbody>
+          </table>
+        </div>`
+    }
+
+    // ── Helfer ──
+    function formatEurCent(n) {
+      return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR',
+        minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0)
+    }
+    function parseDe(s) {
+      if (s === null || s === undefined) return null
+      s = String(s).replace(/[\s€]/g, '')
+      if (!s) return null
+      if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.')
+      const n = parseFloat(s)
+      return isNaN(n) ? null : n
+    }
 
     // ════════════════════════════════════════
     // HELPERS
