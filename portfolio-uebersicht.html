@@ -10,16 +10,16 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --navy: #0f1c2e; --navy2: #172540; --navy3: #1e2f50;
-      --gold: #c9a84c; --gold2: #e0bf74;
-      --muted: #8a97aa; --white: #ffffff;
-      --green: #3ecf8e; --red: #f87171;
+      --navy: #f4f6f9; --navy2: #ffffff; --navy3: #eef2f7;
+      --gold: #2b7a8c; --gold2: #1f5d6c;
+      --muted: #64748b; --white: #101a2b;
+      --green: #15803d; --red: #dc2626;
       --radius: 12px;
     }
     body { font-family: 'Inter', sans-serif; background: var(--navy); color: var(--white); min-height: 100vh; display: flex; flex-direction: column; }
 
     /* ── NAV ── */
-    nav { display: flex; align-items: center; justify-content: space-between; padding: 24px 60px; position: sticky; top: 0; z-index: 100; background: rgba(15,28,46,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(201,168,76,0.15); }
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 24px 60px; position: sticky; top: 0; z-index: 100; background: rgba(244,246,249,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(43,122,140,0.15); }
     .logo { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; color: var(--white); text-decoration: none; }
     .logo span { color: var(--gold); }
     nav ul { list-style: none; display: flex; gap: 36px; }
@@ -41,13 +41,13 @@
     .back-link:hover { color: var(--white); }
     .prop-meta { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; flex-wrap: wrap; }
     .prop-icon { font-size: 1.8rem; line-height: 1; }
-    .prop-badge { background: rgba(201,168,76,0.12); color: var(--gold); border: 1px solid rgba(201,168,76,0.25); border-radius: 50px; padding: 4px 14px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .prop-badge { background: rgba(43,122,140,0.12); color: var(--gold); border: 1px solid rgba(43,122,140,0.25); border-radius: 50px; padding: 4px 14px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
     .prop-name { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
     .prop-name span { color: var(--gold); }
     .prop-adresse { color: var(--muted); font-size: 0.95rem; }
 
     /* ── TAB NAV ── */
-    .tab-header { padding: 0 60px; border-bottom: 1px solid rgba(255,255,255,0.07); background: rgba(15,28,46,0.6); margin-top: 32px; }
+    .tab-header { padding: 0 60px; border-bottom: 1px solid rgba(16,26,43,0.07); background: rgba(244,246,249,0.6); margin-top: 32px; }
     .tab-nav { display: flex; max-width: 980px; margin: 0 auto; overflow-x: auto; scrollbar-width: none; }
     .tab-nav::-webkit-scrollbar { display: none; }
     .tab-btn { background: none; border: none; color: var(--muted); font-family: inherit; font-size: 0.88rem; font-weight: 500; padding: 18px 22px; cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; }
@@ -68,91 +68,91 @@
     .save-indicator.saved  { color: var(--green); }
 
     /* ── EDITABLE TABLE (cl-table) ── */
-    .cl-table { background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; }
-    .cl-section-label { padding: 9px 20px; background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+    .cl-table { background: var(--navy2); border: 1px solid rgba(16,26,43,0.07); border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; }
+    .cl-section-label { padding: 9px 20px; background: rgba(16,26,43,0.03); border-bottom: 1px solid rgba(16,26,43,0.06); font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
     .cl-section-label .kon-del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.72rem; letter-spacing: 0.4px; transition: color 0.2s; }
     .cl-section-label .kon-del:hover { color: var(--red); }
-    .cl-row { display: grid; grid-template-columns: 220px 1fr 40px; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: stretch; }
+    .cl-row { display: grid; grid-template-columns: 220px 1fr 40px; border-bottom: 1px solid rgba(16,26,43,0.05); align-items: stretch; }
     .cl-row:last-child { border-bottom: none; }
-    .cl-fixed-label { padding: 11px 20px; font-size: 0.86rem; color: var(--muted); border-right: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; }
+    .cl-fixed-label { padding: 11px 20px; font-size: 0.86rem; color: var(--muted); border-right: 1px solid rgba(16,26,43,0.05); display: flex; align-items: center; }
     .cl-value-input { background: transparent; border: none; color: var(--white); font-family: inherit; font-size: 0.86rem; padding: 11px 16px; outline: none; width: 100%; }
-    .cl-value-input:focus { background: rgba(201,168,76,0.03); }
-    .cl-value-input::placeholder { color: rgba(138,151,170,0.35); }
-    .btn-add-row { width: 100%; background: transparent; border: 1px dashed rgba(255,255,255,0.1); border-radius: var(--radius); color: var(--muted); font-family: inherit; font-size: 0.86rem; padding: 11px; cursor: pointer; transition: border-color 0.2s, color 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 4px; }
-    .btn-add-row:hover { border-color: rgba(201,168,76,0.4); color: var(--gold); }
+    .cl-value-input:focus { background: rgba(43,122,140,0.03); }
+    .cl-value-input::placeholder { color: rgba(100,116,139,0.35); }
+    .btn-add-row { width: 100%; background: transparent; border: 1px dashed rgba(16,26,43,0.1); border-radius: var(--radius); color: var(--muted); font-family: inherit; font-size: 0.86rem; padding: 11px; cursor: pointer; transition: border-color 0.2s, color 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 4px; }
+    .btn-add-row:hover { border-color: rgba(43,122,140,0.4); color: var(--gold); }
 
     /* ── ÜBERSICHT-TABELLE ── */
     .ov-intro { color: var(--muted); font-size: 0.88rem; margin-bottom: 20px; line-height: 1.6; }
-    .ov-table-wrap { overflow-x: auto; border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); background: var(--navy2); }
+    .ov-table-wrap { overflow-x: auto; border: 1px solid rgba(16,26,43,0.07); border-radius: var(--radius); background: var(--navy2); }
     .ov-table { border-collapse: collapse; width: 100%; min-width: 660px; }
-    .ov-table th, .ov-table td { padding: 13px 18px; text-align: right; font-size: 0.86rem; border-bottom: 1px solid rgba(255,255,255,0.05); white-space: nowrap; }
-    .ov-table th { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); font-weight: 600; background: #1b2a48; position: sticky; top: 0; }
+    .ov-table th, .ov-table td { padding: 13px 18px; text-align: right; font-size: 0.86rem; border-bottom: 1px solid rgba(16,26,43,0.05); white-space: nowrap; }
+    .ov-table th { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); font-weight: 600; background: #e9eef5; position: sticky; top: 0; }
     .ov-table th:first-child, .ov-table td:first-child { text-align: left; }
     .ov-table tbody tr { cursor: pointer; transition: background 0.15s; }
-    .ov-table tbody tr:hover { background: rgba(201,168,76,0.05); }
+    .ov-table tbody tr:hover { background: rgba(43,122,140,0.05); }
     .ov-obj { font-weight: 600; }
     .ov-sub { color: var(--muted); font-weight: 400; font-size: 0.78rem; }
     .ov-table tr.ov-total { cursor: default; }
-    .ov-table tr.ov-total:hover { background: rgba(201,168,76,0.06); }
-    .ov-table tr.ov-total td { border-top: 2px solid rgba(201,168,76,0.3); border-bottom: none; background: rgba(201,168,76,0.06); font-weight: 700; }
+    .ov-table tr.ov-total:hover { background: rgba(43,122,140,0.06); }
+    .ov-table tr.ov-total td { border-top: 2px solid rgba(43,122,140,0.3); border-bottom: none; background: rgba(43,122,140,0.06); font-weight: 700; }
     .ov-gold { color: var(--gold); } .ov-green { color: var(--green); } .ov-red { color: var(--red); }
     .ov-empty { padding: 40px 20px; color: var(--muted); font-size: 0.9rem; text-align: center; }
 
     /* ── LIQUIDITÄT (nur Anzeige, Summe aller Immobilien) ── */
     .liq-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
-    .liq-hint { color: rgba(138,151,170,0.7); font-size: 0.74rem; }
-    .liq-scroll { overflow-x: auto; border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); background: var(--navy2); }
+    .liq-hint { color: rgba(100,116,139,0.7); font-size: 0.74rem; }
+    .liq-scroll { overflow-x: auto; border: 1px solid rgba(16,26,43,0.07); border-radius: var(--radius); background: var(--navy2); }
     .liq-table { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; }
-    .liq-table th, .liq-table td { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 0; }
-    .liq-table thead th { font-size: 0.68rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px; text-align: right; background: #1b2a48; white-space: nowrap; position: sticky; top: 0; z-index: 3; }
-    .liq-table thead th.liq-label { z-index: 4; background: #1b2a48; }
-    .liq-label { position: sticky; left: 0; background: var(--navy2); z-index: 2; text-align: left; font-size: 0.82rem; color: var(--muted); padding: 8px 16px; white-space: nowrap; min-width: 160px; border-right: 1px solid rgba(255,255,255,0.08); }
+    .liq-table th, .liq-table td { border-bottom: 1px solid rgba(16,26,43,0.05); padding: 0; }
+    .liq-table thead th { font-size: 0.68rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px; text-align: right; background: #e9eef5; white-space: nowrap; position: sticky; top: 0; z-index: 3; }
+    .liq-table thead th.liq-label { z-index: 4; background: #e9eef5; }
+    .liq-label { position: sticky; left: 0; background: var(--navy2); z-index: 2; text-align: left; font-size: 0.82rem; color: var(--muted); padding: 8px 16px; white-space: nowrap; min-width: 160px; border-right: 1px solid rgba(16,26,43,0.08); }
     .liq-row-sub .liq-label { padding-left: 30px; font-size: 0.76rem; font-style: italic; }
     .liq-row-calc .liq-label { color: var(--white); }
     .liq-row-strong .liq-label, .liq-row-total .liq-label { font-weight: 600; }
-    .liq-sep td { border-top: 2px solid rgba(255,255,255,0.1); }
-    .liq-row-strong td { background: rgba(255,255,255,0.045); }
-    .liq-row-strong .liq-label { background: #20304f; color: var(--white); }
-    .liq-row-total td { background: rgba(201,168,76,0.06); }
-    .liq-row-total .liq-label { background: #22304d; color: var(--gold); }
-    .liq-yr { border-left: 2px solid rgba(201,168,76,0.25) !important; }
-    .liq-table th.liq-now { color: var(--gold); background: rgba(201,168,76,0.12); }
-    .liq-table td.liq-now { background: rgba(201,168,76,0.05); }
-    .liq-cell { width: 100px; color: #aebccf; font-family: inherit; font-size: 0.8rem; text-align: right; padding: 8px 12px; }
+    .liq-sep td { border-top: 2px solid rgba(16,26,43,0.1); }
+    .liq-row-strong td { background: rgba(16,26,43,0.045); }
+    .liq-row-strong .liq-label { background: #e3eaf3; color: var(--white); }
+    .liq-row-total td { background: rgba(43,122,140,0.06); }
+    .liq-row-total .liq-label { background: #dfe7f0; color: var(--gold); }
+    .liq-yr { border-left: 2px solid rgba(43,122,140,0.25) !important; }
+    .liq-table th.liq-now { color: var(--gold); background: rgba(43,122,140,0.12); }
+    .liq-table td.liq-now { background: rgba(43,122,140,0.05); }
+    .liq-cell { width: 100px; color: #475569; font-family: inherit; font-size: 0.8rem; text-align: right; padding: 8px 12px; }
     .liq-cell.neg { color: var(--red); }
     .liq-cell.pos { color: var(--green); }
     .liq-row-sub .liq-cell { font-size: 0.72rem; font-style: italic; }
 
     /* ── TO-DOS ── */
-    .checklist-card { background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; }
+    .checklist-card { background: var(--navy2); border: 1px solid rgba(16,26,43,0.07); border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; }
     .ci-check-col { display: flex; align-items: center; justify-content: center; padding: 16px 0; }
-    .ci-cb { width: 18px; height: 18px; appearance: none; -webkit-appearance: none; border: 2px solid rgba(255,255,255,0.2); border-radius: 4px; cursor: pointer; background: transparent; transition: background 0.2s, border-color 0.2s; position: relative; flex-shrink: 0; }
+    .ci-cb { width: 18px; height: 18px; appearance: none; -webkit-appearance: none; border: 2px solid rgba(16,26,43,0.2); border-radius: 4px; cursor: pointer; background: transparent; transition: background 0.2s, border-color 0.2s; position: relative; flex-shrink: 0; }
     .ci-cb:checked { background: var(--green); border-color: var(--green); }
     .ci-cb:checked::after { content: '✓'; position: absolute; top: -1px; left: 2px; color: var(--navy); font-size: 11px; font-weight: 700; }
     .cl-delete { background: none; border: none; color: transparent; cursor: pointer; font-size: 0.85rem; padding: 0 12px; transition: color 0.2s; display: flex; align-items: center; justify-content: center; }
     .todo-add { display: flex; gap: 10px; margin-bottom: 14px; }
-    .todo-add input { flex: 1; background: var(--navy2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--white); font-family: inherit; font-size: 0.88rem; padding: 10px 14px; outline: none; transition: border-color 0.2s; }
-    .todo-add input:focus { border-color: rgba(201,168,76,0.4); }
-    .todo-add input::placeholder { color: rgba(138,151,170,0.4); }
+    .todo-add input { flex: 1; background: var(--navy2); border: 1px solid rgba(16,26,43,0.1); border-radius: 8px; color: var(--white); font-family: inherit; font-size: 0.88rem; padding: 10px 14px; outline: none; transition: border-color 0.2s; }
+    .todo-add input:focus { border-color: rgba(43,122,140,0.4); }
+    .todo-add input::placeholder { color: rgba(100,116,139,0.4); }
     .todo-add input[type="date"] { flex: 0 0 auto; color-scheme: dark; color: var(--muted); }
-    .todo-btn { background: transparent; border: 1px solid rgba(201,168,76,0.5); border-radius: 8px; color: var(--gold); font-family: inherit; font-size: 0.82rem; padding: 8px 14px; cursor: pointer; transition: background 0.2s; }
-    .todo-btn:hover { background: rgba(201,168,76,0.1); }
+    .todo-btn { background: transparent; border: 1px solid rgba(43,122,140,0.5); border-radius: 8px; color: var(--gold); font-family: inherit; font-size: 0.82rem; padding: 8px 14px; cursor: pointer; transition: background 0.2s; }
+    .todo-btn:hover { background: rgba(43,122,140,0.1); }
     .todo-due { color: var(--muted); }
     .todo-due.overdue { color: var(--red); font-weight: 600; }
-    .todo-item { display: grid; grid-template-columns: 52px 1fr 40px; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .todo-item { display: grid; grid-template-columns: 52px 1fr 40px; align-items: center; border-bottom: 1px solid rgba(16,26,43,0.05); }
     .todo-item:last-child { border-bottom: none; }
     .todo-text { font-size: 0.88rem; padding: 14px 0; cursor: pointer; user-select: none; word-break: break-word; }
     .todo-text.done { color: var(--muted); text-decoration: line-through; }
-    .todo-meta { font-size: 0.72rem; color: rgba(138,151,170,0.6); margin-top: 2px; }
+    .todo-meta { font-size: 0.72rem; color: rgba(100,116,139,0.6); margin-top: 2px; }
     .dok-empty { padding: 24px 20px; color: var(--muted); font-size: 0.86rem; text-align: center; }
 
     /* ── NOTES ── */
-    .notes-area { width: 100%; min-height: 440px; background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); color: var(--white); font-family: inherit; font-size: 0.92rem; line-height: 1.65; padding: 22px; outline: none; resize: vertical; transition: border-color 0.2s; }
-    .notes-area:focus { border-color: rgba(201,168,76,0.35); }
-    .notes-area::placeholder { color: rgba(138,151,170,0.4); }
+    .notes-area { width: 100%; min-height: 440px; background: var(--navy2); border: 1px solid rgba(16,26,43,0.07); border-radius: var(--radius); color: var(--white); font-family: inherit; font-size: 0.92rem; line-height: 1.65; padding: 22px; outline: none; resize: vertical; transition: border-color 0.2s; }
+    .notes-area:focus { border-color: rgba(43,122,140,0.35); }
+    .notes-area::placeholder { color: rgba(100,116,139,0.4); }
 
     /* ── FOOTER ── */
-    footer { border-top: 1px solid rgba(255,255,255,0.07); padding: 36px 60px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-top: auto; }
+    footer { border-top: 1px solid rgba(16,26,43,0.07); padding: 36px 60px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-top: auto; }
     .footer-links { display: flex; gap: 28px; list-style: none; }
     .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; }
     .footer-copy { color: var(--muted); font-size: 0.82rem; }
@@ -166,6 +166,15 @@
       footer { padding: 28px 24px; flex-direction: column; align-items: flex-start; }
     }
   </style>
+  <link rel="stylesheet" href="app.css" />
+  <style>
+
+    .liq-scroll, .ov-table-wrap { background: var(--navy2); border-radius: 12px; }
+    .checklist-card, .notes-area { background: var(--navy2); }
+
+  </style>
+  <script>window.IE_PAGE = { area: 'portfolio', view: new URLSearchParams(location.search).get('tab') || 'liquiditaet' }</script>
+  <script src="app-shell.js"></script>
 </head>
 <body>
 
@@ -175,37 +184,18 @@
     <a href="login.html">Jetzt einloggen →</a>
   </div>
 
-  <nav>
-    <a href="index.html" class="logo">Immo<span>.Expert</span></a>
-    <ul>
-      <li><a href="finder.html">Immo.Finder</a></li>
-      <li><a href="portfolio.html" class="active">Immo.Portfolio</a></li>
-      <li><a href="profil.html" class="nav-cta" id="navAuthLink">Profil</a></li>
-    </ul>
-  </nav>
-
   <div class="prop-header">
     <a href="portfolio.html" class="back-link">← Zurück zum Portfolio</a>
     <div class="prop-meta">
-      <span class="prop-icon">📊</span>
+      <span class="prop-icon" id="hdIcon">📊</span>
       <span class="prop-badge">Gesamtportfolio</span>
     </div>
-    <div class="prop-name">Erweiterte <span>Portfolio-Übersicht</span></div>
-    <div class="prop-adresse">Alle Immobilien zusammengefasst.</div>
-  </div>
-
-  <div class="tab-header">
-    <div class="tab-nav">
-      <button class="tab-btn active" onclick="switchTab('uebersicht')">Übersicht</button>
-      <button class="tab-btn"        onclick="switchTab('kontakte')">Kontakte</button>
-      <button class="tab-btn"        onclick="switchTab('liquiditaet')">Liquidität</button>
-      <button class="tab-btn"        onclick="switchTab('todos')">To-Dos</button>
-      <button class="tab-btn"        onclick="switchTab('notes')">Notes</button>
-    </div>
+    <div class="prop-name" id="hdName">Liqui<span>dität</span></div>
+    <div class="prop-adresse" id="hdSub">Alle Immobilien zusammengefasst.</div>
   </div>
 
   <!-- ══ TAB: ÜBERSICHT ══ -->
-  <div class="tab-pane active" id="pane-uebersicht">
+  <div class="tab-pane" id="pane-uebersicht">
     <div class="tab-content">
       <div class="section-head" style="margin-bottom:16px;">
         <h3>Über<span>sicht</span></h3>
@@ -228,7 +218,7 @@
   </div>
 
   <!-- ══ TAB: LIQUIDITÄT ══ -->
-  <div class="tab-pane" id="pane-liquiditaet">
+  <div class="tab-pane active" id="pane-liquiditaet">
     <div class="tab-content" style="max-width:1400px;">
       <div class="section-head" style="margin-bottom:16px;">
         <h3>Liquidität <span>gesamt</span></h3>
@@ -237,6 +227,20 @@
         <span class="liq-hint">Alle Werte in € · Summe aller Immobilien je Monat · nur Anzeige</span>
       </div>
       <div class="liq-scroll" id="liqScroll"></div>
+    </div>
+  </div>
+
+
+  <!-- ══ ANSICHT: AUM ENTWICKLUNG ══ -->
+  <div class="tab-pane" id="pane-aum">
+    <div class="tab-content">
+      <div class="ie-placeholder">
+        <div class="ie-ph-icon">📈</div>
+        <h3>Wird gerade gebaut</h3>
+        <p>Hier entsteht die Entwicklung Ihres verwalteten Immobilienvermögens über die Zeit –
+           Verkehrswert, Restschuld und Nettovermögen im Verlauf. Der Bereich ist bereits
+           angelegt und wird im nächsten Schritt mit Leben gefüllt.</p>
+      </div>
     </div>
   </div>
 
@@ -342,7 +346,7 @@
 
       // Deep-Link ?tab=…
       const tabParam = new URLSearchParams(window.location.search).get('tab')
-      if (tabParam && TAB_ORDER.includes(tabParam)) switchTab(tabParam)
+      switchTab(TAB_ORDER.includes(tabParam) ? tabParam : 'liquiditaet')
     }
 
     // ════════════════════════════════════════
@@ -728,7 +732,7 @@
     // ════════════════════════════════════════
     // TABS
     // ════════════════════════════════════════
-    const TAB_ORDER = ['uebersicht', 'kontakte', 'liquiditaet', 'todos', 'notes']
+    const TAB_ORDER = ['uebersicht', 'kontakte', 'liquiditaet', 'aum', 'todos', 'notes']
     function switchTab(name) {
       document.querySelectorAll('.tab-btn').forEach((btn, i) => {
         btn.classList.toggle('active', TAB_ORDER[i] === name)
@@ -736,8 +740,23 @@
       document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'))
       const pane = document.getElementById('pane-' + name)
       if (pane) pane.classList.add('active')
+      const HD = {
+        liquiditaet: ['💧', 'Liqui<span>dität</span>', 'Summe aller Immobilien je Monat.'],
+        aum:         ['📈', 'AUM <span>Entwicklung</span>', 'Entwicklung des verwalteten Immobilienvermögens.'],
+        todos:       ['✅', 'To-<span>Dos</span>', 'Aufgaben über das gesamte Portfolio.'],
+        notes:       ['📝', 'No<span>tes</span>', 'Portfolio-weite Notizen.'],
+        uebersicht:  ['📊', 'Über<span>sicht</span>', 'Kennzahlen je Immobilie.'],
+        kontakte:    ['👤', 'Kon<span>takte</span>', 'Portfolio-weite Kontakte.'],
+      }[name]
+      if (HD) {
+        document.getElementById('hdIcon').textContent = HD[0]
+        document.getElementById('hdName').innerHTML   = HD[1]
+        document.getElementById('hdSub').textContent  = HD[2]
+      }
       if (name === 'liquiditaet') liqScrollToNow()
     }
+
+    window.ieSetView = switchTab
 
     // ════════════════════════════════════════
     // HELPERS

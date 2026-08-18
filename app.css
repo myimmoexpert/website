@@ -1,0 +1,275 @@
+/* ══════════════════════════════════════════════════════════════
+   Immo.Expert – App-Shell & helles Design-System
+   Wird zusätzlich zum seiteneigenen <style>-Block geladen.
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Flächen */
+  --ie-bg:        #f4f6f9;   /* Seitenhintergrund  */
+  --ie-surface:   #ffffff;   /* Karten             */
+  --ie-surface-2: #eef2f7;   /* leicht abgesetzt   */
+  --ie-line:      rgba(16,26,43,0.10);
+  --ie-line-soft: rgba(16,26,43,0.06);
+
+  /* Text */
+  --ie-ink:       #101a2b;
+  --ie-ink-soft:  #64748b;
+
+  /* Akzent */
+  --ie-accent:    #2b7a8c;
+  --ie-accent-2:  #1f5d6c;
+  --ie-accent-bg: rgba(43,122,140,0.10);
+
+  /* Signal */
+  --ie-pos:       #15803d;
+  --ie-neg:       #dc2626;
+
+  /* Sidebar (dunkel) */
+  --ie-sb-bg:     #101a2b;
+  --ie-sb-bg-2:   #16233a;
+  --ie-sb-ink:    #e6ecf5;
+  --ie-sb-muted:  #8fa0b8;
+  --ie-sb-line:   rgba(255,255,255,0.09);
+
+  /* Maße */
+  --ie-top-h:     60px;
+  --ie-sb-w:      268px;
+}
+
+/* ── Grundgerüst ──────────────────────────────────────────── */
+
+html { background: var(--ie-bg); }
+
+body.ie-app {
+  background: var(--ie-bg) !important;
+  color: var(--ie-ink) !important;
+  padding-top: var(--ie-top-h);
+  display: block !important;
+}
+body.ie-app.has-sidebar { padding-left: var(--ie-sb-w); }
+
+/* Der Inhaltsbereich nimmt die volle Breite ein */
+body.ie-app .ie-content { width: 100%; min-height: calc(100vh - var(--ie-top-h)); display: flex; flex-direction: column; }
+body.ie-app .ie-content > * { max-width: none !important; }
+
+/* Alte, mittig begrenzte Container aufziehen */
+body.ie-app .tab-content,
+body.ie-app .page-header,
+body.ie-app .summary-bar,
+body.ie-app .tile-grid,
+body.ie-app .prop-header,
+body.ie-app .profil-wrap,
+body.ie-app .steckbriefe-wrap,
+body.ie-app .input-section,
+body.ie-app .result,
+body.ie-app .loading,
+body.ie-app .saved-section,
+body.ie-app .cta-section,
+body.ie-app .tab-nav,
+body.ie-app footer {
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+body.ie-app .tab-content,
+body.ie-app .page-header,
+body.ie-app .summary-bar,
+body.ie-app .tile-grid,
+body.ie-app .prop-header,
+body.ie-app .input-section,
+body.ie-app .result,
+body.ie-app .saved-section,
+body.ie-app footer { padding-left: 40px !important; padding-right: 40px !important; }
+
+body.ie-app .tab-pane { flex: 1; }
+
+/* ── Topbar ───────────────────────────────────────────────── */
+
+.ie-topbar {
+  position: fixed; top: 0; left: 0; right: 0; height: var(--ie-top-h);
+  z-index: 400;
+  display: flex; align-items: center; gap: 20px;
+  padding: 0 24px;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--ie-line);
+}
+.ie-topbar .ie-logo {
+  font: 700 1.18rem/1 'Inter', sans-serif; letter-spacing: -0.4px;
+  color: var(--ie-ink); text-decoration: none; white-space: nowrap;
+}
+.ie-topbar .ie-logo span { color: var(--ie-accent); }
+.ie-topbar .ie-spacer { flex: 1; }
+
+/* Höhere Spezifität als die seiteneigenen nav-Regeln */
+.ie-topbar nav.ie-topnav {
+  display: flex; align-items: center; justify-content: flex-end;
+  padding: 0; margin: 0; position: static; background: none;
+  border: none; backdrop-filter: none;
+}
+.ie-topbar nav.ie-topnav ul {
+  list-style: none; display: flex; align-items: center; gap: 4px; margin: 0; padding: 0;
+}
+.ie-topbar nav.ie-topnav ul li { display: flex; align-items: center; }
+.ie-topbar nav.ie-topnav ul a {
+  font: 500 0.875rem/1 'Inter', sans-serif;
+  color: var(--ie-ink-soft); text-decoration: none;
+  padding: 9px 14px; border-radius: 8px; background: none;
+  transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+.ie-topbar nav.ie-topnav ul a:hover { background: var(--ie-surface-2); color: var(--ie-ink); }
+.ie-topbar nav.ie-topnav ul a.active { color: var(--ie-accent); background: var(--ie-accent-bg); font-weight: 600; }
+.ie-topbar nav.ie-topnav ul a.ie-cta { background: var(--ie-accent); color: #fff; font-weight: 600; }
+.ie-topbar nav.ie-topnav ul a.ie-cta:hover { background: var(--ie-accent-2); color: #fff; }
+
+/* Glocke aus notifications.js an das helle Theme anpassen */
+.ie-topbar .notif-bell { filter: none; font-size: 1.05rem; }
+.ie-topbar .notif-panel {
+  background: var(--ie-surface); border: 1px solid var(--ie-line);
+  box-shadow: 0 16px 44px rgba(16,26,43,0.16);
+}
+.ie-topbar .notif-head { color: var(--ie-accent); border-bottom-color: var(--ie-line); }
+.ie-topbar .notif-item { border-bottom-color: var(--ie-line-soft); }
+.ie-topbar .notif-item:hover { background: var(--ie-surface-2); }
+.ie-topbar .notif-title { color: var(--ie-ink); }
+.ie-topbar .notif-sub, .ie-topbar .notif-empty { color: var(--ie-ink-soft); }
+
+.ie-burger {
+  display: none; background: none; border: 1px solid var(--ie-line);
+  border-radius: 8px; width: 36px; height: 36px; cursor: pointer;
+  color: var(--ie-ink); font-size: 1.05rem; line-height: 1;
+}
+
+/* ── Sidebar ──────────────────────────────────────────────── */
+
+.ie-sidebar {
+  position: fixed; top: var(--ie-top-h); bottom: 0; left: 0;
+  width: var(--ie-sb-w); z-index: 350;
+  background: var(--ie-sb-bg);
+  border-right: 1px solid rgba(16,26,43,0.14);
+  overflow-y: auto; overscroll-behavior: contain;
+  padding: 14px 0 40px;
+  font-family: 'Inter', sans-serif;
+}
+.ie-sidebar::-webkit-scrollbar { width: 8px; }
+.ie-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 8px; }
+
+.ie-sb-head {
+  padding: 6px 18px 14px;
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--ie-sb-muted);
+}
+
+.ie-sidebar .ie-sb-nav {
+  display: flex; flex-direction: column; gap: 1px;
+  padding: 0 10px; margin: 0; position: static;
+  background: none; border: none; backdrop-filter: none;
+}
+
+.ie-sb-item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; text-align: left;
+  padding: 9px 12px; border-radius: 8px;
+  border: none; background: none; cursor: pointer;
+  font: 500 0.875rem/1.35 'Inter', sans-serif;
+  color: var(--ie-sb-ink); text-decoration: none;
+  transition: background .13s, color .13s;
+}
+.ie-sb-item:hover { background: rgba(255,255,255,0.07); }
+.ie-sb-item.active { background: rgba(255,255,255,0.13); color: #fff; font-weight: 600; }
+.ie-sb-item .ie-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: transparent;
+  flex: 0 0 6px;
+}
+.ie-sb-item.active .ie-dot { background: var(--ie-accent); }
+.ie-sb-item .ie-lbl { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+
+.ie-chev {
+  flex: 0 0 auto; font-size: 0.7rem; color: var(--ie-sb-muted);
+  transition: transform .16s; display: inline-block;
+}
+.ie-sb-group.open > .ie-sb-item > .ie-chev { transform: rotate(90deg); }
+
+.ie-sb-sub { display: none; flex-direction: column; gap: 1px; margin: 2px 0 6px 12px; padding-left: 10px; border-left: 1px solid var(--ie-sb-line); }
+.ie-sb-group.open > .ie-sb-sub { display: flex; }
+.ie-sb-sub .ie-sb-item { font-size: 0.83rem; padding: 7px 10px; color: var(--ie-sb-muted); }
+.ie-sb-sub .ie-sb-item:hover { color: var(--ie-sb-ink); }
+.ie-sb-sub .ie-sb-item.active { color: #fff; }
+
+.ie-sb-sep {
+  margin: 18px 12px 6px; padding-top: 14px;
+  border-top: 1px solid var(--ie-sb-line);
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--ie-sb-muted);
+}
+.ie-sb-empty { padding: 8px 22px; font-size: 0.8rem; color: var(--ie-sb-muted); }
+
+.ie-sb-thumb {
+  width: 22px; height: 22px; border-radius: 5px; flex: 0 0 22px;
+  background: var(--ie-sb-bg-2) center/cover no-repeat;
+  display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
+}
+
+.ie-scrim { display: none; position: fixed; inset: 0; z-index: 340; background: rgba(16,26,43,0.5); }
+
+/* ── Wiederkehrende Bausteine ─────────────────────────────── */
+
+.ie-card {
+  background: var(--ie-surface); border: 1px solid var(--ie-line);
+  border-radius: 14px; padding: 24px;
+  box-shadow: 0 1px 2px rgba(16,26,43,0.04);
+}
+
+.ie-placeholder {
+  background: var(--ie-surface); border: 1px dashed var(--ie-line);
+  border-radius: 14px; padding: 56px 32px; text-align: center;
+  max-width: 620px;
+}
+.ie-placeholder .ie-ph-icon { font-size: 2rem; margin-bottom: 14px; }
+.ie-placeholder h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; color: var(--ie-ink); }
+.ie-placeholder p { font-size: 0.9rem; color: var(--ie-ink-soft); line-height: 1.65; margin: 0 auto; max-width: 44ch; }
+
+/* Bildbereich der Portfolio-Kacheln */
+.tile-photo {
+  position: relative; height: 148px; background: var(--ie-surface-2);
+  background-size: cover; background-position: center;
+  display: flex; align-items: center; justify-content: center;
+  border-bottom: 1px solid var(--ie-line-soft);
+}
+.tile-photo.empty { background: linear-gradient(135deg, #dfe7f0, #eef2f7); }
+.tile-photo .tile-photo-icon { font-size: 2.1rem; opacity: 0.55; }
+.tile-photo .tile-photo-badge {
+  position: absolute; left: 12px; bottom: 12px;
+  background: rgba(255,255,255,0.92); color: var(--ie-accent);
+  border-radius: 50px; padding: 4px 12px;
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+/* Sichtbarkeit der Ansichten */
+.ie-view { display: none; }
+.ie-view.active { display: block; }
+
+/* ── Responsiv ────────────────────────────────────────────── */
+
+@media (max-width: 1000px) {
+  body.ie-app.has-sidebar { padding-left: 0; }
+  .ie-sidebar { transform: translateX(-100%); transition: transform .2s ease; }
+  body.ie-sb-open .ie-sidebar { transform: none; }
+  body.ie-sb-open .ie-scrim { display: block; }
+  .ie-burger { display: inline-flex; align-items: center; justify-content: center; }
+}
+@media (max-width: 700px) {
+  body.ie-app .tab-content,
+  body.ie-app .page-header,
+  body.ie-app .summary-bar,
+  body.ie-app .tile-grid,
+  body.ie-app .prop-header,
+  body.ie-app .input-section,
+  body.ie-app .result,
+  body.ie-app .saved-section,
+  body.ie-app footer { padding-left: 18px !important; padding-right: 18px !important; }
+  .ie-topnav a { padding: 8px 10px; font-size: 0.8rem; }
+  .ie-topbar { padding: 0 14px; gap: 10px; }
+}

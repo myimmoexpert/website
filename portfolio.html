@@ -10,10 +10,10 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --navy:   #0f1c2e; --navy2: #172540; --navy3: #1e2f50;
-      --gold:   #c9a84c; --gold2: #e0bf74;
-      --muted:  #8a97aa; --white: #ffffff;
-      --green:  #3ecf8e; --red: #f87171;
+      --navy:   #f4f6f9; --navy2: #ffffff; --navy3: #eef2f7;
+      --gold:   #2b7a8c; --gold2: #1f5d6c;
+      --muted:  #64748b; --white: #101a2b;
+      --green:  #15803d; --red: #dc2626;
       --radius: 14px;
     }
     body { font-family: 'Inter', sans-serif; background: var(--navy); color: var(--white); min-height: 100vh; display: flex; flex-direction: column; }
@@ -22,8 +22,8 @@
     nav {
       display: flex; align-items: center; justify-content: space-between;
       padding: 24px 60px; position: sticky; top: 0; z-index: 100;
-      background: rgba(15,28,46,0.92); backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(201,168,76,0.15);
+      background: rgba(244,246,249,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(43,122,140,0.15);
     }
     .logo { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; color: var(--white); text-decoration: none; }
     .logo span { color: var(--gold); }
@@ -61,7 +61,7 @@
     }
     .summary-bar.visible { display: grid; }
     .summary-stat {
-      background: var(--navy2); border: 1px solid rgba(255,255,255,0.07);
+      background: var(--navy2); border: 1px solid rgba(16,26,43,0.07);
       border-radius: 12px; padding: 18px 24px;
       display: flex; flex-direction: column; justify-content: center;
     }
@@ -94,7 +94,7 @@
     /* ── PROPERTY TILE ── */
     .prop-tile {
       background: var(--navy2);
-      border: 1px solid rgba(255,255,255,0.08);
+      border: 1px solid rgba(16,26,43,0.08);
       border-radius: var(--radius);
       overflow: hidden;
       cursor: pointer;
@@ -102,11 +102,11 @@
       display: flex; flex-direction: column;
       text-decoration: none; color: var(--white);
     }
-    .prop-tile:hover { border-color: rgba(201,168,76,0.4); transform: translateY(-2px); }
+    .prop-tile:hover { border-color: rgba(43,122,140,0.4); transform: translateY(-2px); }
 
     .tile-header {
-      background: linear-gradient(135deg, var(--navy3), rgba(30,47,80,0.8));
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: linear-gradient(135deg, var(--navy3), rgba(238,242,247,0.8));
+      border-bottom: 1px solid rgba(16,26,43,0.06);
       padding: 18px 22px;
       display: flex; align-items: center; gap: 12px;
     }
@@ -122,7 +122,7 @@
 
     .tile-stats {
       margin-top: 18px; padding-top: 16px;
-      border-top: 1px solid rgba(255,255,255,0.06);
+      border-top: 1px solid rgba(16,26,43,0.06);
       display: flex; justify-content: space-between; align-items: flex-end;
     }
     .tile-stat-group { display: flex; flex-direction: column; gap: 2px; }
@@ -135,19 +135,19 @@
 
     /* ── ADD TILE ── */
     .add-tile {
-      border: 2px dashed rgba(201,168,76,0.25);
+      border: 2px dashed rgba(43,122,140,0.25);
       border-radius: var(--radius);
       cursor: pointer;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 12px; padding: 40px 20px;
       min-height: 200px;
       transition: border-color 0.2s, background 0.2s;
-      background: rgba(201,168,76,0.02);
+      background: rgba(43,122,140,0.02);
     }
-    .add-tile:hover { border-color: rgba(201,168,76,0.5); background: rgba(201,168,76,0.05); }
+    .add-tile:hover { border-color: rgba(43,122,140,0.5); background: rgba(43,122,140,0.05); }
     .add-icon {
       width: 48px; height: 48px; border-radius: 50%;
-      background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.25);
+      background: rgba(43,122,140,0.12); border: 1px solid rgba(43,122,140,0.25);
       display: flex; align-items: center; justify-content: center;
       font-size: 1.4rem; color: var(--gold);
     }
@@ -157,12 +157,12 @@
     /* ── MODAL ── */
     #addModal {
       display: none; position: fixed; inset: 0; z-index: 300;
-      background: rgba(10,18,30,0.85); backdrop-filter: blur(6px);
+      background: rgba(16,26,43,0.85); backdrop-filter: blur(6px);
       align-items: center; justify-content: center; padding: 20px;
     }
     #addModal.visible { display: flex; }
     .modal-box {
-      background: var(--navy2); border: 1px solid rgba(255,255,255,0.1);
+      background: var(--navy2); border: 1px solid rgba(16,26,43,0.1);
       border-radius: 18px; width: 100%; max-width: 520px;
       max-height: 90vh; overflow-y: auto;
       padding: 40px;
@@ -174,21 +174,21 @@
     .form-group { margin-bottom: 20px; }
     .form-group label { display: block; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 8px; }
     .form-group input, .form-group select {
-      width: 100%; background: var(--navy); border: 1px solid rgba(255,255,255,0.12);
+      width: 100%; background: var(--navy); border: 1px solid rgba(16,26,43,0.12);
       border-radius: 10px; color: var(--white); font-family: inherit; font-size: 0.95rem;
       padding: 13px 16px; outline: none; transition: border-color 0.2s;
     }
-    .form-group input:focus, .form-group select:focus { border-color: rgba(201,168,76,0.5); }
+    .form-group input:focus, .form-group select:focus { border-color: rgba(43,122,140,0.5); }
     .form-group select option { background: var(--navy2); }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
     .modal-actions { display: flex; gap: 12px; margin-top: 32px; }
     .btn-cancel {
-      flex: 1; background: transparent; border: 1px solid rgba(255,255,255,0.15);
+      flex: 1; background: transparent; border: 1px solid rgba(16,26,43,0.15);
       color: var(--white); border-radius: 10px; padding: 13px; font-family: inherit;
       font-size: 0.9rem; cursor: pointer; transition: background 0.2s;
     }
-    .btn-cancel:hover { background: rgba(255,255,255,0.05); }
+    .btn-cancel:hover { background: rgba(16,26,43,0.05); }
     .btn-save {
       flex: 2; background: var(--gold); color: var(--navy); border: none;
       border-radius: 10px; padding: 13px; font-family: inherit;
@@ -199,7 +199,7 @@
 
     /* ── FOOTER ── */
     footer {
-      border-top: 1px solid rgba(255,255,255,0.07);
+      border-top: 1px solid rgba(16,26,43,0.07);
       padding: 36px 60px; display: flex; justify-content: space-between;
       align-items: center; flex-wrap: wrap; gap: 16px; margin-top: auto;
     }
@@ -221,6 +221,26 @@
       footer { padding: 28px 24px; flex-direction: column; align-items: flex-start; }
     }
   </style>
+  <link rel="stylesheet" href="app.css" />
+  <style>
+
+    .prop-tile { background: var(--navy2); box-shadow: 0 1px 3px rgba(16,26,43,0.05); }
+    .prop-tile:hover { box-shadow: 0 8px 24px rgba(16,26,43,0.09); }
+    .tile-photo-btn {
+      position: absolute; right: 10px; top: 10px;
+      background: rgba(255,255,255,0.94); color: #101a2b;
+      border: 1px solid rgba(16,26,43,0.12); border-radius: 8px;
+      padding: 5px 10px; font: 600 0.72rem/1 'Inter', sans-serif;
+      cursor: pointer; opacity: 0; transition: opacity .15s, background .15s;
+    }
+    .prop-tile:hover .tile-photo-btn { opacity: 1; }
+    .tile-photo-btn:hover { background: #fff; }
+    .tile-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+    .summary-bar { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+
+  </style>
+  <script>window.IE_PAGE = { area: 'portfolio', view: 'mein-portfolio' }</script>
+  <script src="app-shell.js"></script>
 </head>
 <body>
 
@@ -230,19 +250,10 @@
     <a href="login.html">Jetzt einloggen →</a>
   </div>
 
-  <nav>
-    <a href="index.html" class="logo">Immo<span>.Expert</span></a>
-    <ul>
-      <li><a href="finder.html">Immo.Finder</a></li>
-      <li><a href="portfolio.html" class="active">Immo.Portfolio</a></li>
-      <li><a href="profil.html" class="nav-cta" id="navAuthLink">Profil</a></li>
-    </ul>
-  </nav>
-
   <!-- Page Header -->
   <div class="page-header">
     <h1>Mein <span>Portfolio</span></h1>
-    <p class="sub">Alle Ihre Immobilien auf einen Blick.</p>
+    <p class="sub">Alle Ihre Immobilien auf einen Blick. Über „Bild" hinterlegen Sie ein Foto je Objekt.</p>
   </div>
 
   <!-- Summary Bar (nur sichtbar wenn Objekte vorhanden) -->
@@ -267,10 +278,6 @@
       <div class="s-label">Empfohlene Liquidität zum Monatswechsel</div>
       <div class="s-value gold" id="sumLiq">0 €</div>
     </div>
-    <a class="summary-cta" href="portfolio-uebersicht.html">
-      <span class="cta-label">Erweiterte Portfolio&nbsp;Übersicht</span>
-      <span class="cta-arrow">Öffnen →</span>
-    </a>
   </div>
 
   <!-- Tile Grid -->
@@ -331,6 +338,8 @@
     </div>
   </div>
 
+  <input type="file" id="bildInput" accept="image/*" style="display:none" onchange="onBildChosen(event)" />
+
   <footer>
     <a href="index.html" class="logo">Immo<span>.Expert</span></a>
     <ul class="footer-links">
@@ -380,6 +389,7 @@
       grid.innerHTML = ''
 
       if (!error && data && data.length > 0) {
+        await loadBildUrls(data)
         // Kennzahlen je Immobilie aus der Liqui-Planung (wie im Übersicht-Tab)
         const stats = data.map(p => liqStats(p))
 
@@ -408,14 +418,17 @@
 
     function buildTile(p, st) {
       const icon = OBJEKTART_ICONS[p.objektart] || '🏗️'
+      const bild = BILD_URLS[p.id] || ''
       const div  = document.createElement('a')
       div.className = 'prop-tile'
       div.href      = `immobilie.html?id=${p.id}`
       const cfClass = st.cf < -0.004 ? 'red' : 'green'
       div.innerHTML = `
-        <div class="tile-header">
-          <span class="tile-icon">${icon}</span>
-          <span class="tile-objektart">${esc(p.objektart || 'Immobilie')}</span>
+        <div class="tile-photo ${bild ? '' : 'empty'}" ${bild ? `style="background-image:url('${bild}')"` : ''}>
+          ${bild ? '' : `<span class="tile-photo-icon">${icon}</span>`}
+          <span class="tile-photo-badge">${esc(p.objektart || 'Immobilie')}</span>
+          <button class="tile-photo-btn" title="Bild hochladen oder ersetzen"
+                  onclick="event.preventDefault();event.stopPropagation();pickBild('${p.id}')">Bild</button>
         </div>
         <div class="tile-body">
           <div class="tile-name">${esc(p.bezeichnung || '–')}</div>
@@ -518,6 +531,48 @@
         closeModal()
         await loadPortfolio()
       }
+    }
+
+
+    // ── OBJEKTBILDER ────────────────────────────────
+    const BILD_URLS = {}
+
+    async function loadBildUrls(rows) {
+      const paths = rows.filter(r => r.bild).map(r => r.bild)
+      if (!paths.length) return
+      const { data } = await sb.storage.from('dokumente').createSignedUrls(paths, 3600)
+      ;(data || []).forEach(x => {
+        if (!x.signedUrl) return
+        const row = rows.find(r => r.bild === x.path)
+        if (row) BILD_URLS[row.id] = x.signedUrl
+      })
+    }
+
+    let bildTargetId = null
+    function pickBild(id) {
+      bildTargetId = id
+      document.getElementById('bildInput').click()
+    }
+
+    async function onBildChosen(e) {
+      const file = e.target.files && e.target.files[0]
+      e.target.value = ''
+      if (!file || !bildTargetId || !session) return
+      if (!file.type.startsWith('image/')) { alert('Bitte eine Bilddatei auswählen.'); return }
+      if (file.size > 8 * 1024 * 1024) { alert('Das Bild darf höchstens 8 MB groß sein.'); return }
+
+      const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase()
+      const path = `${session.user.id}/objektbilder/${bildTargetId}.${ext}`
+
+      const { error: upErr } = await sb.storage.from('dokumente')
+        .upload(path, file, { upsert: true, contentType: file.type })
+      if (upErr) { alert('Upload fehlgeschlagen: ' + upErr.message); return }
+
+      const { error: dbErr } = await sb.from('portfolio').update({ bild: path }).eq('id', bildTargetId)
+      if (dbErr) { alert('Speichern fehlgeschlagen: ' + dbErr.message); return }
+
+      bildTargetId = null
+      await loadPortfolio()
     }
 
     // ── HELPERS ─────────────────────────────────────

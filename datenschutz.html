@@ -11,11 +11,11 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --navy:  #0f1c2e;
-      --navy2: #172540;
-      --gold:  #c9a84c;
-      --muted: #8a97aa;
-      --white: #ffffff;
+      --navy:  #f4f6f9;
+      --navy2: #ffffff;
+      --gold:  #2b7a8c;
+      --muted: #64748b;
+      --white: #101a2b;
     }
 
     body {
@@ -33,9 +33,9 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(15, 28, 46, 0.92);
+      background: rgba(244,246,249, 0.92);
       backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(201,168,76,0.15);
+      border-bottom: 1px solid rgba(43,122,140,0.15);
     }
 
     .logo {
@@ -61,9 +61,9 @@
 
     .badge {
       display: inline-block;
-      background: rgba(201,168,76,0.12);
+      background: rgba(43,122,140,0.12);
       color: var(--gold);
-      border: 1px solid rgba(201,168,76,0.3);
+      border: 1px solid rgba(43,122,140,0.3);
       border-radius: 50px;
       padding: 5px 16px;
       font-size: 0.78rem;
@@ -107,8 +107,8 @@
     p:last-child { margin-bottom: 0; }
 
     .placeholder {
-      background: rgba(201,168,76,0.08);
-      border: 1px dashed rgba(201,168,76,0.3);
+      background: rgba(43,122,140,0.08);
+      border: 1px dashed rgba(43,122,140,0.3);
       border-radius: 8px;
       padding: 12px 16px;
       color: var(--gold);
@@ -122,12 +122,12 @@
 
     .divider {
       border: none;
-      border-top: 1px solid rgba(255,255,255,0.07);
+      border-top: 1px solid rgba(16,26,43,0.07);
       margin: 40px 0;
     }
 
     footer {
-      border-top: 1px solid rgba(255,255,255,0.07);
+      border-top: 1px solid rgba(16,26,43,0.07);
       padding: 36px 60px;
       display: flex;
       justify-content: space-between;
@@ -147,17 +147,18 @@
       footer { padding: 28px 24px; flex-direction: column; align-items: flex-start; }
     }
   </style>
+  <link rel="stylesheet" href="app.css" />
+  <style>
+
+    .card, .info-card, .auth-card, .legal-card, .kontakt-card,
+    .form-card, section.services .card { background: var(--navy2); }
+    .hero { padding-top: 72px !important; }
+
+  </style>
+  <script>window.IE_PAGE = {}</script>
+  <script src="app-shell.js"></script>
 </head>
 <body>
-
-  <nav>
-    <a href="index.html" class="logo">Immo<span>.Expert</span></a>
-    <ul>
-      <li><a href="finder.html">Immo.Finder</a></li>
-      <li><a href="portfolio.html">Immo.Portfolio</a></li>
-      <li><a href="login.html" class="nav-cta" id="navAuthLink">Login</a></li>
-    </ul>
-  </nav>
 
   <div class="content">
     <div class="badge">Rechtliches</div>
