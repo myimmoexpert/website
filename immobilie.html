@@ -155,6 +155,16 @@
       transition: border-color .15s, color .15s, background .15s;
     }
     .liq-toggle:hover { border-color: var(--gold); color: var(--gold); background: rgba(43,122,140,0.08); }
+    /* Abgleich mit den Kontoumsätzen */
+    .liq-table td.liq-ok { background: #e8f6ec; }
+    .liq-table td.liq-ok.liq-now { background: #dff0e6; }
+    .liq-table td.liq-warn { background: #fdf3e3; }
+    .liq-table td.liq-warn::before {
+      content: '⚠'; position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
+      font-size: 0.78rem; line-height: 1; color: #b45309; pointer-events: none;
+    }
+    .liq-row-header .liq-label { font-weight: 600; color: var(--white); background: #e9eef5; }
+    .liq-row-header td { background: rgba(16,26,43,0.03); }
     .liq-spacer td { height: 14px; border-bottom: none; background: transparent; }
     .liq-spacer .liq-label { background: var(--navy2); }
     .liq-label { position: sticky; left: 0; background: var(--navy2); z-index: 2; text-align: left; font-size: 0.82rem; color: var(--muted); padding: 8px 16px; white-space: nowrap; min-width: 160px; border-right: 1px solid rgba(16,26,43,0.08); }
@@ -1018,24 +1028,36 @@
     // Zeilen wie in der Excel-Vorlage.
     // type 'input' = manuelle Eingabe, type 'calc' = berechnet (überschreibbar).
     const LIQ_ROWS = [
-      { key: 'einzahlungEk',          label: 'Einzahlung Eigenkapital',  type: 'input' },
-      { key: 'einzahlungFk',          label: 'Valutierung Fremdkapital', type: 'input' },
-      { key: 'kaufpreis',             label: 'Zahlung Kaufpreis',        type: 'input' },
-      { key: 'ausgabe',               label: 'Zahlung Nebenkosten',      type: 'input' },
-      { key: 'weitereAusgaben',       label: 'Weitere Ausgaben',         type: 'input' },
-      { key: 'nebenkostenabrechnung', label: 'Nebenkostenabrechnung',    type: 'input' },
+      // Einmaliges rund um den Kauf – standardmäßig eingeklappt
+      { key: '_ekKauf',      label: 'Eigenkapital & Kauf', type: 'header', toggle: 'ekkauf' },
+      { key: 'einzahlungEk', label: 'Einzahlung Eigenkapital',  type: 'input', sub: true, group: 'ekkauf' },
+      { key: 'einzahlungFk', label: 'Valutierung Fremdkapital', type: 'input', sub: true, group: 'ekkauf' },
+      { key: 'kaufpreis',    label: 'Zahlung Kaufpreis',        type: 'input', sub: true, group: 'ekkauf' },
+      { key: 'ausgabe',      label: 'Zahlung Nebenkosten',      type: 'input', sub: true, group: 'ekkauf' },
+
+      // Monatlich wiederkehrend
       { key: 'miete',        label: 'Miete',             type: 'calc',  sep: true, gap: true, toggle: 'miete' },
       { key: 'nkm',          label: 'Nettokaltmiete',            type: 'input', sub: true, group: 'miete' },
       { key: 'nk',           label: 'Nebenkostenvorauszahlungen', type: 'input', sub: true, group: 'miete' },
       { key: 'weitereMiete', label: 'Weitere Miete',     type: 'input' },
-      { key: 'grundsteuer',  label: 'Grundsteuer',       type: 'input' },
       { key: 'hausgeld',     label: 'Hausgeld',          type: 'input' },
       { key: 'bankrate',     label: 'Bankrate',          type: 'calc',  toggle: 'bankrate' },
       { key: 'zins',         label: 'Zins',              type: 'input', sub: true, group: 'bankrate' },
       { key: 'tilgung',      label: 'Tilgung',           type: 'input', sub: true, group: 'bankrate' },
+      { key: 'grundsteuer',  label: 'Grundsteuer',       type: 'input' },
       { key: 'cf',           label: 'CF Wohnung',        type: 'calc',  strong: true, sep: true },
-      { key: 'guthaben',     label: 'Guthaben',          type: 'calc',  total: true, sep: true },
+
+      // Unregelmäßiges, das erst nach dem laufenden Cashflow wirkt
+      { key: 'weitereAusgaben',       label: 'Weitere Ausgaben',      type: 'input', gap: true },
+      { key: 'nebenkostenabrechnung', label: 'Nebenkostenabrechnung', type: 'input' },
+
+      { key: 'guthaben',     label: 'Guthaben',          type: 'calc',  total: true, sep: true, gap: true },
     ]
+
+    // Zeilen, für die der Abgleich mit den Kontoumsätzen gilt
+    const LIQ_TRACK_ROWS = ['nkm', 'nk', 'weitereMiete', 'hausgeld', 'bankrate',
+                            'zins', 'tilgung', 'grundsteuer', 'weitereAusgaben',
+                            'nebenkostenabrechnung']
 
     // Aufgeklappte Detailgruppen (Miete, Bankrate) – Einstellung bleibt im Browser
     let liqOpenGroups = (() => {
@@ -1259,7 +1281,9 @@
           r.strong ? 'liq-row-strong' : '', r.total ? 'liq-row-total' : ''].filter(Boolean).join(' ')
         const tds = months.map(m => {
           const [, mo] = m.split('-').map(Number)
-          return `<td class="${mo === 1 ? 'liq-yr' : ''}${m === nowM ? ' liq-now' : ''}">
+          const cls = `${mo === 1 ? 'liq-yr' : ''}${m === nowM ? ' liq-now' : ''}`
+          if (r.type === 'header') return `<td class="${cls}"></td>`
+          return `<td class="${cls}">
             <input class="liq-cell" data-row="${r.key}" data-month="${m}" placeholder="0" />
           </td>`
         }).join('')
@@ -1307,7 +1331,7 @@
     function liqKeyNav(e, cell) {
       if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter'].includes(e.key)) return
       const months = liqMonths()
-      const rowKeys = liqVisibleRows().map(r => r.key)
+      const rowKeys = liqVisibleRows().filter(r => r.type !== 'header').map(r => r.key)
       let ri = rowKeys.indexOf(cell.dataset.row)
       let mi = months.indexOf(cell.dataset.month)
       const len = cell.value.length
@@ -1390,9 +1414,45 @@
       scheduleSave('l')
     }
 
+    // ── Abgleich Forecast ⇄ tatsächliche Buchungen ──
+    // Greift erst, sobald für diese Immobilie mindestens einmal ein
+    // Kontoauszug eingelesen wurde – vorher gäbe es nichts zu vergleichen.
+    function liqReconcileInfo() {
+      const ic = liqData.importedCells || {}
+      const keys = Object.keys(ic)
+      if (!keys.length) return null
+      const abMonat = keys.map(k => k.split('|')[1]).filter(Boolean).sort()[0]
+      // Kopie, damit abgeleitete Bestätigungen nicht mitgespeichert werden
+      const eff = Object.assign({}, ic)
+      liqMonths().forEach(m => {
+        // Eine bestätigte Bankrate bestätigt auch Zins und Tilgung – und umgekehrt
+        if (eff['bankrate|' + m]) { eff['zins|' + m] = true; eff['tilgung|' + m] = true }
+        else if (eff['zins|' + m] && eff['tilgung|' + m]) eff['bankrate|' + m] = true
+      })
+      return { ic: eff, abMonat }
+    }
+
+    // Zustand einer Zelle: '' | 'ok' | 'warn'
+    function liqStand(row, month, val, rec) {
+      if (!rec || !LIQ_TRACK_ROWS.includes(row) || month < rec.abMonat) return ''
+      const her = liqMonateHer(month)
+      if (rec.ic[row + '|' + month]) return 'ok'
+      if (her >= 1 && Math.abs(val) < 0.005) return 'ok'
+      if (her >= 2) return 'warn'
+      return ''
+    }
+
+    // Wie viele volle Monate liegt ein Monat zurück?
+    function liqMonateHer(m) {
+      const [y, mo] = m.split('-').map(Number)
+      const jetzt = new Date()
+      return (jetzt.getFullYear() * 12 + jetzt.getMonth() + 1) - (y * 12 + mo)
+    }
+
     // Alle Zellwerte aus dem Modell in die Inputs schreiben (fokussierte Zelle bleibt unangetastet)
     function liqRefreshCells() {
       const { out } = liqCompute()
+      const rec = liqReconcileInfo()
       document.querySelectorAll('.liq-cell').forEach(cell => {
         const { row, month } = cell.dataset
         const def = LIQ_ROWS.find(r => r.key === row)
@@ -1410,11 +1470,45 @@
         cell.classList.toggle('ov', def.type === 'calc' && hasOv)
         cell.classList.toggle('neg', val < -0.004)
         cell.classList.toggle('pos', val > 0.004)
+        // Grün = mit einer echten Buchung abgeglichen oder nachweislich ohne Bewegung.
+        // Warndreieck = geplanter Wert, der seit zwei Monaten unbestätigt ist.
+        const stand = liqStand(row, month, val, rec)
+        const td = cell.parentElement
+        td.classList.toggle('liq-ok', stand === 'ok')
+        td.classList.toggle('liq-warn', stand === 'warn')
+
         const note = liqData.notes?.[row]?.[month]
-        cell.title = note || ''
-        cell.parentElement.classList.toggle('has-note', !!note)
+        const hinweis = stand === 'warn'
+          ? 'Geplanter Wert – seit zwei Monaten keine passende Buchung im Kontoauszug gefunden.'
+          : stand === 'ok'
+            ? (rec.ic[row + '|' + month] ? 'Mit einer Buchung aus dem Kontoauszug abgeglichen.'
+                                         : 'Monat vorbei, keine Bewegung – bestätigt.')
+            : ''
+        cell.title = [note, hinweis].filter(Boolean).join('\n')
+        td.classList.toggle('has-note', !!note)
       })
+      liqRollupGroups(rec)
       updateFinanzWerte()
+    }
+
+    // Ist eine Gruppe zugeklappt, erbt die Kopfzeile den Zustand ihrer Kinder:
+    // eine Warnung darf sich nicht hinter einem „+" verstecken.
+    function liqRollupGroups(rec) {
+      if (!rec) return
+      const { out } = liqCompute()
+      LIQ_ROWS.filter(r => r.toggle && r.type !== 'header').forEach(parent => {
+        if (liqOpenGroups.has(parent.toggle)) return
+        const kinder = LIQ_ROWS.filter(r => r.group === parent.toggle)
+        if (!kinder.length) return
+        liqMonths().forEach(m => {
+          const cell = document.querySelector(`.liq-cell[data-row="${parent.key}"][data-month="${m}"]`)
+          if (!cell) return
+          const staende = kinder.map(k => liqStand(k.key, m, out[k.key]?.[m] ?? 0, rec))
+          const td = cell.parentElement
+          if (staende.includes('warn')) { td.classList.add('liq-warn'); td.classList.remove('liq-ok') }
+          else if (staende.length && staende.every(x => x === 'ok')) { td.classList.add('liq-ok') }
+        })
+      })
     }
 
     function liqOnEdit(cell) {

@@ -264,6 +264,21 @@
       .bk-text { max-width: 140px; }
       .mw-value { font-size: 1.35rem; }
     }
+
+    /* ── Kennzahlen ── */
+    .kpi-group { margin-bottom: 20px; }
+    .kpi-group-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.6px; color: var(--muted); margin-bottom: 9px; }
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+    .kpi-tile { background: var(--navy2); border: 1px solid rgba(16,26,43,0.09); border-radius: 12px;
+      padding: 15px 18px; display: flex; flex-direction: column; gap: 5px; }
+    .kpi-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.4px; color: var(--muted); }
+    .kpi-value { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.3px; }
+    .kpi-value.gold { color: var(--gold); }
+    .kpi-value.green { color: var(--green); }
+    .kpi-value.red { color: var(--red); }
+    .kpi-sub { font-size: 0.7rem; color: var(--muted); line-height: 1.4; }
   </style>
   <link rel="stylesheet" href="app.css" />
   <style>
@@ -319,6 +334,12 @@
   <!-- ══ TAB: LIQUIDITÄT ══ -->
   <div class="tab-pane active" id="pane-liquiditaet">
     <div class="tab-content">
+
+      <!-- ── Kennzahlen ── -->
+      <div class="section-head" style="margin-bottom:10px;">
+        <h3>Kenn<span>zahlen</span></h3>
+      </div>
+      <div id="kpiWrap"></div>
 
       <!-- ── 1. Kontoauszug einlesen ── -->
       <div class="section-head" style="margin-bottom:10px;">
@@ -445,6 +466,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="notifications.js" defer></script>
+  <script src="portfolio-calc.js"></script>
   <script>
     const SUPABASE_URL = 'https://awvnfocepqkkncgqgaka.supabase.co'
     const SUPABASE_KEY = 'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
@@ -509,6 +531,7 @@
       renderLiquiditaet()
       initTodos()
       initNotes()
+      renderKennzahlen()
       initBankImport()
       initMonatswechsel()
       renderCashflowListe()
@@ -1019,7 +1042,7 @@
       if (!neu.length) { bkStatus('Es konnten keine Buchungen erkannt werden.', 'err'); return }
 
       bkBuchungen = neu
-      const offen = neu.filter(b => !b.propId || !b.zeile).length
+      const offen = neu.filter(b => !b.skip && (!b.propId || !b.zeile)).length
       bkStatus(`${neu.length} Buchungen erkannt${offen ? `, davon ${offen} noch zuzuordnen` : ' und alle zugeordnet'}.`, offen ? '' : 'ok')
       bkRender()
     }
@@ -1051,7 +1074,7 @@
         `<option value="${k}" ${k === z ? 'selected' : ''}>${esc(v)}</option>`).join('')
 
       const zeilen = bkBuchungen.map((b, i) => {
-        const offen = !b.propId || !b.zeile
+        const offen = !b.skip && (!b.propId || !b.zeile)
         return `
           <tr class="${offen ? 'bk-open' : ''} ${b.skip ? 'bk-skip' : ''}">
             <td class="bk-date">${esc(b.datum || '–')}</td>
@@ -1059,7 +1082,9 @@
             <td class="bk-text" title="${esc(b.text)}">${esc(b.text)}</td>
             <td>
               <select class="bk-sel" onchange="bkSet(${i},'propId',this.value)">
-                <option value="">– Immobilie wählen –</option>${propOpts(b.propId)}
+                <option value="">– Immobilie wählen –</option>
+                <option value="__ignorieren" ${b.skip ? 'selected' : ''}>– keine, ignorieren –</option>
+                ${propOpts(b.propId)}
               </select>
             </td>
             <td>
@@ -1097,9 +1122,15 @@
     }
 
     function bkSet(i, feld, wert) {
-      if (!bkBuchungen[i]) return
-      bkBuchungen[i][feld] = (feld === 'skip') ? !!wert : (wert || null)
-      if (feld !== 'skip') bkBuchungen[i].manuell = true
+      const b = bkBuchungen[i]
+      if (!b) return
+      if (feld === 'propId' && wert === '__ignorieren') {
+        // Buchung gehört zu keiner Immobilie – dauerhaft überspringen
+        b.skip = true; b.propId = null; b.zeile = null; b.manuell = true
+        bkRender(); return
+      }
+      if (feld === 'skip') { b.skip = !!wert }
+      else { b[feld] = wert || null; b.manuell = true; if (wert) b.skip = false }
       bkRender()
     }
 
@@ -1349,6 +1380,80 @@
             <tbody>${zeilen}</tbody>
           </table>
         </div>`
+    }
+
+
+    // ════════════════════════════════════════
+    // KENNZAHLEN
+    // ════════════════════════════════════════
+    function renderKennzahlen() {
+      const el = document.getElementById('kpiWrap')
+      if (!el) return
+      if (!window.IECalc) { el.innerHTML = '<div class="ov-empty">Berechnung nicht geladen.</div>'; return }
+      if (!properties.length) {
+        el.innerHTML = '<div class="ov-empty">Noch keine Immobilien angelegt.</div>'
+        return
+      }
+
+      const m = window.IECalc.jetztMonat()
+      let aum = 0, fk = 0, kaufpreis = 0, ekEingesetzt = 0
+      let miete = 0, hausgeld = 0, bankrate = 0, cf = 0, nkmJahr = 0
+
+      properties.forEach(p => {
+        aum += window.IECalc.wert(p, m)
+        fk  += window.IECalc.restschuld(p, m)
+        kaufpreis += window.IECalc.kaufpreis(p)
+        ekEingesetzt += Math.abs(window.IECalc.summeAlle(p, 'einzahlungEk'))
+        const t = window.IECalc.cfTeile(p, m)
+        miete += t.miete + t.weitereMiete
+        hausgeld += t.hausgeld
+        bankrate += t.bankrate
+        cf += t.cf
+        const st = liqStats(p)
+        nkmJahr += (st.nkm || 0) * 12
+      })
+
+      const ek  = Math.max(0, aum - fk)
+      const ltv = aum > 0 ? fk / aum : null
+      const brutto = kaufpreis > 0 && nkmJahr > 0 ? nkmJahr / kaufpreis : null
+      const ekRendite = ekEingesetzt > 0 ? (cf * 12) / ekEingesetzt : null
+      const faktor = nkmJahr > 0 ? kaufpreis / nkmJahr : null
+
+      const pct = v => v === null ? '–' : (v * 100).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' %'
+      const fak = v => v === null ? '–' : v.toLocaleString('de-DE', { maximumFractionDigits: 1 })
+
+      const gruppe = (titel, kacheln) => `
+        <div class="kpi-group">
+          <div class="kpi-group-title">${esc(titel)}</div>
+          <div class="kpi-row">
+            ${kacheln.map(k => `
+              <div class="kpi-tile">
+                <span class="kpi-label">${esc(k.l)}</span>
+                <span class="kpi-value ${k.c || ''}">${k.v}</span>
+                ${k.s ? `<span class="kpi-sub">${esc(k.s)}</span>` : ''}
+              </div>`).join('')}
+          </div>
+        </div>`
+
+      el.innerHTML =
+        gruppe('Vermögen & Finanzierung', [
+          { l: 'Portfoliowert', v: formatEur(aum), c: 'gold', s: 'Kaufpreis + 2 % p. a.' },
+          { l: 'Restschuld',    v: formatEur(fk),  s: 'Darlehen abzüglich Tilgung' },
+          { l: 'Eigenkapital',  v: formatEur(ek),  c: 'green', s: 'Wert abzüglich Restschuld' },
+          { l: 'Beleihungsauslauf', v: pct(ltv), s: 'Restschuld ÷ Portfoliowert' },
+        ]) +
+        gruppe('Laufende Ein- und Ausgaben (Monat)', [
+          { l: 'Mieteinnahmen', v: formatEur(miete), c: 'green' },
+          { l: 'Hausgeld',      v: formatEur(hausgeld) },
+          { l: 'Bankrate',      v: formatEur(bankrate) },
+          { l: 'Cashflow',      v: formatEur(cf), c: cf < -0.004 ? 'red' : 'green' },
+        ]) +
+        gruppe('Rendite', [
+          { l: 'Brutto-Mietrendite', v: pct(brutto), s: 'Jahreskaltmiete ÷ Kaufpreis' },
+          { l: 'Eigenkapitalrendite', v: pct(ekRendite),
+            s: ekEingesetzt > 0 ? 'Cashflow p. a. ÷ eingesetztes EK' : 'kein Eigenkapital erfasst' },
+          { l: 'Kaufpreisfaktor', v: fak(faktor), s: 'Kaufpreis ÷ Jahreskaltmiete' },
+        ])
     }
 
     // ── Helfer ──

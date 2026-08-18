@@ -220,6 +220,45 @@
       .form-row { grid-template-columns: 1fr; }
       footer { padding: 28px 24px; flex-direction: column; align-items: flex-start; }
     }
+
+    /* ── Graphen ── */
+    .charts-section {
+      width: 100%; padding: 30px 40px 0;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(430px, 1fr)); gap: 20px;
+    }
+    .pc-card { background: var(--navy2); border: 1px solid rgba(16,26,43,0.09);
+      border-radius: var(--radius); padding: 20px 22px 16px; min-width: 0; }
+    .pc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .pc-title { font-size: 1rem; font-weight: 700; letter-spacing: -0.2px; }
+    .pc-sub { font-size: 0.76rem; color: var(--muted); margin-top: 3px; line-height: 1.45; }
+    .pc-tbl-btn { flex: 0 0 auto; background: transparent; border: 1px solid rgba(16,26,43,0.14);
+      border-radius: 7px; padding: 5px 10px; font: 500 0.74rem/1 'Inter', sans-serif;
+      color: var(--muted); cursor: pointer; }
+    .pc-tbl-btn:hover { color: var(--gold); border-color: rgba(43,122,140,0.45); }
+    .pc-legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 12px 0 4px; }
+    .pc-leg { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); }
+    .pc-leg i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+    .pc-plot { position: relative; }
+    .pc-svg { display: block; overflow: visible; }
+    .pc-tip { position: absolute; top: 8px; background: #ffffff; border: 1px solid rgba(16,26,43,0.12);
+      border-radius: 9px; box-shadow: 0 10px 28px rgba(16,26,43,0.14); padding: 9px 12px;
+      font-size: 0.78rem; pointer-events: none; z-index: 5; white-space: nowrap; }
+    .pc-tip b { display: block; margin-bottom: 5px; color: var(--white); font-size: 0.8rem; }
+    .pc-tip-row { display: flex; align-items: center; gap: 7px; color: var(--muted); margin-top: 3px; }
+    .pc-tip-row i { width: 9px; height: 9px; border-radius: 2px; flex: 0 0 9px; }
+    .pc-tip-row b { display: inline; margin: 0 0 0 auto; padding-left: 14px; color: var(--white); font-size: 0.78rem; }
+    .pc-hero { display: flex; align-items: baseline; gap: 9px; margin-top: 14px; }
+    .pc-hero-val { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; color: var(--white); }
+    .pc-hero-lab { font-size: 0.76rem; color: var(--muted); }
+    .pc-table { margin-top: 12px; max-height: 260px; overflow: auto; }
+    .pc-table table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    .pc-table th { text-align: left; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.4px;
+      color: var(--muted); padding: 6px 8px; position: sticky; top: 0; background: #e9eef5; }
+    .pc-table td { padding: 5px 8px; border-top: 1px solid rgba(16,26,43,0.06); }
+    .pc-table .ta-r, .pc-card .ta-r { text-align: right; }
+
+    @media (max-width: 900px) { .charts-section { grid-template-columns: 1fr; } }
+    @media (max-width: 700px) { .charts-section { padding-left: 18px; padding-right: 18px; } }
   </style>
   <link rel="stylesheet" href="app.css" />
   <style>
@@ -279,6 +318,9 @@
       <div class="s-value gold" id="sumLiq">0 €</div>
     </div>
   </div>
+
+  <!-- Graphen -->
+  <div class="charts-section" id="chartsSection"></div>
 
   <!-- Tile Grid -->
   <div class="tile-grid" id="tileGrid">
@@ -352,6 +394,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="notifications.js" defer></script>
+  <script src="portfolio-calc.js"></script>
+  <script src="portfolio-charts.js"></script>
   <script>
     const SUPABASE_URL = 'https://awvnfocepqkkncgqgaka.supabase.co'
     const SUPABASE_KEY = 'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
@@ -410,6 +454,11 @@
 
         // Kacheln rendern
         data.forEach((p, i) => grid.appendChild(buildTile(p, stats[i])))
+      }
+
+      // Graphen mit denselben Daten zeichnen
+      if (window.IECharts) {
+        window.IECharts.render(document.getElementById('chartsSection'), data || [])
       }
 
       // "Hinzufügen"-Kachel immer am Ende
