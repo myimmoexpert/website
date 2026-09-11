@@ -189,6 +189,13 @@ body.ie-app .tab-pane { flex: 1; }
 .ie-sb-item.active .ie-dot { background: var(--ie-accent); }
 .ie-sb-item .ie-lbl { flex: 1; overflow: hidden; text-overflow: ellipsis; }
 
+/* Roter Punkt: in dieser Immobilie ist etwas offen */
+.ie-sb-alert {
+  flex: 0 0 8px; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--ie-neg);
+  box-shadow: 0 0 0 3px rgba(239,107,107,0.18);
+}
+
 .ie-chev {
   flex: 0 0 auto; font-size: 0.7rem; color: var(--ie-sb-muted);
   transition: transform .16s; display: inline-block;

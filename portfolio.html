@@ -105,6 +105,15 @@
     .pw-opt .d { font-size: 0.76rem; color: var(--muted); line-height: 1.45; margin-top: 2px; }
     .pw-pop .pw-hint { font-size: 0.72rem; color: var(--muted); line-height: 1.5; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.07); }
 
+    .modal-box .opt { font-weight: 500; font-size: 0.72rem; color: var(--muted); text-transform: none; letter-spacing: 0; }
+    .modal-box .form-hint { font-size: 0.76rem; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+    .modal-box .form-note {
+      font-size: 0.8rem; color: var(--muted); line-height: 1.6;
+      background: rgba(211,172,95,0.08); border: 1px solid rgba(211,172,95,0.22);
+      border-radius: 10px; padding: 12px 14px; margin: 4px 0 4px;
+    }
+    .modal-box .form-note strong { color: var(--white); font-weight: 600; }
+
     /* ── CTA-KACHEL (Erweiterte Übersicht) ── */
     .summary-cta {
       background: var(--gold); color: var(--navy);
@@ -314,6 +323,7 @@
 
   </style>
   <script>window.IE_PAGE = { area: 'portfolio', view: 'mein-portfolio' }</script>
+  <script src="hinweise.js"></script>
   <script src="app-shell.js"></script>
 </head>
 <body>
@@ -395,12 +405,7 @@
       <div class="form-group">
         <label>Objektart</label>
         <select id="fObjektart">
-          <option value="">– bitte wählen –</option>
-          <option value="Eigentumswohnung">Eigentumswohnung</option>
-          <option value="Einfamilienhaus">Einfamilienhaus</option>
-          <option value="Mehrfamilienhaus">Mehrfamilienhaus</option>
-          <option value="Gewerbe">Gewerbe</option>
-          <option value="Sonstiges">Sonstiges</option>
+          <option value="Eigentumswohnung" selected>Eigentumswohnung</option>
         </select>
       </div>
       <div class="form-group">
@@ -417,16 +422,16 @@
           <input type="date" id="fKaufdatum" />
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Kaltmiete / Monat (€)</label>
-          <input type="number" id="fKaltmiete" placeholder="z.B. 1100" min="0" />
-        </div>
-        <div class="form-group">
-          <label>Hausgeld / Monat (€)</label>
-          <input type="number" id="fHausgeld" placeholder="z.B. 320" min="0" />
-        </div>
+      <div class="form-group">
+        <label>Festgelegter Wert (€) <span class="opt">optional</span></label>
+        <input type="number" id="fWert" placeholder="z.B. 380000" min="0" />
+        <p class="form-hint">Kann in der Portfolioübersicht statt des Kaufpreises als Portfoliowert gelten.</p>
       </div>
+
+      <p class="form-note">
+        <strong>Miete, Hausgeld und Bankrate</strong> tragen Sie nicht hier ein, sondern im Bereich
+        <strong>Liquiditätsplanung</strong> der Immobilie – dort monatsgenau und jederzeit änderbar.
+      </p>
 
       <div class="modal-actions">
         <button class="btn-cancel" onclick="closeModal()">Abbrechen</button>
@@ -662,7 +667,7 @@
       document.getElementById('addModal').classList.remove('visible')
       document.body.style.overflow = ''
       // Felder zurücksetzen
-      ['fBezeichnung','fObjektart','fAdresse','fKaufpreis','fKaufdatum','fKaltmiete','fHausgeld']
+      ['fBezeichnung','fAdresse','fKaufpreis','fKaufdatum','fWert']
         .forEach(id => { const el = document.getElementById(id); if(el) el.value = '' })
     }
 
@@ -676,8 +681,7 @@
       const adresse     = document.getElementById('fAdresse').value.trim()
       const kaufpreis   = parseFloat(document.getElementById('fKaufpreis').value) || null
       const kaufdatum   = document.getElementById('fKaufdatum').value || null
-      const kaltmiete   = parseFloat(document.getElementById('fKaltmiete').value) || null
-      const hausgeld    = parseFloat(document.getElementById('fHausgeld').value) || null
+      const wert        = parseFloat(document.getElementById('fWert').value) || null
 
       if (!bezeichnung) {
         alert('Bitte eine Bezeichnung eingeben.')
@@ -691,7 +695,7 @@
 
       const { error } = await sb.from('portfolio').insert({
         user_id:     session.user.id,
-        bezeichnung, objektart, adresse, kaufpreis, kaufdatum, kaltmiete, hausgeld
+        bezeichnung, objektart, adresse, kaufpreis, kaufdatum, wert
       })
 
       btn.disabled = false

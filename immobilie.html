@@ -131,6 +131,14 @@
     .ci-anmerkung::placeholder { color: rgba(155,150,140,0.35); font-style: italic; }
 
     /* ── LIQUIDITÄT ── */
+    .liq-table th.liq-add, .liq-table td.liq-add { min-width: 104px; background: rgba(255,255,255,0.02); }
+    .liq-add-btn {
+      background: none; border: 1px dashed rgba(211,172,95,0.45); color: var(--gold);
+      border-radius: 8px; padding: 6px 10px; font: 600 0.74rem 'Inter', sans-serif;
+      cursor: pointer; white-space: nowrap; transition: background .15s, border-color .15s;
+    }
+    .liq-add-btn:hover { background: rgba(211,172,95,0.14); border-color: var(--gold); }
+
     .liq-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
     .liq-controls label { color: var(--muted); font-size: 0.82rem; display: flex; align-items: center; gap: 8px; }
     .liq-controls input[type="month"] { background: var(--navy2); border: 1px solid rgba(255,255,255,0.125); border-radius: 8px; color: var(--white); font-family: inherit; font-size: 0.82rem; padding: 7px 10px; outline: none; color-scheme: dark; }
@@ -305,8 +313,9 @@
     .sections { max-width: 980px; margin: 0 auto; width: 100%; padding: 26px 60px 80px; }
     .ie-sec {
       background: var(--navy2); border: 1px solid rgba(255,255,255,0.088);
-      border-radius: var(--radius); margin-bottom: 16px; overflow: hidden;
+      border-radius: var(--radius); margin-bottom: 16px;
     }
+    .ie-sec-body { border-radius: 0 0 var(--radius) var(--radius); }
     .ie-sec-head {
       display: flex; align-items: center; gap: 12px;
       padding: 16px 20px; cursor: pointer;
@@ -379,6 +388,115 @@
       font: 500 0.9rem 'Inter', sans-serif;
     }
     .set-row input:focus { outline: none; border-color: rgba(211,172,95,0.5); }
+
+    /* ── Hinweise (roter Punkt) ── */
+    .ie-sec-alert-slot { position: relative; display: inline-flex; align-items: center; }
+    .ie-sec-alert {
+      width: 10px; height: 10px; border-radius: 50%; border: none; padding: 0; cursor: pointer;
+      background: var(--red); box-shadow: 0 0 0 3px rgba(239,107,107,0.20);
+      animation: hinweisPuls 2.4s ease-in-out infinite;
+    }
+    .ie-sec-alert:hover { box-shadow: 0 0 0 5px rgba(239,107,107,0.28); }
+    @keyframes hinweisPuls {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(239,107,107,0.20); }
+      50%      { box-shadow: 0 0 0 6px rgba(239,107,107,0.10); }
+    }
+    .hinweis-pop {
+      position: absolute; top: 24px; right: -6px; z-index: 80; width: 270px; text-align: left;
+      background: var(--navy2); border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 12px; padding: 14px; box-shadow: 0 18px 44px rgba(0,0,0,0.6);
+      cursor: default;
+    }
+    .hp-titel { font-size: 0.88rem; font-weight: 700; margin-bottom: 4px; }
+    .hp-text { font-size: 0.78rem; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
+    .hp-btn {
+      width: 100%; background: var(--gold); color: var(--navy); border: none; border-radius: 9px;
+      padding: 9px 12px; font: 600 0.82rem 'Inter', sans-serif; cursor: pointer;
+    }
+    .hp-btn:hover { background: var(--gold2); }
+    .hp-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); margin: 12px 0 6px; }
+    .hp-monate { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .hp-mon {
+      background: none; border: 1px solid rgba(255,255,255,0.14); color: var(--white);
+      border-radius: 8px; padding: 7px 8px; font: 500 0.78rem 'Inter', sans-serif; cursor: pointer;
+    }
+    .hp-mon:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ── Nebenkostenabrechnung: Einstieg und Ablagefläche ── */
+    .nk-bubbles { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .nk-bubble {
+      display: flex; flex-direction: column; gap: 6px; text-align: left;
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px; padding: 20px 18px; cursor: pointer; color: var(--white);
+      font-family: inherit; transition: border-color .15s, background .15s, transform .12s;
+    }
+    .nk-bubble:hover { border-color: rgba(211,172,95,0.45); background: rgba(211,172,95,0.07); transform: translateY(-2px); }
+    .nk-bubble-ico { font-size: 1.3rem; color: var(--gold); }
+    .nk-bubble-t { font-size: 0.95rem; font-weight: 700; }
+    .nk-bubble-d { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+
+    .nk-drop {
+      border: 1.5px dashed rgba(211,172,95,0.40); border-radius: 14px;
+      padding: 26px 18px; text-align: center; cursor: pointer;
+      background: rgba(211,172,95,0.04); transition: background .15s, border-color .15s;
+    }
+    .nk-drop:hover, .nk-drop.over { background: rgba(211,172,95,0.11); border-color: var(--gold); }
+    .nk-drop-ico { font-size: 1.5rem; color: var(--gold); margin-bottom: 6px; }
+    .nk-drop-t { font-size: 0.92rem; font-weight: 600; }
+    .nk-drop-d { font-size: 0.79rem; color: var(--muted); margin-top: 4px; }
+    .nk-drop-zeile { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 12px 0 4px; }
+
+    .nk-summe {
+      display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+      font-size: 0.84rem; color: var(--muted);
+      border-top: 1px solid rgba(255,255,255,0.07); padding-top: 12px; margin-top: 4px;
+    }
+    .nk-summe b { color: var(--white); font-size: 0.95rem; }
+    .nk-korrektur { font-size: 0.76rem; color: var(--muted); margin-top: 8px; }
+    .nk-korrektur a { color: var(--gold); }
+    .nk-uebernahme {
+      font-size: 0.82rem; color: var(--green);
+      background: rgba(92,201,138,0.10); border: 1px solid rgba(92,201,138,0.28);
+      border-radius: 10px; padding: 10px 14px; margin-bottom: 14px;
+    }
+    .nk-mehr { margin-top: 14px; }
+    .nk-mehr > summary { cursor: pointer; font-size: 0.84rem; color: var(--muted); padding: 8px 0; }
+    .nk-mehr > summary:hover { color: var(--white); }
+    .nk-leer { font-size: 0.82rem; color: var(--muted); padding: 8px 0; }
+    .nk-doc-zeile { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+
+    @media (max-width: 720px) { .nk-bubbles { grid-template-columns: 1fr; } }
+
+    .miet-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+    .mh-box { max-width: 600px; }
+    .mh-h {
+      font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+      color: var(--gold); margin: 18px 0 10px;
+    }
+    .mh-arten { display: flex; flex-direction: column; gap: 8px; }
+    .mh-art {
+      display: flex; gap: 10px; align-items: flex-start; cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.10); border-radius: 10px; padding: 10px 12px;
+    }
+    .mh-art:hover { background: rgba(255,255,255,0.04); }
+    .mh-art.sel { border-color: rgba(211,172,95,0.45); background: rgba(211,172,95,0.09); }
+    .mh-art input { margin-top: 3px; accent-color: var(--gold); }
+    .mh-art .t { font-size: 0.88rem; font-weight: 600; display: block; }
+    .mh-art .d { font-size: 0.76rem; color: var(--muted); line-height: 1.45; display: block; margin-top: 2px; }
+    .mh-merk { display: inline-flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--muted); cursor: pointer; }
+    .mh-merk input { accent-color: var(--gold); }
+
+    .set-note {
+      font-size: 0.8rem; color: var(--muted); line-height: 1.6;
+      background: rgba(211,172,95,0.08); border: 1px solid rgba(211,172,95,0.22);
+      border-radius: 10px; padding: 12px 14px; margin: 6px 0 4px;
+    }
+    .set-note strong { color: var(--white); font-weight: 600; }
+    .set-row select {
+      flex: 1; background: var(--navy); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 9px; padding: 10px 12px; color: var(--white);
+      font: 500 0.9rem 'Inter', sans-serif; color-scheme: dark;
+    }
     .set-hint { font-size: 0.78rem; color: var(--muted); line-height: 1.55; margin: 4px 0 18px; }
     .set-actions {
       display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
@@ -496,6 +614,7 @@
 
   </style>
   <script>window.IE_PAGE = { area: 'portfolio', propId: new URLSearchParams(location.search).get('id'), view: new URLSearchParams(location.search).get('tab') || 'uberblick' }</script>
+  <script src="hinweise.js"></script>
   <script src="app-shell.js"></script>
 </head>
 <body>
@@ -566,34 +685,6 @@
   <div class="sections" id="secHost"></div>
 
   <!-- ══════════════════════════════════════
-       TAB 1: ÜBERBLICK
-  ══════════════════════════════════════ -->
-  <div class="tab-pane" id="pane-uberblick">
-    <div class="tab-content">
-
-      <h4 class="sub-head">Stammdaten</h4>
-      <div class="detail-grid">
-        <div class="detail-card">
-          <div class="detail-row"><span class="lbl">Bezeichnung</span><input class="detail-input" id="sBezeichnung" type="text" placeholder="eintragen …" /></div>
-          <div class="detail-row"><span class="lbl">Objektart</span>
-            <select class="detail-input" id="sObjektart">
-              <option value="Eigentumswohnung">Eigentumswohnung</option>
-              <option value="Einfamilienhaus">Einfamilienhaus</option>
-              <option value="Mehrfamilienhaus">Mehrfamilienhaus</option>
-              <option value="Gewerbe">Gewerbe</option>
-              <option value="Sonstiges">Sonstiges</option>
-            </select>
-          </div>
-          <div class="detail-row"><span class="lbl">Übernahmestichtag</span><input class="detail-input" id="sKaufdatum" type="date" /></div>
-          <div class="detail-row"><span class="lbl">Adresse</span><input class="detail-input" id="sAdresse" type="text" placeholder="eintragen …" /></div>
-        </div>
-      </div>
-
-
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════
        TAB: KONTAKTE
   ══════════════════════════════════════ -->
   <div class="tab-pane" id="pane-kontakte">
@@ -642,7 +733,10 @@
         <div class="cl-section-label">Aktuelles Mietverhältnis</div>
       </div>
 
-      <button class="btn-add-row" onclick="archiveMiet()">📦 Mietverhältnis archivieren &amp; neues anlegen</button>
+      <div class="miet-actions">
+        <button class="liq-btn liq-btn-gold" onclick="mhOeffnen()">✉ Mieterhöhung erstellen</button>
+        <button class="btn-add-row" onclick="archiveMiet()">📦 Mietverhältnis archivieren &amp; neues anlegen</button>
+      </div>
 
       <div id="mietArchiv"></div>
 
@@ -661,7 +755,6 @@
       </div>
 
       <div class="liq-controls">
-        <span class="liq-hint" id="liqZeitraumHint">Zeitraum: –</span>
         <button class="liq-btn" onclick="liqOpenImport()">⤒ Tilgungsplan importieren</button>
         <input type="file" id="liqPdfInput" accept="application/pdf" style="display:none" onchange="liqImportPdf(this.files[0])" />
         <span class="liq-hint">Alle Werte in € · Zelle leeren = zurück zur Formel · Doppelklick = Notiz</span>
@@ -690,8 +783,7 @@
   <div class="tab-pane" id="pane-notes">
     <div class="tab-content">
 
-      <div class="section-head" style="margin-bottom:16px;">
-        <h3>No<span style="color:var(--gold)">tes</span></h3>
+      <div class="section-head" style="margin-bottom:10px; justify-content:flex-end;">
         <div class="save-indicator" id="siNotes"></div>
       </div>
 
@@ -737,15 +829,11 @@
   <div class="tab-pane" id="pane-nebenkosten">
     <div class="tab-content">
 
-      <div class="section-head" style="margin-bottom:16px;">
-        <h3>NK-<span style="color:var(--gold)">Abrechnung</span></h3>
-        <div class="save-indicator" id="siNk"></div>
-      </div>
-
       <div class="nk-jahrwahl">
         <label for="nkJahr">Abrechnungsjahr</label>
         <select id="nkJahr" onchange="nkWechsleJahr(this.value)"></select>
         <span class="nk-jahr-hint" id="nkJahrHint"></span>
+        <div class="save-indicator" id="siNk"></div>
       </div>
 
       <!-- ── Abschnitt 1 ── -->
@@ -753,7 +841,7 @@
         <div class="nk-block-head">
           <span class="nk-num">1</span>
           <div>
-            <div class="nk-block-title">Nebenkostenabrechnung der Hausverwaltung</div>
+            <div class="nk-block-title">Nebenkostenabrechnung mit der Hausverwaltung</div>
             <div class="nk-block-sub">Was die Verwaltung Ihnen als Eigentümer berechnet.</div>
           </div>
         </div>
@@ -791,6 +879,77 @@
     </div>
   </div>
 
+  <!-- ══ MIETERHÖHUNG ══ -->
+  <div class="ie-modal" id="mhModal">
+    <div class="ie-modal-box mh-box">
+      <div class="ie-modal-head">
+        <div>
+          <div class="ie-modal-title">Mieterhöhung erstellen</div>
+          <div class="ie-modal-sub">Das Schreiben wird als Word-Datei erzeugt. Gelb markierte Stellen füllen Sie selbst aus.</div>
+        </div>
+        <button class="ie-modal-x" type="button" id="mhClose" aria-label="Schließen">✕</button>
+      </div>
+
+      <div class="set-body">
+        <div class="mh-arten" id="mhArten">
+          <label class="mh-art" data-art="index">
+            <input type="radio" name="mhArt" value="index" checked />
+            <span>
+              <span class="t">Indexmiete</span>
+              <span class="d">Anpassung nach dem Verbraucherpreisindex, wie im Mietvertrag vereinbart.</span>
+            </span>
+          </label>
+          <label class="mh-art" data-art="staffel">
+            <input type="radio" name="mhArt" value="staffel" />
+            <span>
+              <span class="t">Staffelmiete</span>
+              <span class="d">Nächste vertraglich vereinbarte Stufe, ohne Zustimmung des Mieters.</span>
+            </span>
+          </label>
+          <label class="mh-art" data-art="vergleich">
+            <input type="radio" name="mhArt" value="vergleich" />
+            <span>
+              <span class="t">Vergleichsmiete (§ 558 BGB)</span>
+              <span class="d">Erhöhung auf die ortsübliche Miete – der Mieter muss zustimmen.</span>
+            </span>
+          </label>
+        </div>
+
+        <h4 class="mh-h">Mieter und Objekt</h4>
+        <label class="set-row"><span class="set-lbl">Mieter (Anrede und Name)</span><input type="text" id="mhMieter" placeholder="z. B. Frau Erika Musterfrau" /></label>
+        <label class="set-row"><span class="set-lbl">Straße und Hausnummer</span><input type="text" id="mhStrasse" placeholder="Musterstraße 12" /></label>
+        <label class="set-row"><span class="set-lbl">PLZ und Ort</span><input type="text" id="mhPlzOrt" placeholder="20095 Musterstadt" /></label>
+        <label class="set-row"><span class="set-lbl">Objektbezeichnung</span><input type="text" id="mhObjekt" placeholder="Musterstraße 12, 2. OG rechts" /></label>
+
+        <h4 class="mh-h">Miete</h4>
+        <label class="set-row"><span class="set-lbl">Nettokaltmiete bisher (€)</span><input type="text" id="mhMieteAlt" inputmode="decimal" /></label>
+        <label class="set-row"><span class="set-lbl">Erhöhung (%)</span><input type="text" id="mhProzent" inputmode="decimal" placeholder="z. B. 1,82" /></label>
+        <label class="set-row"><span class="set-lbl">Nettokaltmiete neu (€)</span><input type="text" id="mhMieteNeu" inputmode="decimal" /></label>
+        <label class="set-row"><span class="set-lbl">Betriebskosten-Vorauszahlung (€)</span><input type="text" id="mhNk" inputmode="decimal" /></label>
+        <label class="set-row"><span class="set-lbl">Wirksam ab</span><input type="date" id="mhAbDatum" /></label>
+        <p class="set-hint" id="mhRechnung">–</p>
+
+        <h4 class="mh-h">Absender</h4>
+        <label class="set-row"><span class="set-lbl">Briefkopf (kleine Zeile oben)</span><input type="text" id="mhBriefkopf" placeholder="Vorname Name, Straße, PLZ Ort" /></label>
+        <label class="set-row"><span class="set-lbl">Ort für die Datumszeile</span><input type="text" id="mhOrt" placeholder="Hamburg" /></label>
+        <label class="set-row"><span class="set-lbl">Absender – Name</span><input type="text" id="mhAbsName" /></label>
+        <label class="set-row"><span class="set-lbl">Absender – Firma</span><input type="text" id="mhAbsFirma" placeholder="optional" /></label>
+        <p class="set-hint">Diese Angaben werden gemeinsam mit der Nebenkostenabrechnung gespeichert – Sie pflegen sie nur einmal.</p>
+      </div>
+
+      <div class="set-actions">
+        <label class="mh-merk">
+          <input type="checkbox" id="mhSetzeDatum" checked />
+          <span>„Letzte Mieterhöhung" auf dieses Datum setzen</span>
+        </label>
+        <div class="set-actions-right">
+          <span class="nk-status" id="mhStatus"></span>
+          <button class="btn-save" type="button" id="mhErstellen">Schreiben erstellen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ══ EINSTELLUNGEN DER IMMOBILIE ══ -->
   <div class="ie-modal" id="setModal">
     <div class="ie-modal-box">
@@ -804,35 +963,39 @@
 
       <div class="set-body">
         <label class="set-row">
-          <span class="set-lbl">Festgelegter Wert</span>
-          <input type="text" id="setWert" inputmode="decimal" placeholder="z. B. 360000" />
-        </label>
-        <p class="set-hint">
-          Dieser Wert kann in der Portfolioübersicht statt des Kaufpreises als Portfoliowert
-          verwendet werden. Leer lassen, wenn stattdessen der Kaufpreis gelten soll.
-        </p>
-
-        <label class="set-row">
-          <span class="set-lbl">Kaufpreis</span>
-          <input type="text" id="setKaufpreis" inputmode="decimal" placeholder="z. B. 320000" />
+          <span class="set-lbl">Bezeichnung</span>
+          <input type="text" id="setBezeichnung" placeholder="z. B. Wohnung Hamburg-Eimsbüttel" />
         </label>
         <label class="set-row">
-          <span class="set-lbl">Kaltmiete / Monat</span>
-          <input type="text" id="setKaltmiete" inputmode="decimal" placeholder="z. B. 1200" />
+          <span class="set-lbl">Objektart</span>
+          <select id="setObjektart">
+            <option value="Eigentumswohnung">Eigentumswohnung</option>
+          </select>
         </label>
         <label class="set-row">
-          <span class="set-lbl">Hausgeld / Monat</span>
-          <input type="text" id="setHausgeld" inputmode="decimal" placeholder="z. B. 280" />
+          <span class="set-lbl">Adresse</span>
+          <input type="text" id="setAdresse" placeholder="Straße, PLZ Stadt" />
         </label>
         <label class="set-row">
-          <span class="set-lbl">Übernahmestichtag</span>
+          <span class="set-lbl">Kaufpreis (€)</span>
+          <input type="text" id="setKaufpreis" inputmode="decimal" placeholder="z. B. 349000" />
+        </label>
+        <label class="set-row">
+          <span class="set-lbl">Übernahmedatum</span>
           <input type="date" id="setKaufdatum" />
         </label>
-
+        <label class="set-row">
+          <span class="set-lbl">Festgelegter Wert (€)</span>
+          <input type="text" id="setWert" inputmode="decimal" placeholder="z. B. 380000" />
+        </label>
         <p class="set-hint">
-          Kaufpreis, Miete und Hausgeld dienen als Ausgangswerte. Sobald Beträge in der
-          Liquiditätsplanung stehen, haben diese Vorrang – Kennzahlen und Graphen rechnen dann
-          mit den dort erfassten Monatswerten.
+          Der festgelegte Wert kann in der Portfolioübersicht statt des Kaufpreises als
+          Portfoliowert gelten. Leer lassen, wenn der Kaufpreis gelten soll.
+        </p>
+
+        <p class="set-note">
+          <strong>Miete, Hausgeld und Bankrate</strong> tragen Sie nicht hier ein, sondern im Bereich
+          <strong>Liquiditätsplanung</strong> – dort monatsgenau und jederzeit änderbar.
         </p>
       </div>
 
@@ -911,6 +1074,7 @@
       initDateien(data.dateien)
       initNk(data)
       if (typeof updateKpis === 'function') updateKpis()
+      if (typeof hinweiseAktualisieren === 'function') hinweiseAktualisieren()
     }
 
     // ════════════════════════════════════════
@@ -919,6 +1083,7 @@
     let sTimer = null
 
     function initStammdaten(data) {
+      if (!document.getElementById('sBezeichnung')) return   // Bereich „Übersicht" entfernt
       document.getElementById('sBezeichnung').value = data.bezeichnung || ''
       document.getElementById('sObjektart').value   = data.objektart || 'Eigentumswohnung'
       document.getElementById('sAdresse').value     = data.adresse || ''
@@ -930,6 +1095,7 @@
     }
 
     function collectStammdaten() {
+      if (!document.getElementById('sBezeichnung')) return null
       const bez = document.getElementById('sBezeichnung').value.trim()
       const oa  = document.getElementById('sObjektart').value
       const adr = document.getElementById('sAdresse').value.trim()
@@ -1328,7 +1494,7 @@
     // type 'input' = manuelle Eingabe, type 'calc' = berechnet (überschreibbar).
     const LIQ_ROWS = [
       // Einmaliges rund um den Kauf – standardmäßig eingeklappt
-      { key: '_ekKauf',      label: 'Eigenkapital & Kauf', type: 'header', toggle: 'ekkauf' },
+      { key: '_ekKauf',      label: 'Eigenkapital & Bank', type: 'header', toggle: 'ekkauf' },
       { key: 'einzahlungEk', label: 'Einzahlung Eigenkapital',  type: 'input', sub: true, group: 'ekkauf' },
       { key: 'einzahlungFk', label: 'Valutierung Fremdkapital', type: 'input', sub: true, group: 'ekkauf' },
       { key: 'kaufpreis',    label: 'Zahlung Kaufpreis',        type: 'input', sub: true, group: 'ekkauf' },
@@ -1393,7 +1559,6 @@
       const z = liqZeitraum(data)
       liqData.startMonth = z.start
       liqData.monthCount = z.count
-      liqZeitraumHinweis(z)
       liqRender()
     }
 
@@ -1414,24 +1579,12 @@
       const zehn   = plus(start, 119)      // 10 Jahre ab Start
       const fuenf  = plus(heute, 59)       // mindestens 5 Jahre voraus
       const ende   = zehn > fuenf ? zehn : fuenf
-      return { start: start, count: diff(ende, start) + 1 }
+      // per Knopf am rechten Tabellenrand angehängte Jahre
+      const extra  = Number((data.liquiditaet && data.liquiditaet.extraMonate) || 0)
+      return { start: start, count: diff(ende, start) + 1 + Math.max(0, extra) }
     }
 
-    function liqZeitraumHinweis(z) {
-      const el = document.getElementById('liqZeitraumHint')
-      if (!el) return
-      const mLab = m => {
-        const t = m.split('-').map(Number)
-        return new Date(t[0], t[1] - 1, 1).toLocaleDateString('de-DE', { month: 'short', year: 'numeric' })
-      }
-      const letzter = (() => {
-        const t = z.start.split('-').map(Number)
-        const i = t[0] * 12 + (t[1] - 1) + z.count - 1
-        return Math.floor(i / 12) + '-' + String(i % 12 + 1).padStart(2, '0')
-      })()
-      el.textContent = 'Zeitraum ' + mLab(z.start) + ' – ' + mLab(letzter)
-        + ' · beginnt 6 Monate vor der Übernahme'
-    }
+
 
     // ── Kennzahlen für den Überblick (aus der Liqui-Planung berechnet) ──
     function liqNowVals() {
@@ -1605,9 +1758,11 @@
         const [y, mo] = m.split('-').map(Number)
         const name = new Date(y, mo - 1, 1).toLocaleDateString('de-DE', { month: 'short' })
         return `<th class="${mo === 1 ? 'liq-yr' : ''}${m === nowM ? ' liq-now' : ''}">${name} ${String(y).slice(2)}</th>`
-      }).join('')
+      }).join('') +
+        `<th class="liq-add"><button type="button" class="liq-add-btn" onclick="liqAddYear()"
+            title="Tabelle um ein weiteres Jahr verlängern">+ 1 Jahr</button></th>`
 
-      const spacer = `<tr class="liq-spacer"><td class="liq-label"></td>${months.map(() => '<td></td>').join('')}</tr>`
+      const spacer = `<tr class="liq-spacer"><td class="liq-label"></td>${months.map(() => '<td></td>').join('')}<td class="liq-add"></td></tr>`
 
       const rows = liqVisibleRows().map(r => {
         const cls = ['liq-row-' + r.type,
@@ -1629,7 +1784,7 @@
           : r.label
         // Vor „Miete“ eine Leerzeile: darüber Einmaliges, darunter Wiederkehrendes
         return (r.gap ? spacer : '') +
-               `<tr class="${cls}"><td class="liq-label">${label}</td>${tds}</tr>`
+               `<tr class="${cls}"><td class="liq-label">${label}</td>${tds}<td class="liq-add"></td></tr>`
       }).join('')
 
       document.getElementById('liqScroll').innerHTML =
@@ -1649,6 +1804,26 @@
         cell.addEventListener('mouseup',  e  => e.preventDefault())
       })
       liqRefreshCells()
+    }
+
+    // Tabelle um ein Jahr verlängern (Knopf am rechten Rand)
+    function liqAddYear() {
+      const months = liqMonths()
+      const last = months[months.length - 1]
+      liqData.extraMonate = (Number(liqData.extraMonate) || 0) + 12
+      liqData.monthCount += 12
+      // wiederkehrende Zeilen in die neuen Monate fortschreiben
+      const carry = ['nkm', 'nk', 'weitereMiete', 'grundsteuer', 'hausgeld', 'zins', 'tilgung']
+      liqMonths().slice(-12).forEach(m => {
+        carry.forEach(k => {
+          const letzterWert = liqData.cells[k]?.[last]
+          if (letzterWert !== undefined && liqData.cells[k][m] === undefined) liqData.cells[k][m] = letzterWert
+        })
+      })
+      liqRender()
+      const scroll = document.getElementById('liqScroll')
+      if (scroll) scroll.scrollLeft = scroll.scrollWidth
+      scheduleSave('l')
     }
 
     // Aktuellen Monat horizontal in die Mitte der Ansicht scrollen
@@ -2385,7 +2560,7 @@
       if (type === 'm') { collectMiet(); updateObj = { mietverhaeltnis: mietData } }
       if (type === 'l') { updateObj = { liquiditaet: liqData } }
       if (type === 'n') { updateObj = { notes: document.getElementById('notesArea').value } }
-      if (type === 's') { updateObj = collectStammdaten() }
+      if (type === 's') { updateObj = collectStammdaten(); if (!updateObj) return }
       if (type === 't') { updateObj = { todos: todosData } }
       if (type === 'x') { updateObj = { nebenkosten: nkData } }
 
@@ -2469,80 +2644,127 @@
     }
 
     // ── Abschnitt 1: Hausverwaltung ──
+    // Einstieg: hochladen oder manuell – beide Bereiche nutzen dieselbe Abrechnung
+    function nkModus(bereich) {
+      const j = nkJ()
+      if (j[bereich].modus) return j[bereich].modus
+      return nkHatAuswertung() ? 'upload' : null
+    }
+    function nkHatAuswertung() {
+      const hv = nkJ().hv
+      return !!(hv.datei || (hv.positionen || []).length || hv.ausgewertetAm)
+    }
+    function nkSetzeModus(bereich, modus) { nkJ()[bereich].modus = modus; scheduleSave('x'); nkRender() }
+
+    function nkEinstieg(bereich) {
+      return `
+        <div class="nk-bubbles">
+          <button type="button" class="nk-bubble" onclick="nkSetzeModus('${bereich}', 'upload')">
+            <span class="nk-bubble-ico">⤒</span>
+            <span class="nk-bubble-t">Kostenabrechnung Wohnung hochladen</span>
+            <span class="nk-bubble-d">PDF oder Foto der Jahresabrechnung – die Zahlen werden ausgelesen.</span>
+          </button>
+          <button type="button" class="nk-bubble" onclick="nkSetzeModus('${bereich}', 'manuell')">
+            <span class="nk-bubble-ico">⌨</span>
+            <span class="nk-bubble-t">Daten manuell eingeben</span>
+            <span class="nk-bubble-d">Beträge selbst eintragen, ohne Datei.</span>
+          </button>
+        </div>`
+    }
+
+    function nkDropzone(bereich) {
+      const hv = nkJ().hv
+      return `
+        <div class="nk-drop" id="nkDrop_${bereich}"
+             ondragover="nkDragOver(event, '${bereich}')" ondragleave="nkDragLeave('${bereich}')"
+             ondrop="nkDrop(event, '${bereich}')"
+             onclick="document.getElementById('nkFile_${bereich}').click()">
+          <div class="nk-drop-ico">⤓</div>
+          <div class="nk-drop-t">Kostenabrechnung hierher ziehen oder klicken</div>
+          <div class="nk-drop-d">PDF oder Bild · die Beträge werden automatisch ausgelesen</div>
+          <input type="file" id="nkFile_${bereich}" accept="application/pdf,image/*" style="display:none"
+                 onchange="nkLese(event, '${bereich}')" />
+        </div>
+        <div class="nk-drop-zeile">
+          <span class="nk-status" id="nkStatus_${bereich}"></span>
+          ${hv.datei ? `<button class="nk-btn ghost" onclick="nkOeffneDatei()">Hinterlegte Datei öffnen</button>` : ''}
+          <button class="nk-btn ghost" onclick="nkSetzeModus('${bereich}', 'manuell')">Stattdessen manuell eingeben</button>
+        </div>
+        ${hv.hinweis ? `<div class="nk-hinweis">Hinweis aus der Auswertung: ${esc(hv.hinweis)}</div>` : ''}`
+    }
+
+    // ── Abschnitt 1: Hausverwaltung ──
     function nkRenderHv() {
       const hv = nkJ().hv
-      const gesamt = (hv.umlagefaehigBetriebskosten || 0) + (hv.heizkosten || 0) + (hv.nichtUmlagefaehig || 0)
-      const erg = nkNum(hv.ergebnisEigentuemer)
-      const ergText = erg === null ? 'noch offen'
+      const modus = nkModus('hv')
+      const ziel = document.getElementById('nkHv')
+
+      if (!modus) { ziel.innerHTML = nkEinstieg('hv'); return }
+
+      const umlage  = (hv.umlagefaehigBetriebskosten || 0) + (hv.heizkosten || 0)
+      const nicht   = hv.nichtUmlagefaehig || 0
+      const gesamt  = umlage + nicht
+      const hausgeld = hv.vorauszahlungEigentuemer
+      const ergAuto = (hausgeld === null || hausgeld === undefined) ? null
+        : Math.round((Number(hausgeld) - gesamt) * 100) / 100
+      const erg = (hv.ergebnisEigentuemer === null || hv.ergebnisEigentuemer === undefined)
+        ? ergAuto : Number(hv.ergebnisEigentuemer)
+      const ergText = erg === null ? 'Hausgeld und Kosten eintragen'
         : erg >= 0 ? 'Erstattung von der Hausverwaltung' : 'Nachzahlung an die Hausverwaltung'
 
-      document.getElementById('nkHv').innerHTML = `
-        <div class="nk-step ${hv.erhalten ? 'done' : ''}">
-          <label class="nk-check">
-            <input type="checkbox" ${hv.erhalten ? 'checked' : ''} onchange="nkSet('hv.erhalten', this.checked)" />
-            <span>Jahresabrechnung der Hausverwaltung erhalten</span>
-          </label>
-          <div class="nk-step-body">
-            <div class="nk-inline">
-              <label>Erhalten am</label>
-              <input type="date" value="${hv.erhaltenAm || ''}" onchange="nkSet('hv.erhaltenAm', this.value)" />
-            </div>
-            <div class="nk-upload">
-              <button class="nk-btn" onclick="document.getElementById('nkFile').click()">
-                ${hv.datei ? 'Andere Datei auswerten' : 'Abrechnung hochladen und auswerten'}
-              </button>
-              <input type="file" id="nkFile" accept="application/pdf,image/*" style="display:none" onchange="nkLese(event)" />
-              ${hv.datei ? `<button class="nk-btn ghost" onclick="nkOeffneDatei()">Hinterlegte Datei öffnen</button>` : ''}
-              <span class="nk-status" id="nkStatus"></span>
-            </div>
-            ${hv.hinweis ? `<div class="nk-hinweis">Hinweis aus der Auswertung: ${esc(hv.hinweis)}</div>` : ''}
-          </div>
-        </div>
+      ziel.innerHTML = `
+        ${modus === 'upload' ? nkDropzone('hv') : `
+          <div class="nk-drop-zeile">
+            <button class="nk-btn ghost" onclick="nkSetzeModus('hv', 'upload')">⤒ Stattdessen Abrechnung hochladen</button>
+          </div>`}
 
         <div class="nk-grid">
-          ${nkFeld('Abrechnungszeitraum von', 'hv.zeitraumVon', hv.zeitraumVon, 'date')}
-          ${nkFeld('bis', 'hv.zeitraumBis', hv.zeitraumBis, 'date')}
+          ${nkFeld('Gezahltes Hausgeld im Jahr', 'hv.vorauszahlungEigentuemer', hv.vorauszahlungEigentuemer, 'num')}
           ${nkFeld('Umlagefähige Betriebskosten', 'hv.umlagefaehigBetriebskosten', hv.umlagefaehigBetriebskosten, 'num')}
           ${nkFeld('Heizkosten', 'hv.heizkosten', hv.heizkosten, 'num')}
-          ${nkFeld('Nicht umlagefähig', 'hv.nichtUmlagefaehig', hv.nichtUmlagefaehig, 'num')}
-          ${nkFeld('Vorauszahlungen (Hausgeld)', 'hv.vorauszahlungEigentuemer', hv.vorauszahlungEigentuemer, 'num')}
+          ${nkFeld('Nicht umlagefähige Kosten', 'hv.nichtUmlagefaehig', hv.nichtUmlagefaehig, 'num')}
+        </div>
+
+        <div class="nk-summe">
+          <span>Kosten gesamt</span>
+          <span><b>${nkEur(gesamt || null)}</b> · davon umlagefähig ${nkEur(umlage || null)} · nicht umlagefähig ${nkEur(nicht || null)}</span>
         </div>
 
         <div class="nk-result ${erg === null ? '' : erg >= 0 ? 'pos' : 'neg'}">
           <div>
-            <span class="nk-result-label">Ergebnis für Sie als Eigentümer</span>
-            <span class="nk-result-sub">${ergText} · Gesamtkosten laut Abrechnung ${nkEur(gesamt || null)}</span>
+            <span class="nk-result-label">${ergText}</span>
+            <span class="nk-result-sub">Hausgeld ${nkEur(nkNum(hausgeld))} − Kosten ${nkEur(gesamt || null)}</span>
           </div>
           <div class="nk-result-row">
-            <input class="nk-result-input" type="text" value="${erg === null ? '' : String(erg).replace('.', ',')}"
+            <input class="nk-result-input" type="text"
+                   value="${erg === null ? '' : String(erg).replace('.', ',')}"
                    placeholder="0,00" onchange="nkSetZahl('hv.ergebnisEigentuemer', this.value)" />
             <span class="nk-unit">€</span>
           </div>
         </div>
+        ${(hv.ergebnisEigentuemer !== null && hv.ergebnisEigentuemer !== undefined && ergAuto !== null
+            && Math.abs(Number(hv.ergebnisEigentuemer) - ergAuto) > 0.005)
+          ? `<div class="nk-korrektur">Von Hand geändert · berechnet wären ${nkEur(ergAuto)} ·
+               <a href="#" onclick="event.preventDefault();nkSet('hv.ergebnisEigentuemer',null)">zurücksetzen</a></div>` : ''}
 
-        <div class="nk-step ${nkJ().hv.beglichen ? 'done' : ''}">
+        <details class="nk-mehr">
+          <summary>Zeitraum und erkannte Positionen</summary>
+          <div class="nk-grid">
+            ${nkFeld('Abrechnungszeitraum von', 'hv.zeitraumVon', hv.zeitraumVon, 'date')}
+            ${nkFeld('bis', 'hv.zeitraumBis', hv.zeitraumBis, 'date')}
+          </div>
           <label class="nk-check">
             <input type="checkbox" ${hv.beglichen ? 'checked' : ''} onchange="nkSet('hv.beglichen', this.checked)" />
             <span>${erg !== null && erg < 0 ? 'Nachzahlung ist vom Konto abgegangen' : 'Erstattung ist auf dem Konto eingegangen'}</span>
           </label>
-          <div class="nk-step-body">
-            <div class="nk-inline">
-              <label>Am</label>
-              <input type="date" value="${hv.beglichenAm || ''}" onchange="nkSet('hv.beglichenAm', this.value)" />
-            </div>
-          </div>
-        </div>
-
-        ${(hv.positionen || []).length ? `
-          <details class="nk-pos">
-            <summary>${hv.positionen.length} erkannte Positionen anzeigen</summary>
+          ${(hv.positionen || []).length ? `
             <table class="nk-pos-table">
               <thead><tr><th>Position</th><th class="ta-r">Betrag</th><th>Umlagefähig</th></tr></thead>
               <tbody>${hv.positionen.map(p => `
                 <tr><td>${esc(p.bezeichnung)}</td><td class="ta-r">${nkEur(p.betrag)}</td>
                 <td>${p.umlagefaehig ? 'ja' : 'nein'}</td></tr>`).join('')}</tbody>
-            </table>
-          </details>` : ''}
+            </table>` : '<p class="nk-leer">Noch keine Einzelpositionen erkannt.</p>'}
+        </details>
       `
     }
 
@@ -2559,21 +2781,49 @@
       </div>`
     }
 
+    // "1.234,56" und "1234.56" werden beide richtig verstanden
+    function zahlText(roh) {
+      let t = String(roh == null ? '' : roh).replace(/[\s€]/g, '')
+      if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.')
+      else if (/^-?\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '')
+      return t
+    }
+
     function nkSetZahl(pfad, roh) {
-      let s = String(roh).replace(/[\s€]/g, '')
-      if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.')
-      const n = s === '' ? null : parseFloat(s)
+      const t = zahlText(roh)
+      const n = t === '' ? null : parseFloat(t)
       nkSet(pfad, (n === null || isNaN(n)) ? null : Math.round(n * 100) / 100)
     }
 
     // ── Datei hochladen und auswerten ──
-    async function nkLese(e) {
+    // Drag and drop auf die Ablagefläche
+    function nkDragOver(e, bereich) {
+      e.preventDefault()
+      const z = document.getElementById('nkDrop_' + bereich)
+      if (z) z.classList.add('over')
+    }
+    function nkDragLeave(bereich) {
+      const z = document.getElementById('nkDrop_' + bereich)
+      if (z) z.classList.remove('over')
+    }
+    function nkDrop(e, bereich) {
+      e.preventDefault()
+      nkDragLeave(bereich)
+      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]
+      if (f) nkDatei(f, bereich)
+    }
+
+    function nkLese(e, bereich) {
       const f = e.target.files && e.target.files[0]
       e.target.value = ''
-      if (!f) return
+      if (f) nkDatei(f, bereich || 'hv')
+    }
+
+    async function nkDatei(f, bereich) {
+      bereich = bereich || 'hv'
       // Nach jedem nkRender() ist das Element neu – deshalb frisch suchen
       const setSt = (t, k) => {
-        const st = document.getElementById('nkStatus')
+        const st = document.getElementById('nkStatus_' + bereich) || document.getElementById('nkStatus_hv')
         if (st) { st.textContent = t; st.className = 'nk-status ' + (k || '') }
       }
 
@@ -2610,7 +2860,11 @@
         hv.positionen = d.positionen || []
         hv.hinweis = d.hinweis || ''
         hv.erhalten = true
-        if (!hv.erhaltenAm) hv.erhaltenAm = new Date().toISOString().slice(0, 10)
+        hv.ausgewertetAm = new Date().toISOString().slice(0, 10)
+        if (!hv.erhaltenAm) hv.erhaltenAm = hv.ausgewertetAm
+        // beide Abschnitte arbeiten ab jetzt mit dieser Abrechnung
+        nkJ().hv.modus = 'upload'
+        nkJ().mieter.modus = nkJ().mieter.modus || 'upload'
 
         scheduleSave('x')
         nkRender()
@@ -2628,21 +2882,35 @@
     }
 
     // ── Abschnitt 2: Mieter ──
+    // ── Abschnitt 2: Mieter ──
     function nkRenderMieter() {
       const j = nkJ(), hv = j.hv, mi = j.mieter
+      const ziel = document.getElementById('nkMieter')
+      const modus = nkModus('mieter')
+
+      if (!modus) { ziel.innerHTML = nkEinstieg('mieter'); return }
+
       const vorausAuto = nkVorauszahlungAuto()
-      const voraus = mi.vorauszahlung !== null && mi.vorauszahlung !== undefined
-        ? Number(mi.vorauszahlung) : vorausAuto
+      const voraus = (mi.vorauszahlung === null || mi.vorauszahlung === undefined)
+        ? vorausAuto : Number(mi.vorauszahlung)
       const umlageAuto = (hv.umlagefaehigBetriebskosten || 0) + (hv.heizkosten || 0)
-      const umlage = mi.umlagefaehig !== null && mi.umlagefaehig !== undefined
-        ? Number(mi.umlagefaehig) : umlageAuto
+      const umlage = (mi.umlagefaehig === null || mi.umlagefaehig === undefined)
+        ? umlageAuto : Number(mi.umlagefaehig)
       const erg = Math.round((voraus - umlage) * 100) / 100
       const erstattung = erg >= 0
 
       const b = nkData.brief
       const mv = (mietData && (mietData.aktuell || mietData)) || {}
+      const uebernommen = nkHatAuswertung() && umlageAuto > 0
 
-      document.getElementById('nkMieter').innerHTML = `
+      ziel.innerHTML = `
+        ${uebernommen
+          ? `<div class="nk-uebernahme">✓ Die Zahlen stammen aus der Abrechnung, die in Abschnitt 1 hinterlegt ist.</div>`
+          : (modus === 'upload' ? nkDropzone('mieter') : `
+            <div class="nk-drop-zeile">
+              <button class="nk-btn ghost" onclick="nkSetzeModus('mieter', 'upload')">⤒ Stattdessen Abrechnung hochladen</button>
+            </div>`)}
+
         <div class="nk-grid">
           <div class="nk-field wide">
             <label>Vorauszahlungen des Mieters ${nkJahr}</label>
@@ -2653,20 +2921,20 @@
             </div>
             <span class="nk-field-hint">
               Aus der Liquiditätsplanung, Zeile Nebenkostenvorauszahlungen: ${nkEur(vorausAuto)}.
-              ${mi.vorauszahlung !== null && mi.vorauszahlung !== undefined
+              ${(mi.vorauszahlung !== null && mi.vorauszahlung !== undefined)
                 ? `<a href="#" onclick="event.preventDefault();nkSet('mieter.vorauszahlung',null)">zurück zum berechneten Wert</a>` : ''}
             </span>
           </div>
           <div class="nk-field wide">
-            <label>Umlagefähig laut Jahresabrechnung</label>
+            <label>Umlagefähige Kosten</label>
             <div class="nk-field-in">
               <input type="text" value="${String(umlage).replace('.', ',')}" inputmode="decimal"
                      onchange="nkSetZahl('mieter.umlagefaehig', this.value)" />
               <span class="nk-unit">€</span>
             </div>
             <span class="nk-field-hint">
-              Umlagefähige Betriebskosten + Heizkosten aus Abschnitt 1: ${nkEur(umlageAuto)}.
-              ${mi.umlagefaehig !== null && mi.umlagefaehig !== undefined
+              Betriebskosten + Heizkosten aus Abschnitt 1: ${nkEur(umlageAuto)}.
+              ${(mi.umlagefaehig !== null && mi.umlagefaehig !== undefined)
                 ? `<a href="#" onclick="event.preventDefault();nkSet('mieter.umlagefaehig',null)">zurück zum berechneten Wert</a>` : ''}
             </span>
           </div>
@@ -2675,9 +2943,14 @@
         <div class="nk-result ${erstattung ? 'pos' : 'neg'}">
           <div>
             <span class="nk-result-label">${erstattung ? 'Erstattung an den Mieter' : 'Nachzahlung durch den Mieter'}</span>
-            <span class="nk-result-sub">Vorauszahlungen ${nkEur(voraus)} − umlagefähig ${nkEur(umlage)}</span>
+            <span class="nk-result-sub">Vorauszahlungen ${nkEur(voraus)} − umlagefähige Kosten ${nkEur(umlage)}</span>
           </div>
           <div class="nk-result-big">${nkEur(Math.abs(erg))}</div>
+        </div>
+
+        <div class="nk-doc-zeile">
+          <button class="liq-btn liq-btn-gold" onclick="nkDokument()">✉ Schreiben an den Mieter erstellen</button>
+          <span class="nk-status" id="nkDocStatus"></span>
         </div>
 
         <details class="nk-brief" ${nkBriefVollstaendig() ? '' : 'open'}>
@@ -2696,11 +2969,6 @@
             ${nkBriefFeld('Absender – Firma', 'absenderFirma', b.absenderFirma)}
           </div>
         </details>
-
-        <div class="nk-actions">
-          <button class="nk-btn primary" onclick="nkDokument()">NK-Abrechnung als Word-Datei erstellen</button>
-          <span class="nk-status" id="nkDocStatus"></span>
-        </div>
       `
     }
 
@@ -2762,7 +3030,7 @@
         MIETER_STRASSE: b.mieterStrasse || '',
         MIETER_PLZORT: b.mieterPlzOrt || '',
         ORT: b.ort || '',
-        DATUM: new Date().toLocaleDateString('de-DE'),
+        DATUM: new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }),
         JAHR: nkJahr,
         WOHNUNG: b.wohnung || propData?.adresse || propData?.bezeichnung || '',
         BETRIEBSKOSTEN: geld(hv.umlagefaehigBetriebskosten),
@@ -2820,10 +3088,9 @@
     // diesen Browser und für alle Immobilien gleichermaßen.
     // ════════════════════════════════════════
     const SECTIONS = [
-      { key: 'uebersicht',      ico: '📊', titel: 'Übersicht',             panes: ['uberblick'] },
       { key: 'mietverhaeltnis', ico: '🔑', titel: 'Mietverhältnis',        panes: ['mietverhaeltnis'] },
       { key: 'kontakte',        ico: '👤', titel: 'Kontakte',              panes: ['kontakte'] },
-      { key: 'liquiditaet',     ico: '💧', titel: 'Liquidität',            panes: ['liquiditaet'] },
+      { key: 'liquiditaet',     ico: '💧', titel: 'Liquiditätsplanung',     panes: ['liquiditaet'] },
       { key: 'nebenkosten',     ico: '🧾', titel: 'Nebenkostenabrechnung', panes: ['nebenkosten'] },
       { key: 'checkliste',      ico: '✅', titel: 'Checkliste Kauf',       panes: ['checkliste'] },
       { key: 'notizen',         ico: '📝', titel: 'Notizen',               panes: ['notes'] },
@@ -2876,6 +3143,7 @@
           '<header class="ie-sec-head">' +
             '<span class="ie-sec-ico">' + def.ico + '</span>' +
             '<h2>' + def.titel + '</h2>' +
+            '<span class="ie-sec-alert-slot"></span>' +
             '<div class="ie-sec-tools">' +
               '<button class="ie-sec-btn aug" type="button" title="Bereich ausblenden">' + ICON_AUS + '</button>' +
               '<button class="ie-sec-btn chev" type="button" title="Ein- und ausklappen">▾</button>' +
@@ -2929,12 +3197,79 @@
 
     // Menülinks der Seitenleiste springen zum passenden Bereich
     window.ieSetView = function (key) {
-      const ALIAS = { uberblick: 'uebersicht', notes: 'notizen', todos: 'notizen', weg: 'dateien', miet: 'mietverhaeltnis' }
+      const ALIAS = { uberblick: 'mietverhaeltnis', uebersicht: 'mietverhaeltnis', notes: 'notizen', todos: 'notizen', weg: 'dateien', miet: 'mietverhaeltnis' }
       const ziel = document.querySelector('.ie-sec[data-sec="' + (ALIAS[key] || key) + '"]')
       if (!ziel) { window.scrollTo({ top: 0 }); return }
       ziel.classList.remove('zu')
       lsSchalte(LS_ZU, ziel.dataset.sec, false)
       ziel.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+
+
+    // ════════════════════════════════════════
+    // HINWEISE (roter Punkt an Bereich und Immobilie)
+    // ════════════════════════════════════════
+    function hinweiseAktualisieren() {
+      if (!window.IEHinweise) return
+      const offen = window.IEHinweise.sammeln({ mietverhaeltnis: mietData })
+
+      document.querySelectorAll('.ie-sec').forEach(sec => {
+        const slot = sec.querySelector('.ie-sec-alert-slot')
+        if (!slot) return
+        const h = offen.find(x => x.bereich === sec.dataset.sec)
+        slot.innerHTML = ''
+        if (!h) return
+        const punkt = document.createElement('button')
+        punkt.type = 'button'
+        punkt.className = 'ie-sec-alert'
+        punkt.title = h.titel
+        punkt.setAttribute('aria-label', h.titel)
+        punkt.addEventListener('click', e => { e.stopPropagation(); hinweisMenue(punkt, h) })
+        slot.appendChild(punkt)
+      })
+
+      if (typeof window.IEShellRefreshAlerts === 'function') {
+        window.IEShellRefreshAlerts(id, offen.length)
+      }
+    }
+
+    function hinweisMenueSchliessen() {
+      document.querySelectorAll('.hinweis-pop').forEach(p => p.remove())
+    }
+
+    function hinweisMenue(anker, h) {
+      const offenSchon = document.querySelector('.hinweis-pop')
+      hinweisMenueSchliessen()
+      if (offenSchon) return
+
+      const pop = document.createElement('div')
+      pop.className = 'hinweis-pop'
+      pop.innerHTML = `
+        <div class="hp-titel">${esc(h.titel)}</div>
+        <div class="hp-text">${esc(h.text)}</div>
+        <button type="button" class="hp-btn" data-tun="erledigt">Als erledigt markieren</button>
+        <div class="hp-label">Später erinnern</div>
+        <div class="hp-monate">
+          ${[1, 3, 6, 12].map(m => `<button type="button" class="hp-mon" data-monate="${m}">${m} ${m === 1 ? 'Monat' : 'Monate'}</button>`).join('')}
+        </div>`
+      pop.addEventListener('click', e => e.stopPropagation())
+      anker.parentElement.appendChild(pop)
+
+      pop.querySelector('[data-tun="erledigt"]').addEventListener('click', () => {
+        window.IEHinweise.erledigen(mietData, h.key)
+        scheduleSave('m')
+        hinweisMenueSchliessen()
+        hinweiseAktualisieren()
+      })
+      pop.querySelectorAll('.hp-mon').forEach(b => {
+        b.addEventListener('click', () => {
+          window.IEHinweise.verschieben(mietData, h.key, b.dataset.monate)
+          scheduleSave('m')
+          hinweisMenueSchliessen()
+          hinweiseAktualisieren()
+        })
+      })
+      document.addEventListener('click', hinweisMenueSchliessen, { once: true })
     }
 
     // ════════════════════════════════════════
@@ -3003,7 +3338,7 @@
       return new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 }).format(v)
     }
     function zahlAus(s) {
-      const t = String(s == null ? '' : s).replace(/[^0-9,.-]/g, '').replace(/\./g, '').replace(',', '.')
+      const t = zahlText(s)
       if (!t) return null
       const n = Number(t)
       return isNaN(n) ? null : n
@@ -3011,26 +3346,38 @@
 
     function openSettings() {
       if (!propData) return
+      const v = (id, wert) => { const el = document.getElementById(id); if (el) el.value = wert }
       document.getElementById('setSub').textContent = propData.bezeichnung || 'Immobilie'
-      document.getElementById('setWert').value      = propData.wert ? zahlEin(propData.wert) : ''
-      document.getElementById('setKaufpreis').value = propData.kaufpreis ? zahlEin(propData.kaufpreis) : ''
-      document.getElementById('setKaltmiete').value = propData.kaltmiete ? zahlEin(propData.kaltmiete) : ''
-      document.getElementById('setHausgeld').value  = propData.hausgeld ? zahlEin(propData.hausgeld) : ''
-      document.getElementById('setKaufdatum').value = propData.kaufdatum ? String(propData.kaufdatum).slice(0, 10) : ''
-      document.getElementById('siSet').textContent  = ''
+      v('setBezeichnung', propData.bezeichnung || '')
+      v('setObjektart',   propData.objektart || 'Eigentumswohnung')
+      v('setAdresse',     propData.adresse || '')
+      v('setKaufpreis',   propData.kaufpreis ? zahlEin(propData.kaufpreis) : '')
+      v('setKaufdatum',   propData.kaufdatum ? String(propData.kaufdatum).slice(0, 10) : '')
+      v('setWert',        propData.wert ? zahlEin(propData.wert) : '')
+      document.getElementById('siSet').textContent = ''
       document.getElementById('setModal').classList.add('open')
     }
+
     function closeSettings() { document.getElementById('setModal').classList.remove('open') }
 
     async function saveSettings() {
       const ind = document.getElementById('siSet')
-      const patch = {
-        wert:      zahlAus(document.getElementById('setWert').value),
-        kaufpreis: zahlAus(document.getElementById('setKaufpreis').value),
-        kaltmiete: zahlAus(document.getElementById('setKaltmiete').value),
-        hausgeld:  zahlAus(document.getElementById('setHausgeld').value),
-        kaufdatum: document.getElementById('setKaufdatum').value || null,
+      const wert = id => (document.getElementById(id) || {}).value || ''
+      const bez = wert('setBezeichnung').trim()
+      if (!bez) {
+        ind.textContent = '⚠ Bezeichnung fehlt'
+        ind.style.color = 'var(--red)'
+        return
       }
+      const patch = {
+        bezeichnung: bez,
+        objektart:   wert('setObjektart') || 'Eigentumswohnung',
+        adresse:     wert('setAdresse').trim(),
+        kaufpreis:   zahlAus(wert('setKaufpreis')),
+        kaufdatum:   wert('setKaufdatum') || null,
+        wert:        zahlAus(wert('setWert')),
+      }
+      ind.style.color = ''
       ind.textContent = 'Speichert …'
       const { error } = await sb.from('portfolio').update(patch).eq('id', id)
       if (error) {
@@ -3041,14 +3388,197 @@
         console.error('Einstellungen speichern fehlgeschlagen:', error)
         return
       }
-      ind.style.color = ''
       ind.textContent = '✓ Gespeichert'
       Object.assign(propData, patch)
-      const kd = document.getElementById('sKaufdatum')
-      if (kd) kd.value = patch.kaufdatum || ''
+
+      // Kopfbereich mitziehen
+      document.getElementById('propName').textContent    = patch.bezeichnung || '–'
+      document.getElementById('propAdresse').textContent = patch.adresse || '–'
+      document.getElementById('propBadge').textContent   = patch.objektart || 'Immobilie'
+      document.getElementById('propIcon').textContent    = OBJEKTART_ICONS[patch.objektart] || '🏗️'
+      document.title = `${patch.bezeichnung || 'Immobilie'} – Immo.Expert`
+      document.getElementById('setSub').textContent = patch.bezeichnung || 'Immobilie'
       updateKpis()
       setTimeout(() => { ind.textContent = ''; closeSettings() }, 700)
     }
+
+
+    // ════════════════════════════════════════
+    // MIETERHÖHUNG – SCHREIBEN ERSTELLEN
+    // ════════════════════════════════════════
+    const MH_VORLAGEN = {
+      index:     'mieterhoehung-index-vorlage.docx',
+      staffel:   'mieterhoehung-staffel-vorlage.docx',
+      vergleich: 'mieterhoehung-vergleich-vorlage.docx',
+    }
+    const MH_TITEL = { index: 'Indexanpassung', staffel: 'Staffelmiete', vergleich: 'Mieterhöhung' }
+
+    const mhEl = id => document.getElementById(id)
+    const mhVal = id => (mhEl(id) || {}).value || ''
+    const mhNum = v => {
+      const t = zahlText(v)
+      const n = Number(t)
+      return t === '' || isNaN(n) ? null : n
+    }
+    const mhGeld = n => new Intl.NumberFormat('de-DE',
+      { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0) + ' €'
+    const mhDat = iso => {
+      if (!iso) return ''
+      const t = String(iso).slice(0, 10).split('-')
+      return t.length === 3 ? `${t[2]}.${t[1]}.${t[0]}` : String(iso)
+    }
+
+    function mhOeffnen() {
+      const mv = (mietData && (mietData.aktuell || mietData)) || {}
+      const b  = (nkData && nkData.brief) || {}
+      const v  = (typeof liqNowVals === 'function' && liqData) ? liqNowVals() : { nkm: 0, nk: 0 }
+
+      const setz = (id, wert) => { const el = mhEl(id); if (el) el.value = wert }
+      setz('mhMieter',   b.mieterName || mv.mieter || '')
+      setz('mhStrasse',  b.mieterStrasse || '')
+      setz('mhPlzOrt',   b.mieterPlzOrt || '')
+      setz('mhObjekt',   b.wohnung || propData?.adresse || propData?.bezeichnung || '')
+      setz('mhMieteAlt', v.nkm ? new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2 }).format(v.nkm) : '')
+      setz('mhNk',       v.nk  ? new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2 }).format(v.nk)  : '')
+      setz('mhProzent',  '')
+      setz('mhMieteNeu', '')
+      setz('mhBriefkopf', b.briefkopf || '')
+      setz('mhOrt',      b.ort || '')
+      setz('mhAbsName',  b.absenderName || '')
+      setz('mhAbsFirma', b.absenderFirma || '')
+
+      // Vorschlag: übernächster Monatserster
+      const d = new Date()
+      d.setDate(1); d.setMonth(d.getMonth() + 3)
+      setz('mhAbDatum', d.toISOString().slice(0, 10))
+
+      mhMarkiereArt()
+      mhRechne()
+      mhEl('mhStatus').textContent = ''
+      mhEl('mhModal').classList.add('open')
+    }
+    function mhSchliessen() { mhEl('mhModal').classList.remove('open') }
+
+    function mhMarkiereArt() {
+      document.querySelectorAll('.mh-art').forEach(l => {
+        const r = l.querySelector('input')
+        l.classList.toggle('sel', r && r.checked)
+      })
+    }
+
+    function mhRechne(quelle) {
+      const alt = mhNum(mhVal('mhMieteAlt'))
+      const fmt = n => new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
+      if (alt === null || alt <= 0) { mhEl('mhRechnung').textContent = 'Bisherige Nettokaltmiete eintragen.'; return }
+
+      if (quelle === 'prozent') {
+        const pz = mhNum(mhVal('mhProzent'))
+        if (pz !== null) mhEl('mhMieteNeu').value = fmt(Math.round(alt * (1 + pz / 100) * 100) / 100)
+      } else if (quelle === 'neu') {
+        const neu = mhNum(mhVal('mhMieteNeu'))
+        if (neu !== null && alt > 0) mhEl('mhProzent').value = fmt(Math.round((neu / alt - 1) * 10000) / 100)
+      }
+
+      const neu = mhNum(mhVal('mhMieteNeu'))
+      const nk  = mhNum(mhVal('mhNk')) || 0
+      if (neu === null) { mhEl('mhRechnung').textContent = 'Prozentsatz oder neue Miete eintragen.'; return }
+      const diff = Math.round((neu - alt) * 100) / 100
+      mhEl('mhRechnung').textContent =
+        `Gesamtmiete bisher ${mhGeld(alt + nk)} → neu ${mhGeld(neu + nk)} · Differenz ${mhGeld(diff)} im Monat`
+    }
+
+    async function mhErstellen() {
+      const st = mhEl('mhStatus')
+      const setSt = (t, k) => { st.textContent = t; st.className = 'nk-status ' + (k || '') }
+      if (typeof JSZip === 'undefined') { setSt('Bibliothek nicht geladen – Seite neu laden.', 'err'); return }
+
+      const art = (document.querySelector('input[name="mhArt"]:checked') || {}).value || 'index'
+      const alt = mhNum(mhVal('mhMieteAlt'))
+      const neu = mhNum(mhVal('mhMieteNeu'))
+      const nk  = mhNum(mhVal('mhNk')) || 0
+      if (alt === null || neu === null) { setSt('Bitte bisherige und neue Nettokaltmiete eintragen.', 'err'); return }
+
+      const werte = {
+        BRIEFKOPF:      mhVal('mhBriefkopf'),
+        MIETER_NAME:    mhVal('mhMieter'),
+        MIETER_STRASSE: mhVal('mhStrasse'),
+        MIETER_PLZORT:  mhVal('mhPlzOrt'),
+        ORT:            mhVal('mhOrt'),
+        DATUM:          new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        OBJEKT:         mhVal('mhObjekt'),
+        MIETE_ALT:      mhGeld(alt),
+        MIETE_NEU:      mhGeld(neu),
+        MIETE_DIFF:     mhGeld(Math.round((neu - alt) * 100) / 100),
+        NK_ALT:         mhGeld(nk),
+        NK_NEU:         mhGeld(nk),
+        GESAMT_ALT:     mhGeld(alt + nk),
+        GESAMT_NEU:     mhGeld(neu + nk),
+        AB_DATUM:       mhDat(mhVal('mhAbDatum')),
+        ABSENDER_NAME:  mhVal('mhAbsName'),
+        ABSENDER_FIRMA: mhVal('mhAbsFirma'),
+      }
+
+      try {
+        setSt('Dokument wird erstellt …', 'busy')
+        const datei = MH_VORLAGEN[art]
+        const res = await fetch(datei)
+        if (!res.ok) throw new Error('Vorlage nicht gefunden (' + datei + ')')
+        const zip = await JSZip.loadAsync(await res.arrayBuffer())
+        let xml = await zip.file('word/document.xml').async('string')
+        Object.keys(werte).forEach(k => { xml = xml.split('{{' + k + '}}').join(nkXmlEsc(werte[k])) })
+        zip.file('word/document.xml', xml)
+        const blob = await zip.generateAsync({
+          type: 'blob',
+          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        })
+        const name = `${MH_TITEL[art]} ${mhDat(mhVal('mhAbDatum'))} – ${(propData?.bezeichnung || 'Wohnung')}.docx`
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(blob)
+        a.download = name
+        a.click()
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000)
+
+        // Briefdaten gemeinsam mit der Nebenkostenabrechnung merken
+        if (nkData) {
+          if (!nkData.brief) nkData.brief = {}
+          Object.assign(nkData.brief, {
+            briefkopf: werte.BRIEFKOPF, ort: werte.ORT,
+            mieterName: werte.MIETER_NAME, mieterStrasse: werte.MIETER_STRASSE,
+            mieterPlzOrt: werte.MIETER_PLZORT, wohnung: werte.OBJEKT,
+            absenderName: werte.ABSENDER_NAME, absenderFirma: werte.ABSENDER_FIRMA,
+          })
+          scheduleSave('x')
+        }
+
+        // Datum der letzten Mieterhöhung fortschreiben
+        if (mhEl('mhSetzeDatum').checked && werte.AB_DATUM) {
+          const ziel = (mietData.aktuell = mietData.aktuell || {})
+          ziel.letzteMieterhoehung = werte.AB_DATUM
+          scheduleSave('m')
+          if (typeof renderMietverhaeltnis === 'function') renderMietverhaeltnis()
+          if (typeof hinweiseAktualisieren === 'function') hinweiseAktualisieren()
+        }
+
+        setSt('Fertig – die Datei liegt in Ihren Downloads.', 'ok')
+      } catch (err) {
+        console.error(err)
+        setSt('Fehler: ' + err.message, 'err')
+      }
+    }
+
+    ;(function initMieterhoehung() {
+      const m = mhEl('mhModal')
+      if (!m) return
+      mhEl('mhClose').addEventListener('click', mhSchliessen)
+      m.addEventListener('click', e => { if (e.target === m) mhSchliessen() })
+      mhEl('mhErstellen').addEventListener('click', mhErstellen)
+      document.querySelectorAll('input[name="mhArt"]').forEach(r => r.addEventListener('change', mhMarkiereArt))
+      mhEl('mhProzent').addEventListener('input', () => mhRechne('prozent'))
+      mhEl('mhMieteNeu').addEventListener('input', () => mhRechne('neu'))
+      mhEl('mhMieteAlt').addEventListener('input', () => mhRechne('prozent'))
+      mhEl('mhNk').addEventListener('input', () => mhRechne())
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') mhSchliessen() })
+    })()
 
     ;(function initSettings() {
       const gear = document.getElementById('propGear')
