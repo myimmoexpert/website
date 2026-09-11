@@ -183,7 +183,7 @@
     client.auth.getSession().then(function (r) {
       if (!r.data || !r.data.session) { fail('Bitte anmelden'); return }
       return client.from('portfolio')
-        .select('id, bezeichnung, objektart')
+        .select('id, bezeichnung, objektart, mietverhaeltnis')
         .order('created_at', { ascending: true })
         .then(function (res) {
           if (res.error) { fail('nicht ladbar'); return }
@@ -204,7 +204,27 @@
       active: PROP === p.id
     })
     n.setAttribute('data-key', 'prop:' + p.id)
+
+    // Roter Punkt, wenn in einem Bereich dieser Immobilie etwas offen ist
+    var offen = (window.IEHinweise && window.IEHinweise.sammeln(p)) || []
+    if (offen.length) {
+      var punkt = el('span', 'ie-sb-alert')
+      punkt.title = offen.map(function (h) { return h.titel }).join(' · ')
+      n.appendChild(punkt)
+    }
     return n
+  }
+
+  /* Von der Immobilienseite aufgerufen, wenn ein Hinweis erledigt wurde */
+  window.IEShellRefreshAlerts = function (propId, offeneAnzahl) {
+    var item = document.querySelector('.ie-sb-item[data-key="prop:' + propId + '"]')
+    if (!item) return
+    var punkt = item.querySelector('.ie-sb-alert')
+    if (offeneAnzahl > 0 && !punkt) {
+      item.appendChild(el('span', 'ie-sb-alert'))
+    } else if (!offeneAnzahl && punkt) {
+      punkt.remove()
+    }
   }
 
   /* ── Mobil ─────────────────────────────────────────────── */
