@@ -197,13 +197,21 @@
     }
 
     /* ── EINBLICKE ── */
+    /* Jeder Einblick sitzt in einem eigenen Band mit Trennlinie,
+       damit die Beispielansichten nicht ineinanderlaufen. */
+    .peek-band {
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding: 96px 0;
+    }
+    .peek-band.tint { background: rgba(255,255,255,0.018); }
+
     .peek {
       max-width: 1100px;
       margin: 0 auto;
-      padding: 0 60px 96px;
+      padding: 0 60px;
       display: grid;
       grid-template-columns: 0.82fr 1.18fr;
-      gap: 54px;
+      gap: 60px;
       align-items: center;
     }
 
@@ -423,10 +431,11 @@
     }
 
     @media (max-width: 960px) {
+      .peek-band { padding: 72px 0; }
       .peek {
         grid-template-columns: 1fr;
         gap: 32px;
-        padding: 0 32px 72px;
+        padding: 0 32px;
       }
       .peek.reverse .peek-text   { order: 1; }
       .peek.reverse .peek-visual { order: 2; }
@@ -436,7 +445,8 @@
       nav { padding: 18px 24px; }
       nav ul { display: none; }
       .services, .how { padding: 60px 24px; }
-      .peek { padding: 0 20px 64px; }
+      .peek-band { padding: 56px 0; }
+      .peek { padding: 0 20px; }
       .mock { padding: 18px 16px; }
       .mock-kpis { grid-template-columns: 1fr 1fr; }
       .mock-rows { grid-template-columns: 1fr; }
@@ -471,7 +481,8 @@
   </section>
 
   <!-- EINBLICK 1: STECKBRIEF -->
-  <section class="peek">
+  <section class="peek-band">
+   <div class="peek">
     <div class="peek-text">
       <p class="peek-label">Immo.Finder</p>
       <h2>Aus einem Inserat<br />wird ein Steckbrief.</h2>
@@ -515,10 +526,12 @@
         </div>
       </div>
     </div>
+   </div>
   </section>
 
   <!-- EINBLICK 2: PORTFOLIO -->
-  <section class="peek reverse">
+  <section class="peek-band tint">
+   <div class="peek reverse">
     <div class="peek-text">
       <p class="peek-label">Immo.Portfolio</p>
       <h2>Ihr Bestand,<br />auf einen Blick.</h2>

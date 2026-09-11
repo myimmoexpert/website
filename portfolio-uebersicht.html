@@ -414,23 +414,11 @@
 
 
   <!-- ══ ANSICHT: AUM ENTWICKLUNG ══ -->
-  <!-- ══ TAB: NOTIZEN & TO-DOS ══ -->
+  <!-- ══ TAB: NOTIZEN ══ -->
   <div class="tab-pane" id="pane-notizen">
     <div class="tab-content">
 
-      <div class="section-head" style="margin-bottom:16px;">
-        <h3>To-<span>Dos</span></h3>
-        <div class="save-indicator" id="siTodos"></div>
-      </div>
-      <div class="todo-add">
-        <input type="text" id="todoInput" placeholder="Neues To-Do eintragen …" maxlength="300" />
-        <input type="date" id="todoDueInput" title="Fällig am (optional)" />
-        <button class="todo-btn" onclick="addTodo()">+ Hinzufügen</button>
-      </div>
-      <div class="checklist-card" id="todoList"></div>
-
-      <div class="section-head" style="margin:34px 0 16px;">
-        <h3>Noti<span>zen</span></h3>
+      <div class="section-head" style="margin-bottom:10px; justify-content:flex-end;">
         <div class="save-indicator" id="siNotes"></div>
       </div>
       <textarea class="notes-area" id="notesArea"
@@ -793,6 +781,7 @@
     // TAB: TO-DOS (portfolio-weit)
     // ════════════════════════════════════════
     function initTodos() {
+      if (!document.getElementById('todoInput')) return
       if (!Array.isArray(overview.todos)) overview.todos = []
       renderTodos()
       document.getElementById('todoInput').addEventListener('keydown', e => {
@@ -801,6 +790,7 @@
     }
 
     function renderTodos() {
+      if (!document.getElementById('todoList')) return
       const list = document.getElementById('todoList')
       list.innerHTML = ''
       if (!overview.todos.length) {
@@ -836,6 +826,7 @@
     }
 
     function addTodo() {
+      if (!document.getElementById('todoInput')) return
       const inp = document.getElementById('todoInput')
       const dueInp = document.getElementById('todoDueInput')
       const text = inp.value.trim()
@@ -930,7 +921,7 @@
       if (pane) pane.classList.add('active')
       const HD = {
         liquiditaet: ['💧', 'Liquiditäts<span>übersicht</span>', 'Kontoauszug einlesen, Monatswechsel und Cashflow je Wohnung.'],
-        notizen:     ['📝', 'Notizen <span>& To-Dos</span>', 'Aufgaben und Notizen über das gesamte Portfolio.'],
+        notizen:     ['📝', 'Noti<span>zen</span>', 'Notizen über das gesamte Portfolio.'],
         uebersicht:  ['📊', 'Über<span>sicht</span>', 'Kennzahlen je Immobilie.'],
         kontakte:    ['👤', 'Kon<span>takte</span>', 'Portfolio-weite Kontakte.'],
       }[name]

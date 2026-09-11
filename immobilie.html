@@ -589,20 +589,6 @@
         </div>
       </div>
 
-      <h4 class="sub-head">
-        Finanzkennzahlen
-        <div class="save-indicator" id="siUberblick"></div>
-      </h4>
-
-      <div class="cl-table" id="clTableFixed">
-        <div class="cl-section-label">Werte aus der Liquiditätsplanung (aktueller Monat)</div>
-      </div>
-
-      <div class="cl-table" id="clTableCustom">
-        <div class="cl-section-label">Eigene Felder</div>
-      </div>
-
-      <button class="btn-add-row" onclick="addCustomRow()">+ Eigenes Feld hinzufügen</button>
 
     </div>
   </div>
@@ -675,10 +661,7 @@
       </div>
 
       <div class="liq-controls">
-        <label>Start
-          <input type="month" id="liqStart" onchange="liqChangeStart(this.value)" />
-        </label>
-        <button class="liq-btn" onclick="liqExtend()">+ 12 Monate</button>
+        <span class="liq-hint" id="liqZeitraumHint">Zeitraum: –</span>
         <button class="liq-btn" onclick="liqOpenImport()">⤒ Tilgungsplan importieren</button>
         <input type="file" id="liqPdfInput" accept="application/pdf" style="display:none" onchange="liqImportPdf(this.files[0])" />
         <span class="liq-hint">Alle Werte in € · Zelle leeren = zurück zur Formel · Doppelklick = Notiz</span>
@@ -697,28 +680,6 @@
           <button class="liq-btn" onclick="liqCloseImport()">Abbrechen</button>
         </div>
       </div>
-
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════
-       TAB: TO-DOS
-  ══════════════════════════════════════ -->
-  <div class="tab-pane" id="pane-todos">
-    <div class="tab-content">
-
-      <div class="section-head" style="margin-bottom:16px;">
-        <h3>To-<span style="color:var(--gold)">Dos</span></h3>
-        <div class="save-indicator" id="siTodos"></div>
-      </div>
-
-      <div class="todo-add">
-        <input type="text" id="todoInput" placeholder="Neues To-Do eintragen …" maxlength="300" />
-        <input type="date" id="todoDueInput" title="Fällig am (optional) – bei Fälligkeit gibt es eine Benachrichtigung" />
-        <button class="liq-btn liq-btn-gold" onclick="addTodo()">+ Hinzufügen</button>
-      </div>
-
-      <div class="checklist-card" id="todoList"></div>
 
     </div>
   </div>
@@ -1011,6 +972,7 @@
 
     function renderUberblickFixed() {
       const table = document.getElementById('clTableFixed')
+      if (!table) return
       table.querySelectorAll('.cl-row, .cl-section-label:not(:first-child)').forEach(r => r.remove())
       FINANZ_ROWS.forEach(f => {
         const row = document.createElement('div')
@@ -1077,6 +1039,7 @@
     }
 
     function renderUberblickCustom() {
+      if (!document.getElementById('clTableCustom')) return
       const table = document.getElementById('clTableCustom')
       table.querySelectorAll('.cl-row').forEach(r => r.remove())
       const customs = uberblickData.custom || []
@@ -1098,6 +1061,7 @@
     }
 
     function addCustomRow() {
+      if (!document.getElementById('clTableCustom')) return
       if (!uberblickData.custom) uberblickData.custom = []
       uberblickData.custom.push({ label: '', value: '' })
       renderUberblickCustom()
@@ -1423,16 +1387,50 @@
       if (!liqData.cells)     liqData.cells = {}
       if (!liqData.overrides) liqData.overrides = {}
       if (!liqData.notes)     liqData.notes = {}
-      // Bestandsdaten: Start auf den Januar des Kaufjahres vorziehen (Zellen bleiben unberührt,
-      // da sie am Monat hängen – es kommen lediglich leere Monate davor dazu).
-      const janKaufjahr = (data.kaufdatum || '').slice(0, 4)
-      if (janKaufjahr && liqData.startMonth > janKaufjahr + '-01') {
-        const [y, mo] = liqData.startMonth.split('-').map(Number)
-        liqData.monthCount += (y - Number(janKaufjahr)) * 12 + (mo - 1)
-        liqData.startMonth = janKaufjahr + '-01'
-      }
-      document.getElementById('liqStart').value = liqData.startMonth
+      // Der Zeitraum wird nicht mehr von Hand gesetzt: er beginnt sechs Monate
+      // vor der Übernahme und reicht zehn Jahre weit, mindestens aber fünf Jahre
+      // über heute hinaus. Die Zellen hängen am Monat und bleiben unberührt.
+      const z = liqZeitraum(data)
+      liqData.startMonth = z.start
+      liqData.monthCount = z.count
+      liqZeitraumHinweis(z)
       liqRender()
+    }
+
+    // Planungszeitraum: fest an der Übernahme ausgerichtet
+    function liqZeitraum(data) {
+      const plus = (m, n) => {
+        const t = m.split('-').map(Number)
+        const i = t[0] * 12 + (t[1] - 1) + n
+        return Math.floor(i / 12) + '-' + String(i % 12 + 1).padStart(2, '0')
+      }
+      const diff = (a, b) => {
+        const x = a.split('-').map(Number), y = b.split('-').map(Number)
+        return (x[0] * 12 + x[1]) - (y[0] * 12 + y[1])
+      }
+      const kaufMonat = (data.kaufdatum || new Date().toISOString()).slice(0, 7)
+      const start  = plus(kaufMonat, -6)
+      const heute  = new Date().toISOString().slice(0, 7)
+      const zehn   = plus(start, 119)      // 10 Jahre ab Start
+      const fuenf  = plus(heute, 59)       // mindestens 5 Jahre voraus
+      const ende   = zehn > fuenf ? zehn : fuenf
+      return { start: start, count: diff(ende, start) + 1 }
+    }
+
+    function liqZeitraumHinweis(z) {
+      const el = document.getElementById('liqZeitraumHint')
+      if (!el) return
+      const mLab = m => {
+        const t = m.split('-').map(Number)
+        return new Date(t[0], t[1] - 1, 1).toLocaleDateString('de-DE', { month: 'short', year: 'numeric' })
+      }
+      const letzter = (() => {
+        const t = z.start.split('-').map(Number)
+        const i = t[0] * 12 + (t[1] - 1) + z.count - 1
+        return Math.floor(i / 12) + '-' + String(i % 12 + 1).padStart(2, '0')
+      })()
+      el.textContent = 'Zeitraum ' + mLab(z.start) + ' – ' + mLab(letzter)
+        + ' · beginnt 6 Monate vor der Übernahme'
     }
 
     // ── Kennzahlen für den Überblick (aus der Liqui-Planung berechnet) ──
@@ -1503,13 +1501,11 @@
     }
 
     // Erstbefüllung automatisch aus Stammdaten + Überblick > "Finanzierung und Liquidität"
-    function liqDefaults(data, count = 24) {
-      // Kaufmonat aus den Stammdaten, Planungsstart immer der Januar des Kaufjahres
+    function liqDefaults(data) {
       const kaufMonat = (data.kaufdatum || new Date().toISOString()).slice(0, 7)
-      const start     = kaufMonat.slice(0, 4) + '-01'
-      const offset    = Number(kaufMonat.slice(5, 7)) - 1   // Monate zwischen Januar und Kaufmonat
-      const total     = count + offset                      // Zeitraum nach dem Kauf bleibt gleich lang
-      const d = { startMonth: start, monthCount: total, cells: {}, overrides: {} }
+      const z         = liqZeitraum(data)
+      const start     = z.start
+      const d = { startMonth: start, monthCount: z.count, cells: {}, overrides: {} }
       const set = (row, month, val) => {
         if (!d.cells[row]) d.cells[row] = {}
         d.cells[row][month] = val
@@ -1867,28 +1863,6 @@
       scheduleSave('l')
     }
 
-    function liqChangeStart(val) {
-      if (!val) return
-      liqData.startMonth = val
-      liqRender()
-      scheduleSave('l')
-    }
-
-    function liqExtend() {
-      const months = liqMonths()
-      const last = months[months.length - 1]
-      liqData.monthCount += 12
-      // wiederkehrende Zeilen in die neuen Monate fortschreiben
-      const carry = ['nkm', 'nk', 'weitereMiete', 'grundsteuer', 'hausgeld']
-      liqMonths().slice(-12).forEach(m => {
-        carry.forEach(k => {
-          const lastVal = liqData.cells[k]?.[last]
-          if (lastVal !== undefined && liqData.cells[k][m] === undefined) liqData.cells[k][m] = lastVal
-        })
-      })
-      liqRender()
-      scheduleSave('l')
-    }
 
     // ════════════════════════════════════════
     // DATEIEN (Supabase Storage)
@@ -2083,6 +2057,7 @@
 
     function initTodos(data) {
       todosData = Array.isArray(data) ? data : []
+      if (!document.getElementById('todoInput')) return   // Bereich entfernt
       renderTodos()
       document.getElementById('todoInput').addEventListener('keydown', e => {
         if (e.key === 'Enter') addTodo()
@@ -2090,6 +2065,7 @@
     }
 
     function renderTodos() {
+      if (!document.getElementById('todoList')) return
       const list = document.getElementById('todoList')
       list.innerHTML = ''
       if (!todosData.length) {
@@ -2126,6 +2102,7 @@
     }
 
     function addTodo() {
+      if (!document.getElementById('todoInput')) return
       const inp = document.getElementById('todoInput')
       const dueInp = document.getElementById('todoDueInput')
       const text = inp.value.trim()
@@ -2843,12 +2820,14 @@
     // diesen Browser und für alle Immobilien gleichermaßen.
     // ════════════════════════════════════════
     const SECTIONS = [
-      { key: 'uebersicht',  ico: '📊', titel: 'Übersicht',             panes: ['uberblick', 'mietverhaeltnis', 'kontakte'] },
-      { key: 'liquiditaet', ico: '💧', titel: 'Liquidität',            panes: ['liquiditaet'] },
-      { key: 'nebenkosten', ico: '🧾', titel: 'Nebenkostenabrechnung', panes: ['nebenkosten'] },
-      { key: 'checkliste',  ico: '✅', titel: 'Checkliste Kauf',       panes: ['checkliste'] },
-      { key: 'notizen',     ico: '📝', titel: 'Notizen und To-Dos',    panes: ['todos', 'notes'] },
-      { key: 'dateien',     ico: '📁', titel: 'Dateien',               panes: ['dateien'] },
+      { key: 'uebersicht',      ico: '📊', titel: 'Übersicht',             panes: ['uberblick'] },
+      { key: 'mietverhaeltnis', ico: '🔑', titel: 'Mietverhältnis',        panes: ['mietverhaeltnis'] },
+      { key: 'kontakte',        ico: '👤', titel: 'Kontakte',              panes: ['kontakte'] },
+      { key: 'liquiditaet',     ico: '💧', titel: 'Liquidität',            panes: ['liquiditaet'] },
+      { key: 'nebenkosten',     ico: '🧾', titel: 'Nebenkostenabrechnung', panes: ['nebenkosten'] },
+      { key: 'checkliste',      ico: '✅', titel: 'Checkliste Kauf',       panes: ['checkliste'] },
+      { key: 'notizen',         ico: '📝', titel: 'Notizen',               panes: ['notes'] },
+      { key: 'dateien',         ico: '📁', titel: 'Dateien',               panes: ['dateien'] },
     ]
     // Auge (sichtbar) und durchgestrichenes Auge (ausgeblendet)
     const ICON_EIN = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12S5 5.5 12 5.5 22.5 12 22.5 12 19 18.5 12 18.5 1.5 12 1.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>'
@@ -2880,7 +2859,10 @@
     function buildSections() {
       const host = document.getElementById('secHost')
       if (!host) return
-      const zu  = lsListe(LS_ZU)
+      // Beim ersten Besuch sind alle Bereiche zugeklappt
+      let gespeichert = null
+      try { gespeichert = localStorage.getItem(LS_ZU) } catch (e) {}
+      const zu  = gespeichert === null ? SECTIONS.map(d => d.key) : lsListe(LS_ZU)
       const aus = lsListe(LS_AUS)
 
       SECTIONS.forEach(def => {
@@ -2947,7 +2929,7 @@
 
     // Menülinks der Seitenleiste springen zum passenden Bereich
     window.ieSetView = function (key) {
-      const ALIAS = { uberblick: 'uebersicht', notes: 'notizen', todos: 'notizen', weg: 'dateien' }
+      const ALIAS = { uberblick: 'uebersicht', notes: 'notizen', todos: 'notizen', weg: 'dateien', miet: 'mietverhaeltnis' }
       const ziel = document.querySelector('.ie-sec[data-sec="' + (ALIAS[key] || key) + '"]')
       if (!ziel) { window.scrollTo({ top: 0 }); return }
       ziel.classList.remove('zu')

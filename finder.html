@@ -219,12 +219,33 @@
     .loading-card p { color: var(--muted); font-size: 0.95rem; }
     .loading-card strong { color: var(--white); display: block; margin-bottom: 6px; font-size: 1rem; }
 
+
+    /* ── STECKBRIEF IM POP-UP ── */
+    .sb-modal {
+      display: none; position: fixed; inset: 0; z-index: 450;
+      background: rgba(0,0,0,0.72); overflow-y: auto; padding: 24px 16px 48px;
+    }
+    .sb-modal.offen { display: block; }
+    .sb-modal-box {
+      position: relative; width: 100%; max-width: 960px; margin: 32px auto 0;
+      background: var(--navy2); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px; box-shadow: 0 30px 90px rgba(0,0,0,0.65);
+    }
+    .sb-modal-x {
+      position: absolute; top: 14px; right: 14px; z-index: 2;
+      width: 34px; height: 34px; border-radius: 10px;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+      color: var(--muted); font-size: 0.95rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sb-modal-x:hover { background: rgba(255,255,255,0.12); color: var(--white); }
+
     /* ── RESULT ── */
     .result {
       display: none;
-      padding: 0 60px 80px;
-      max-width: 900px;
-      margin: 0 auto;
+      padding: 26px 30px 34px;
+      max-width: none;
+      margin: 0;
     }
 
     .result.visible { display: block; }
@@ -236,6 +257,7 @@
       flex-wrap: wrap;
       gap: 16px;
       margin-bottom: 28px;
+      padding-right: 48px;   /* Platz für den Schließen-Knopf des Pop-ups */
     }
 
     .result-title {
@@ -796,8 +818,11 @@
     </div>
   </div>
 
-  <!-- RESULT (Demo-Steckbrief) -->
-  <div class="result" id="result">
+  <!-- RESULT: Steckbrief im Pop-up -->
+  <div class="sb-modal" id="resultModal">
+   <div class="sb-modal-box">
+    <button class="sb-modal-x" type="button" id="resultClose" aria-label="Schließen">✕</button>
+    <div class="result" id="result">
     <div class="result-header">
       <div>
         <div class="result-title" id="resultTitle">–</div>
@@ -903,6 +928,8 @@
       <button class="btn-secondary" onclick="resetForm()">Neues Inserat analysieren</button>
       <button class="btn-save" id="saveBtn" onclick="saveSteckbrief()">Steckbrief speichern</button>
     </div>
+    </div>
+   </div>
   </div>
 
   </div><!-- /viewAnalyse -->
@@ -1001,6 +1028,31 @@
       window.ieSetView(new URLSearchParams(location.search).get('tab') || 'analyse')
     })()
 
+    // ── STECKBRIEF-POP-UP ───────────────────────────
+    function openResultModal() {
+      const m = document.getElementById('resultModal')
+      document.getElementById('result').classList.add('visible')
+      m.classList.add('offen')
+      m.scrollTop = 0
+      document.body.style.overflow = 'hidden'
+    }
+    function closeResultModal() {
+      const m = document.getElementById('resultModal')
+      m.classList.remove('offen')
+      document.getElementById('result').classList.remove('visible')
+      document.body.style.overflow = ''
+    }
+    ;(function initResultModal() {
+      const m = document.getElementById('resultModal')
+      const x = document.getElementById('resultClose')
+      if (x) x.addEventListener('click', closeResultModal)
+      if (m) m.addEventListener('click', e => { if (e.target === m) closeResultModal() })
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && m && m.classList.contains('offen')
+            && !document.getElementById('letterOverlay').classList.contains('visible')) closeResultModal()
+      })
+    })()
+
     let currentData = null
     let currentUrl  = null
     let session     = null
@@ -1053,7 +1105,7 @@
 
         fillResult(data, url)
         document.getElementById('loading').classList.remove('visible')
-        document.getElementById('result').classList.add('visible')
+        openResultModal()
 
         if (session) {
           const btn = document.getElementById('saveBtn')
@@ -1064,7 +1116,6 @@
           document.getElementById('freemiumBanner').classList.add('visible')
         }
 
-        document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' })
 
       } catch (err) {
         document.getElementById('loading').classList.remove('visible')
@@ -1158,8 +1209,7 @@
       fillResult(d, url)
       document.getElementById('freemiumBanner').classList.remove('visible')
       document.getElementById('saveBtn').classList.remove('visible')
-      document.getElementById('result').classList.add('visible')
-      document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' })
+      openResultModal()
     }
 
     async function deleteSaved(id) {
@@ -1413,7 +1463,7 @@ mobil: [Telefon]`
 
     function resetForm() {
       document.getElementById('urlInput').value = ''
-      document.getElementById('result').classList.remove('visible')
+      closeResultModal()
       document.getElementById('freemiumBanner').classList.remove('visible')
       document.getElementById('saveBtn').classList.remove('visible')
       window.scrollTo({ top: 0, behavior: 'smooth' })
