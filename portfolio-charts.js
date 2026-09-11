@@ -2,16 +2,16 @@
    Immo.Expert – Portfolio-Graphen (reines SVG, ohne Fremdbibliothek)
 
    Farbwahl geprüft mit dem Validator der dataviz-Vorgaben
-   (hell, Fläche #ffffff): Helligkeitsband, Sättigung, Farbfehlsichtigkeit,
+   (dunkel, Fläche #18181b): Helligkeitsband, Sättigung, Farbfehlsichtigkeit,
    Normalsicht und Kontrast alle bestanden.
    ══════════════════════════════════════════════════════════════ */
 (function () {
   'use strict'
 
-  var S1 = '#0e8fa8'   // Petrol   – Eigenkapital / Miete
-  var S2 = '#eb6834'   // Orange   – Fremdkapital / Hausgeld
-  var S3 = '#2a78d6'   // Blau     – Bankrate
-  var INK = '#101a2b', INK2 = '#64748b', GRID = 'rgba(16,26,43,0.09)', SURF = '#ffffff'
+  var S1 = '#d3ac5f'   // Gold       – Eigenkapital / Miete
+  var S2 = '#6a9bf5'   // Blau       – Fremdkapital / Hausgeld
+  var S3 = '#e0705f'   // Terrakotta – Bankrate
+  var INK = '#f1eee7', INK2 = '#9b968c', GRID = 'rgba(255,255,255,0.10)', SURF = '#18181b'
 
   var ZURUECK = 6, VOR = 6
 
@@ -177,7 +177,7 @@
              '<text x="' + (pl - 10) + '" y="' + (y(t) + 4) + '" text-anchor="end" fill="' + INK2 + '" font-size="11">' + kurz(t) + '</text>'
     }).join('')
 
-    var null_ = '<line x1="' + pl + '" y1="' + y(0) + '" x2="' + (W - pr) + '" y2="' + y(0) + '" stroke="rgba(16,26,43,0.28)" stroke-width="1"/>'
+    var null_ = '<line x1="' + pl + '" y1="' + y(0) + '" x2="' + (W - pr) + '" y2="' + y(0) + '" stroke="rgba(255,255,255,0.28)" stroke-width="1"/>'
 
     var balkenHtml = daten.map(function (d, i) {
       var x0 = xm(i) - bw / 2
@@ -199,7 +199,7 @@
 
     var ji = daten.findIndex(function (d) { return d.monat === jetzt })
     var heute = ji >= 0
-      ? '<rect x="' + (pl + band * ji) + '" y="' + pt + '" width="' + band + '" height="' + ih + '" fill="rgba(16,26,43,0.035)"/>'
+      ? '<rect x="' + (pl + band * ji) + '" y="' + pt + '" width="' + band + '" height="' + ih + '" fill="rgba(255,255,255,0.045)"/>'
       : ''
 
     plot.insertAdjacentHTML('afterbegin',

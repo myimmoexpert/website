@@ -13,13 +13,13 @@
   style.textContent = `
     #ie-gate {
       position: fixed; inset: 0; z-index: 99999;
-      background: #0f1c2e;
+      background: #0f0f11;
       display: flex; align-items: center; justify-content: center;
       font-family: 'Inter', system-ui, sans-serif;
     }
     #ie-gate-box {
-      background: #172540;
-      border: 1px solid rgba(201,168,76,0.22);
+      background: #18181b;
+      border: 1px solid rgba(211,172,95,0.22);
       border-radius: 16px;
       padding: 48px 40px;
       width: 100%;
@@ -30,23 +30,23 @@
     #ie-gate-logo {
       font-size: 1.6rem;
       font-weight: 700;
-      color: #ffffff;
+      color: #f1eee7;
       margin-bottom: 8px;
       letter-spacing: -0.5px;
     }
-    #ie-gate-logo span { color: #c9a84c; }
+    #ie-gate-logo span { color: #d3ac5f; }
     #ie-gate-sub {
-      color: #8a97aa;
+      color: #9b968c;
       font-size: 0.88rem;
       margin-bottom: 32px;
       line-height: 1.5;
     }
     #ie-gate-input {
       width: 100%;
-      background: #0f1c2e;
+      background: #0f0f11;
       border: 1px solid rgba(255,255,255,0.12);
       border-radius: 10px;
-      color: #ffffff;
+      color: #f1eee7;
       font-family: inherit;
       font-size: 1rem;
       padding: 14px 18px;
@@ -56,12 +56,12 @@
       letter-spacing: 2px;
       transition: border-color 0.2s;
     }
-    #ie-gate-input::placeholder { letter-spacing: 0; color: #8a97aa; }
-    #ie-gate-input:focus { border-color: rgba(201,168,76,0.5); }
+    #ie-gate-input::placeholder { letter-spacing: 0; color: #9b968c; }
+    #ie-gate-input:focus { border-color: rgba(211,172,95,0.5); }
     #ie-gate-btn {
       width: 100%;
-      background: #c9a84c;
-      color: #0f1c2e;
+      background: #d3ac5f;
+      color: #0f0f11;
       border: none;
       border-radius: 10px;
       font-family: inherit;

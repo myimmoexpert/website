@@ -1,34 +1,37 @@
 /* ══════════════════════════════════════════════════════════════
-   Immo.Expert – App-Shell & helles Design-System
+   Immo.Expert – App-Shell & Design-System "Onyx & Gold"
    Wird zusätzlich zum seiteneigenen <style>-Block geladen.
    ══════════════════════════════════════════════════════════════ */
 
 :root {
+  color-scheme: dark;
+
   /* Flächen */
-  --ie-bg:        #f4f6f9;   /* Seitenhintergrund  */
-  --ie-surface:   #ffffff;   /* Karten             */
-  --ie-surface-2: #eef2f7;   /* leicht abgesetzt   */
-  --ie-line:      rgba(16,26,43,0.10);
-  --ie-line-soft: rgba(16,26,43,0.06);
+  --ie-bg:        #0f0f11;   /* Seitenhintergrund  */
+  --ie-surface:   #18181b;   /* Karten             */
+  --ie-surface-2: #222226;   /* leicht abgesetzt   */
+  --ie-line:      rgba(255,255,255,0.11);
+  --ie-line-soft: rgba(255,255,255,0.07);
 
   /* Text */
-  --ie-ink:       #101a2b;
-  --ie-ink-soft:  #64748b;
+  --ie-ink:       #f1eee7;
+  --ie-ink-soft:  #9b968c;
 
   /* Akzent */
-  --ie-accent:    #2b7a8c;
-  --ie-accent-2:  #1f5d6c;
-  --ie-accent-bg: rgba(43,122,140,0.10);
+  --ie-accent:    #d3ac5f;
+  --ie-accent-2:  #b8914a;
+  --ie-accent-bg: rgba(211,172,95,0.12);
+  --ie-on-accent: #17130a;   /* Schrift auf Goldflächen */
 
   /* Signal */
-  --ie-pos:       #15803d;
-  --ie-neg:       #dc2626;
+  --ie-pos:       #5cc98a;
+  --ie-neg:       #ef6b6b;
 
-  /* Sidebar (dunkel) */
-  --ie-sb-bg:     #101a2b;
-  --ie-sb-bg-2:   #16233a;
-  --ie-sb-ink:    #e6ecf5;
-  --ie-sb-muted:  #8fa0b8;
+  /* Sidebar (noch dunkler als der Inhalt) */
+  --ie-sb-bg:     #0a0a0c;
+  --ie-sb-bg-2:   #18181b;
+  --ie-sb-ink:    #ece9e2;
+  --ie-sb-muted:  #8d887e;
   --ie-sb-line:   rgba(255,255,255,0.09);
 
   /* Maße */
@@ -91,7 +94,7 @@ body.ie-app .tab-pane { flex: 1; }
   z-index: 400;
   display: flex; align-items: center; gap: 20px;
   padding: 0 24px;
-  background: rgba(255,255,255,0.88);
+  background: rgba(15,15,17,0.86);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--ie-line);
 }
@@ -121,14 +124,14 @@ body.ie-app .tab-pane { flex: 1; }
 }
 .ie-topbar nav.ie-topnav ul a:hover { background: var(--ie-surface-2); color: var(--ie-ink); }
 .ie-topbar nav.ie-topnav ul a.active { color: var(--ie-accent); background: var(--ie-accent-bg); font-weight: 600; }
-.ie-topbar nav.ie-topnav ul a.ie-cta { background: var(--ie-accent); color: #fff; font-weight: 600; }
-.ie-topbar nav.ie-topnav ul a.ie-cta:hover { background: var(--ie-accent-2); color: #fff; }
+.ie-topbar nav.ie-topnav ul a.ie-cta { background: var(--ie-accent); color: var(--ie-on-accent); font-weight: 600; }
+.ie-topbar nav.ie-topnav ul a.ie-cta:hover { background: var(--ie-accent-2); color: var(--ie-on-accent); }
 
-/* Glocke aus notifications.js an das helle Theme anpassen */
+/* Glocke aus notifications.js an das dunkle Theme anpassen */
 .ie-topbar .notif-bell { filter: none; font-size: 1.05rem; }
 .ie-topbar .notif-panel {
   background: var(--ie-surface); border: 1px solid var(--ie-line);
-  box-shadow: 0 16px 44px rgba(16,26,43,0.16);
+  box-shadow: 0 16px 44px rgba(0,0,0,0.55);
 }
 .ie-topbar .notif-head { color: var(--ie-accent); border-bottom-color: var(--ie-line); }
 .ie-topbar .notif-item { border-bottom-color: var(--ie-line-soft); }
@@ -148,7 +151,7 @@ body.ie-app .tab-pane { flex: 1; }
   position: fixed; top: var(--ie-top-h); bottom: 0; left: 0;
   width: var(--ie-sb-w); z-index: 350;
   background: var(--ie-sb-bg);
-  border-right: 1px solid rgba(16,26,43,0.14);
+  border-right: 1px solid rgba(255,255,255,0.07);
   overflow-y: auto; overscroll-behavior: contain;
   padding: 14px 0 40px;
   font-family: 'Inter', sans-serif;
@@ -212,14 +215,14 @@ body.ie-app .tab-pane { flex: 1; }
   display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
 }
 
-.ie-scrim { display: none; position: fixed; inset: 0; z-index: 340; background: rgba(16,26,43,0.5); }
+.ie-scrim { display: none; position: fixed; inset: 0; z-index: 340; background: rgba(0,0,0,0.62); }
 
 /* ── Wiederkehrende Bausteine ─────────────────────────────── */
 
 .ie-card {
   background: var(--ie-surface); border: 1px solid var(--ie-line);
   border-radius: 14px; padding: 24px;
-  box-shadow: 0 1px 2px rgba(16,26,43,0.04);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.35);
 }
 
 .ie-placeholder {
@@ -238,11 +241,11 @@ body.ie-app .tab-pane { flex: 1; }
   display: flex; align-items: center; justify-content: center;
   border-bottom: 1px solid var(--ie-line-soft);
 }
-.tile-photo.empty { background: linear-gradient(135deg, #dfe7f0, #eef2f7); }
+.tile-photo.empty { background: linear-gradient(135deg, #24242a, #1a1a1e); }
 .tile-photo .tile-photo-icon { font-size: 2.1rem; opacity: 0.55; }
 .tile-photo .tile-photo-badge {
   position: absolute; left: 12px; bottom: 12px;
-  background: rgba(255,255,255,0.92); color: var(--ie-accent);
+  background: rgba(15,15,17,0.86); color: var(--ie-accent);
   border-radius: 50px; padding: 4px 12px;
   font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
 }

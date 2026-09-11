@@ -11,14 +11,14 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --navy:  #f4f6f9;
-      --navy2: #ffffff;
-      --navy3: #eef2f7;
-      --gold:  #2b7a8c;
-      --gold2: #1f5d6c;
-      --muted: #64748b;
-      --white: #101a2b;
-      --green: #15803d;
+      --navy:  #0f0f11;
+      --navy2: #18181b;
+      --navy3: #222226;
+      --gold:  #d3ac5f;
+      --gold2: #b8914a;
+      --muted: #9b968c;
+      --white: #f1eee7;
+      --green: #5cc98a;
     }
 
     body {
@@ -38,9 +38,9 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(244,246,249, 0.92);
+      background: rgba(15,15,17,0.92);
       backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(43,122,140,0.15);
+      border-bottom: 1px solid rgba(211,172,95,0.15);
     }
 
     .logo { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; color: var(--white); text-decoration: none; }
@@ -64,7 +64,7 @@
       content: '';
       position: absolute;
       width: 600px; height: 600px;
-      background: radial-gradient(circle, rgba(43,122,140,0.08) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(211,172,95,0.08) 0%, transparent 70%);
       top: -80px; left: 50%;
       transform: translateX(-50%);
       pointer-events: none;
@@ -84,9 +84,9 @@
     /* LEFT */
     .left .badge {
       display: inline-block;
-      background: rgba(43,122,140,0.12);
+      background: rgba(211,172,95,0.12);
       color: var(--gold);
-      border: 1px solid rgba(43,122,140,0.3);
+      border: 1px solid rgba(211,172,95,0.3);
       border-radius: 50px;
       padding: 5px 16px;
       font-size: 0.78rem;
@@ -123,8 +123,8 @@
 
     .contact-icon {
       width: 40px; height: 40px;
-      background: rgba(43,122,140,0.1);
-      border: 1px solid rgba(43,122,140,0.2);
+      background: rgba(211,172,95,0.1);
+      border: 1px solid rgba(211,172,95,0.2);
       border-radius: 10px;
       display: flex;
       align-items: center;
@@ -138,7 +138,7 @@
     .contact-item a:hover { color: var(--gold); }
 
     footer {
-      border-top: 1px solid rgba(16,26,43,0.07);
+      border-top: 1px solid rgba(255,255,255,0.088);
       padding: 36px 60px;
       display: flex;
       justify-content: space-between;
