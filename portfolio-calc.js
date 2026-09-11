@@ -72,14 +72,40 @@
     return (p.liquiditaet && p.liquiditaet.startMonth) || jetztMonat()
   }
 
-  // Wert einer Immobilie im Monat m: Kaufpreis ab Übernahme, danach 2 % p. a.
-  function wert (p, m) {
-    var kp = kaufpreis(p)
-    if (!kp) return 0
-    var u = uebernahme(p)
-    if (m < u) return 0
-    return kp * Math.pow(WACHSTUM_M, monatDiff(m, u))
+  // Wie der aktuelle Wert einer Immobilie bestimmt wird, legt die
+  // Immobilie selbst fest (Zahnrad an der Kachel „Aktueller Wert"):
+  //   kaufpreis   – der gezahlte Kaufpreis
+  //   steigerung  – Kaufpreis plus X % pro Jahr ab Übernahme
+  //   eigen       – ein von Hand eingetragener Wert
+  function wertEinstellung (p) {
+    var e = (p && p.einstellungen) || {}
+    var modus = e.wertModus || 'kaufpreis'
+    var proz  = Number(e.wertSteigerungPa)
+    return {
+      modus: modus,
+      steigerung: isNaN(proz) ? 0 : proz,
+      eigen: Number(e.wertEigen != null ? e.wertEigen : p && p.wert) || 0,
+    }
   }
+
+  function wert (p, m) {
+    var e = wertEinstellung(p)
+    var u = uebernahme(p)
+    if (m && m < u) return 0
+
+    if (e.modus === 'eigen') return e.eigen
+
+    var kp = kaufpreis(p)
+    if (!kp) return e.modus === 'eigen' ? e.eigen : 0
+    if (e.modus === 'steigerung' && e.steigerung) {
+      var faktorM = Math.pow(1 + e.steigerung / 100, 1 / 12)
+      return kp * Math.pow(faktorM, monatDiff(m || jetztMonat(), u))
+    }
+    return kp
+  }
+
+  // Wert zum heutigen Tag – für Kacheln und den Portfoliowert
+  function aktuellerWert (p) { return wert(p, jetztMonat()) }
 
   // Restschuld: valutiertes Fremdkapital abzüglich geleisteter Tilgung
   function restschuld (p, m) {
@@ -127,7 +153,7 @@
     WACHSTUM_PA: WACHSTUM_PA,
     jetztMonat: jetztMonat, monatPlus: monatPlus, monatDiff: monatDiff, fenster: fenster,
     kaufpreis: kaufpreis, uebernahme: uebernahme,
-    wert: wert, restschuld: restschuld, cfTeile: cfTeile, reihe: reihe,
+    wert: wert, aktuellerWert: aktuellerWert, wertEinstellung: wertEinstellung, restschuld: restschuld, cfTeile: cfTeile, reihe: reihe,
     summeAlle: summeAlle, summeBis: summeBis,
   }
 })()

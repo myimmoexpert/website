@@ -389,6 +389,48 @@
     }
     .set-row input:focus { outline: none; border-color: rgba(211,172,95,0.5); }
 
+    /* ── Wert-Einstellung an der Kachel ── */
+    .kpi-stat.has-gear { position: relative; }
+    .kpi-gear {
+      position: absolute; top: 8px; right: 8px;
+      width: 26px; height: 26px; border-radius: 7px;
+      background: none; border: 1px solid transparent; color: var(--muted);
+      cursor: pointer; font-size: 0.85rem; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .kpi-gear:hover, .kpi-gear[aria-expanded="true"] {
+      background: rgba(211,172,95,0.12); color: var(--gold); border-color: rgba(211,172,95,0.3);
+    }
+    .wert-pop {
+      display: none; position: absolute; top: 40px; left: 0; z-index: 70;
+      width: 330px; text-align: left;
+      background: var(--navy2); border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 12px; padding: 14px; box-shadow: 0 20px 48px rgba(0,0,0,0.6);
+    }
+    .wert-pop.open { display: block; }
+    .wert-pop h4 { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); margin-bottom: 10px; font-weight: 700; }
+    .wert-opt {
+      display: flex; gap: 10px; align-items: flex-start; cursor: pointer;
+      padding: 9px 10px; border-radius: 9px; border: 1px solid transparent;
+    }
+    .wert-opt:hover { background: rgba(255,255,255,0.04); }
+    .wert-opt.sel { background: rgba(211,172,95,0.10); border-color: rgba(211,172,95,0.3); }
+    .wert-opt input[type="radio"] { margin-top: 3px; accent-color: var(--gold); }
+    .wert-opt .t { font-size: 0.87rem; font-weight: 600; display: block; }
+    .wert-opt .d { font-size: 0.76rem; color: var(--muted); line-height: 1.45; display: block; margin-top: 2px; }
+    .wert-in { display: none; align-items: center; gap: 6px; margin-top: 8px; font-size: 0.8rem; color: var(--muted); }
+    .wert-opt.sel .wert-in { display: flex; }
+    .wert-in input {
+      width: 96px; background: var(--navy); border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 8px; padding: 6px 9px; color: var(--white);
+      font: 500 0.84rem 'Inter', sans-serif;
+    }
+    .wert-hint { font-size: 0.72rem; color: var(--muted); line-height: 1.5; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.07); }
+    .wert-status { display: block; margin-top: 4px; }
+    .wert-status.err { color: var(--red); }
+    .wert-status.ok { color: var(--green); }
+
     /* ── Hinweise (roter Punkt) ── */
     .ie-sec-alert-slot { position: relative; display: inline-flex; align-items: center; }
     .ie-sec-alert {
@@ -423,7 +465,13 @@
     .hp-mon:hover { border-color: var(--gold); color: var(--gold); }
 
     /* ── Nebenkostenabrechnung: Einstieg und Ablagefläche ── */
-    .nk-bubbles { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .nk-bubbles { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+    .nk-bubble-drop {
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px; padding: 16px;
+    }
+    .nk-bubble-drop .nk-bubble-t { margin-bottom: 10px; }
+    .nk-drop.kompakt { padding: 20px 14px; }
     .nk-bubble {
       display: flex; flex-direction: column; gap: 6px; text-align: left;
       background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.10);
@@ -641,10 +689,47 @@
 
     <!-- Kennzahlen der Immobilie -->
     <div class="kpi-bar" id="kpiBar">
-      <div class="kpi-stat">
+      <div class="kpi-stat has-gear">
+        <button class="kpi-gear" id="wertGear" type="button" aria-expanded="false" aria-label="Wie der aktuelle Wert bestimmt wird">⚙</button>
         <div class="k-label">Aktueller Wert</div>
         <div class="k-value gold" id="kWert">–</div>
         <div class="k-note" id="kWertNote">–</div>
+
+        <div class="wert-pop" id="wertPop">
+          <h4>Aktueller Wert dieser Immobilie</h4>
+          <label class="wert-opt" data-modus="kaufpreis">
+            <input type="radio" name="wertModus" value="kaufpreis" />
+            <span>
+              <span class="t">Kaufpreis</span>
+              <span class="d">Der Wert entspricht dem gezahlten Kaufpreis.</span>
+            </span>
+          </label>
+          <label class="wert-opt" data-modus="steigerung">
+            <input type="radio" name="wertModus" value="steigerung" />
+            <span>
+              <span class="t">Kaufpreis mit Wertsteigerung</span>
+              <span class="d">Der Kaufpreis wächst ab der Übernahme jährlich um den angegebenen Satz.</span>
+              <span class="wert-in">
+                <input type="text" id="wertProzent" inputmode="decimal" placeholder="2,0" /> % pro Jahr
+              </span>
+            </span>
+          </label>
+          <label class="wert-opt" data-modus="eigen">
+            <input type="radio" name="wertModus" value="eigen" />
+            <span>
+              <span class="t">Eigener Wert</span>
+              <span class="d">Ein selbst festgelegter Betrag, zum Beispiel aus einer Bewertung.</span>
+              <span class="wert-in">
+                <input type="text" id="wertEigen" inputmode="decimal" placeholder="380.000" /> €
+              </span>
+            </span>
+          </label>
+          <p class="wert-hint">
+            Diese Einstellung gilt nur für diese Immobilie und bestimmt auch,
+            womit sie in den Portfoliowert eingeht.
+            <span class="wert-status" id="wertStatus"></span>
+          </p>
+        </div>
       </div>
       <div class="kpi-stat">
         <div class="k-label">Fremdkapital</div>
@@ -734,7 +819,7 @@
       </div>
 
       <div class="miet-actions">
-        <button class="liq-btn liq-btn-gold" onclick="mhOeffnen()">✉ Mieterhöhung erstellen</button>
+        <button class="liq-btn liq-btn-gold" onclick="mhOeffnen()">✉ Schreiben Mieterhöhung erstellen</button>
         <button class="btn-add-row" onclick="archiveMiet()">📦 Mietverhältnis archivieren &amp; neues anlegen</button>
       </div>
 
@@ -984,15 +1069,6 @@
           <span class="set-lbl">Übernahmedatum</span>
           <input type="date" id="setKaufdatum" />
         </label>
-        <label class="set-row">
-          <span class="set-lbl">Festgelegter Wert (€)</span>
-          <input type="text" id="setWert" inputmode="decimal" placeholder="z. B. 380000" />
-        </label>
-        <p class="set-hint">
-          Der festgelegte Wert kann in der Portfolioübersicht statt des Kaufpreises als
-          Portfoliowert gelten. Leer lassen, wenn der Kaufpreis gelten soll.
-        </p>
-
         <p class="set-note">
           <strong>Miete, Hausgeld und Bankrate</strong> tragen Sie nicht hier ein, sondern im Bereich
           <strong>Liquiditätsplanung</strong> – dort monatsgenau und jederzeit änderbar.
@@ -1356,10 +1432,9 @@
       { key: 'mieterEmail',         label: 'Mieter E-Mail' },
       { key: 'mietverhaeltnisSeit', label: 'Mietverhältnis seit' },
       { key: 'letzteMieterhoehung', label: 'Letzte Mieterhöhung', ph: 'TT.MM.JJJJ (z. B. 01.07.2025)' },
-      { key: 'erinnerungMieterhoehung', label: 'Erinnerung 12 Monate nach Mieterhöhung', select: ['', 'Ja', 'Nein'] },
       { key: 'mietsicherheitArt',   label: 'Mietsicherheit Art', ph: 'z. B. Bürgschaft, Barkaution …' },
       { key: 'mietsicherheitHoehe', label: 'Mietsicherheit Höhe' },
-      { key: 'notes',               label: 'Notes', textarea: true },
+      { key: 'notes',               label: 'Notizen', textarea: true },
     ]
 
     let mietData = { aktuell: {}, archiv: [] }
@@ -2659,11 +2734,10 @@
     function nkEinstieg(bereich) {
       return `
         <div class="nk-bubbles">
-          <button type="button" class="nk-bubble" onclick="nkSetzeModus('${bereich}', 'upload')">
-            <span class="nk-bubble-ico">⤒</span>
-            <span class="nk-bubble-t">Kostenabrechnung Wohnung hochladen</span>
-            <span class="nk-bubble-d">PDF oder Foto der Jahresabrechnung – die Zahlen werden ausgelesen.</span>
-          </button>
+          <div class="nk-bubble-drop">
+            <div class="nk-bubble-t">Kostenabrechnung Wohnung hochladen</div>
+            ${nkDropzone(bereich, true)}
+          </div>
           <button type="button" class="nk-bubble" onclick="nkSetzeModus('${bereich}', 'manuell')">
             <span class="nk-bubble-ico">⌨</span>
             <span class="nk-bubble-t">Daten manuell eingeben</span>
@@ -2672,25 +2746,53 @@
         </div>`
     }
 
-    function nkDropzone(bereich) {
+    function nkDropzone(bereich, kompakt) {
       const hv = nkJ().hv
       return `
-        <div class="nk-drop" id="nkDrop_${bereich}"
+        <div class="nk-drop${kompakt ? ' kompakt' : ''}" id="nkDrop_${bereich}"
              ondragover="nkDragOver(event, '${bereich}')" ondragleave="nkDragLeave('${bereich}')"
              ondrop="nkDrop(event, '${bereich}')"
              onclick="document.getElementById('nkFile_${bereich}').click()">
           <div class="nk-drop-ico">⤓</div>
-          <div class="nk-drop-t">Kostenabrechnung hierher ziehen oder klicken</div>
+          <div class="nk-drop-t">Datei hierher ziehen oder klicken</div>
           <div class="nk-drop-d">PDF oder Bild · die Beträge werden automatisch ausgelesen</div>
           <input type="file" id="nkFile_${bereich}" accept="application/pdf,image/*" style="display:none"
                  onchange="nkLese(event, '${bereich}')" />
         </div>
         <div class="nk-drop-zeile">
           <span class="nk-status" id="nkStatus_${bereich}"></span>
-          ${hv.datei ? `<button class="nk-btn ghost" onclick="nkOeffneDatei()">Hinterlegte Datei öffnen</button>` : ''}
-          <button class="nk-btn ghost" onclick="nkSetzeModus('${bereich}', 'manuell')">Stattdessen manuell eingeben</button>
+          ${hv.datei ? `<button class="nk-btn ghost" onclick="event.stopPropagation();nkOeffneDatei()">Hinterlegte Datei öffnen</button>` : ''}
+          ${kompakt ? '' : `<button class="nk-btn ghost" onclick="nkSetzeModus('${bereich}', 'manuell')">Stattdessen manuell eingeben</button>`}
         </div>
         ${hv.hinweis ? `<div class="nk-hinweis">Hinweis aus der Auswertung: ${esc(hv.hinweis)}</div>` : ''}`
+    }
+
+    // ── Abschnitt 1: Hausverwaltung ──
+    // Einstieg: hochladen oder manuell – beide Bereiche nutzen dieselbe Abrechnung
+    function nkModus(bereich) {
+      const j = nkJ()
+      if (j[bereich].modus) return j[bereich].modus
+      return nkHatAuswertung() ? 'upload' : null
+    }
+    function nkHatAuswertung() {
+      const hv = nkJ().hv
+      return !!(hv.datei || (hv.positionen || []).length || hv.ausgewertetAm)
+    }
+    function nkSetzeModus(bereich, modus) { nkJ()[bereich].modus = modus; scheduleSave('x'); nkRender() }
+
+    function nkEinstieg(bereich) {
+      return `
+        <div class="nk-bubbles">
+          <div class="nk-bubble-drop">
+            <div class="nk-bubble-t">Kostenabrechnung Wohnung hochladen</div>
+            ${nkDropzone(bereich, true)}
+          </div>
+          <button type="button" class="nk-bubble" onclick="nkSetzeModus('${bereich}', 'manuell')">
+            <span class="nk-bubble-ico">⌨</span>
+            <span class="nk-bubble-t">Daten manuell eingeben</span>
+            <span class="nk-bubble-d">Beträge selbst eintragen, ohne Datei.</span>
+          </button>
+        </div>`
     }
 
     // ── Abschnitt 1: Hausverwaltung ──
@@ -2827,8 +2929,13 @@
         if (st) { st.textContent = t; st.className = 'nk-status ' + (k || '') }
       }
 
-      if (f.size > 15 * 1024 * 1024) { setSt('Die Datei ist größer als 15 MB.', 'err'); return }
-      setSt('Wird ausgewertet …', 'busy')
+      if (f.size > 20 * 1024 * 1024) {
+        setSt('Die Datei ist größer als 20 MB. Bitte kleiner scannen oder nur die Abrechnungsseiten senden.', 'err')
+        return
+      }
+      setSt(f.size > 1.5 * 1024 * 1024
+        ? 'Wird ausgewertet … mehrseitige Scans dauern bis zu einer Minute.'
+        : 'Wird ausgewertet …', 'busy')
 
       try {
         const b64 = await new Promise((res, rej) => {
@@ -2844,14 +2951,32 @@
         const up = await sb.storage.from('dokumente').upload(pfad, f, { upsert: true, contentType: f.type })
         if (!up.error) nkJ().hv.datei = pfad
 
-        const res = await fetch(NK_FN_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + currentToken },
-          body: JSON.stringify({ datei: b64, mime: f.type, jahr: nkJahr,
-                                 objekt: (propData?.bezeichnung || '') + ' ' + (propData?.adresse || '') }),
-        })
-        const d = await res.json()
-        if (!res.ok) throw new Error(d.error || ('Status ' + res.status))
+        // Mehrseitige Scans brauchen Zeit – bis zwei Minuten warten
+        const abbruch = new AbortController()
+        const uhr = setTimeout(() => abbruch.abort(), 120000)
+        let res
+        try {
+          res = await fetch(NK_FN_URL, {
+            method: 'POST',
+            signal: abbruch.signal,
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + currentToken },
+            body: JSON.stringify({ datei: b64, mime: f.type, jahr: nkJahr,
+                                   objekt: (propData?.bezeichnung || '') + ' ' + (propData?.adresse || '') }),
+          })
+        } catch (netz) {
+          clearTimeout(uhr)
+          throw new Error(netz.name === 'AbortError'
+            ? 'Die Auswertung hat zu lange gedauert. Bitte nur die Seiten mit der Einzelabrechnung hochladen.'
+            : 'Die Auswertung war nicht erreichbar.')
+        }
+        clearTimeout(uhr)
+
+        let d = {}
+        try { d = await res.json() } catch (e) { d = {} }
+        if (!res.ok) {
+          console.error('Auswertung fehlgeschlagen:', res.status, d)
+          throw new Error((d.error || 'Status ' + res.status) + (d.detail ? ' (' + String(d.detail).slice(0, 160) + ')' : ''))
+        }
 
         const hv = nkJ().hv
         ;['zeitraumVon', 'zeitraumBis', 'umlagefaehigBetriebskosten', 'heizkosten',
@@ -3126,10 +3251,8 @@
     function buildSections() {
       const host = document.getElementById('secHost')
       if (!host) return
-      // Beim ersten Besuch sind alle Bereiche zugeklappt
-      let gespeichert = null
-      try { gespeichert = localStorage.getItem(LS_ZU) } catch (e) {}
-      const zu  = gespeichert === null ? SECTIONS.map(d => d.key) : lsListe(LS_ZU)
+      // Bereiche starten bei jedem Seitenaufruf geschlossen
+      const zu  = SECTIONS.map(d => d.key)
       const aus = lsListe(LS_AUS)
 
       SECTIONS.forEach(def => {
@@ -3157,7 +3280,6 @@
 
         const klapp = () => {
           const jetztZu = sec.classList.toggle('zu')
-          lsSchalte(LS_ZU, def.key, jetztZu)
           if (!jetztZu && def.key === 'liquiditaet' && typeof liqScrollToNow === 'function') liqScrollToNow()
         }
         sec.querySelector('.ie-sec-head').addEventListener('click', e => {
@@ -3201,7 +3323,6 @@
       const ziel = document.querySelector('.ie-sec[data-sec="' + (ALIAS[key] || key) + '"]')
       if (!ziel) { window.scrollTo({ top: 0 }); return }
       ziel.classList.remove('zu')
-      lsSchalte(LS_ZU, ziel.dataset.sec, false)
       ziel.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
 
@@ -3297,9 +3418,9 @@
       const p = propFuerCalc()
       const m = C.jetztMonat()
 
-      const kaufpreis  = C.kaufpreis(p)
-      const festgelegt = Number(propData.wert) > 0 ? Number(propData.wert) : 0
-      const wert = festgelegt || C.wert(p, m) || kaufpreis
+      const kaufpreis = C.kaufpreis(p)
+      const eins = C.wertEinstellung(propData)
+      const wert = C.aktuellerWert(Object.assign({}, propData, { liquiditaet: p.liquiditaet }))
       const fk   = C.restschuld(p, m)
       const ekEinzahlung = Math.abs(C.summeBis(p, 'einzahlungEk', m))
       const ek = ekEinzahlung || Math.max(0, kaufpreis - Math.abs(C.summeBis(p, 'einzahlungFk', m)))
@@ -3315,7 +3436,11 @@
       const note = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text }
 
       setzen('kWert', wert ? formatEur(wert) : '–', 'gold')
-      note('kWertNote', festgelegt ? 'festgelegter Wert' : 'Kaufpreis + 2 % p. a.')
+      note('kWertNote',
+        eins.modus === 'eigen'      ? 'eigener Wert'
+        : eins.modus === 'steigerung' ? 'Kaufpreis + ' +
+            new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 }).format(eins.steigerung) + ' % p. a.'
+        : 'Kaufpreis')
 
       setzen('kFk', formatEur(fk), '')
       note('kFkNote', wert > 0 ? 'Beleihung ' + Math.round(fk / wert * 100) + ' %' : 'Restschuld heute')
@@ -3329,6 +3454,91 @@
 
       setzen('kCf', formatEur(cf), cf < -0.004 ? 'red' : 'green')
     }
+
+
+    // ════════════════════════════════════════
+    // AKTUELLER WERT: KAUFPREIS, STEIGERUNG ODER EIGENER WERT
+    // ════════════════════════════════════════
+    function wertEinstellungLesen() {
+      const e = (propData && propData.einstellungen) || {}
+      return {
+        modus: e.wertModus || 'kaufpreis',
+        prozent: e.wertSteigerungPa != null ? e.wertSteigerungPa : 2,
+        eigen: e.wertEigen != null ? e.wertEigen : (propData && propData.wert) || null,
+      }
+    }
+
+    function wertPopFuellen() {
+      const e = wertEinstellungLesen()
+      document.querySelectorAll('.wert-opt').forEach(o => {
+        const sel = o.getAttribute('data-modus') === e.modus
+        o.classList.toggle('sel', sel)
+        const r = o.querySelector('input[type="radio"]')
+        if (r) r.checked = sel
+      })
+      const pz = document.getElementById('wertProzent')
+      const ei = document.getElementById('wertEigen')
+      if (pz) pz.value = e.prozent === null || e.prozent === undefined ? '' : zahlEin(e.prozent)
+      if (ei) ei.value = e.eigen ? zahlEin(e.eigen) : ''
+    }
+
+    async function wertSpeichern() {
+      const modus = (document.querySelector('input[name="wertModus"]:checked') || {}).value || 'kaufpreis'
+      const prozent = zahlAus((document.getElementById('wertProzent') || {}).value)
+      const eigen   = zahlAus((document.getElementById('wertEigen') || {}).value)
+      const st = document.getElementById('wertStatus')
+
+      const einstellungen = Object.assign({}, propData.einstellungen || {}, {
+        wertModus: modus,
+        wertSteigerungPa: prozent === null ? 2 : prozent,
+        wertEigen: eigen,
+      })
+
+      propData.einstellungen = einstellungen
+      if (modus === 'eigen') propData.wert = eigen   // Altfeld mitführen
+      wertPopFuellen()
+      updateKpis()
+
+      if (st) { st.textContent = 'Speichert …'; st.className = 'wert-status' }
+      const patch = { einstellungen: einstellungen }
+      if (modus === 'eigen') patch.wert = eigen
+      const { error } = await sb.from('portfolio').update(patch).eq('id', id)
+      if (!st) return
+      if (error) {
+        st.textContent = /einstellungen/i.test(error.message)
+          ? '⚠ Spalte „einstellungen" fehlt in der Datenbank'
+          : '⚠ Fehler beim Speichern'
+        st.className = 'wert-status err'
+        console.error('Wert-Einstellung speichern fehlgeschlagen:', error)
+        return
+      }
+      st.textContent = '✓ Gespeichert'
+      st.className = 'wert-status ok'
+      setTimeout(() => { st.textContent = ''; st.className = 'wert-status' }, 2000)
+    }
+
+    ;(function initWertEinstellung() {
+      const gear = document.getElementById('wertGear')
+      const pop  = document.getElementById('wertPop')
+      if (!gear || !pop) return
+      gear.addEventListener('click', e => {
+        e.stopPropagation()
+        const offen = pop.classList.toggle('open')
+        gear.setAttribute('aria-expanded', String(offen))
+        if (offen) wertPopFuellen()
+      })
+      pop.addEventListener('click', e => e.stopPropagation())
+      document.addEventListener('click', () => {
+        pop.classList.remove('open')
+        gear.setAttribute('aria-expanded', 'false')
+      })
+      document.querySelectorAll('input[name="wertModus"]').forEach(r =>
+        r.addEventListener('change', wertSpeichern))
+      ;['wertProzent', 'wertEigen'].forEach(idf => {
+        const el = document.getElementById(idf)
+        if (el) el.addEventListener('change', wertSpeichern)
+      })
+    })()
 
     // ════════════════════════════════════════
     // EINSTELLUNGEN DER IMMOBILIE
@@ -3353,7 +3563,6 @@
       v('setAdresse',     propData.adresse || '')
       v('setKaufpreis',   propData.kaufpreis ? zahlEin(propData.kaufpreis) : '')
       v('setKaufdatum',   propData.kaufdatum ? String(propData.kaufdatum).slice(0, 10) : '')
-      v('setWert',        propData.wert ? zahlEin(propData.wert) : '')
       document.getElementById('siSet').textContent = ''
       document.getElementById('setModal').classList.add('open')
     }
@@ -3375,15 +3584,12 @@
         adresse:     wert('setAdresse').trim(),
         kaufpreis:   zahlAus(wert('setKaufpreis')),
         kaufdatum:   wert('setKaufdatum') || null,
-        wert:        zahlAus(wert('setWert')),
       }
       ind.style.color = ''
       ind.textContent = 'Speichert …'
       const { error } = await sb.from('portfolio').update(patch).eq('id', id)
       if (error) {
-        ind.textContent = '⚠ ' + (/(column|spalte).*wert/i.test(error.message)
-          ? 'Spalte „wert" fehlt in der Datenbank'
-          : 'Fehler beim Speichern')
+        ind.textContent = '⚠ Fehler beim Speichern'
         ind.style.color = 'var(--red)'
         console.error('Einstellungen speichern fehlgeschlagen:', error)
         return
@@ -3428,22 +3634,34 @@
       return t.length === 3 ? `${t[2]}.${t[1]}.${t[0]}` : String(iso)
     }
 
+    // "Musterstraße 12, 20095 Musterstadt" → Straße, PLZ/Ort, Ort
+    function mhAdresseTeile(adresse) {
+      const t = String(adresse || '').split(',').map(x => x.trim()).filter(Boolean)
+      if (!t.length) return { strasse: '', plzOrt: '', ort: '' }
+      const strasse = t[0]
+      const rest = t.slice(1).join(', ')
+      const m = rest.match(/(\d{4,5})\s+(.+)$/)
+      return { strasse: strasse, plzOrt: rest, ort: m ? m[2] : rest }
+    }
+
     function mhOeffnen() {
       const mv = (mietData && (mietData.aktuell || mietData)) || {}
       const b  = (nkData && nkData.brief) || {}
       const v  = (typeof liqNowVals === 'function' && liqData) ? liqNowVals() : { nkm: 0, nk: 0 }
 
       const setz = (id, wert) => { const el = mhEl(id); if (el) el.value = wert }
+      // Die Anschrift des Mieters ist die Wohnung – aus der Adresse der Immobilie
+      const adr = mhAdresseTeile(propData?.adresse || '')
       setz('mhMieter',   b.mieterName || mv.mieter || '')
-      setz('mhStrasse',  b.mieterStrasse || '')
-      setz('mhPlzOrt',   b.mieterPlzOrt || '')
+      setz('mhStrasse',  b.mieterStrasse || adr.strasse || '')
+      setz('mhPlzOrt',   b.mieterPlzOrt || adr.plzOrt || '')
       setz('mhObjekt',   b.wohnung || propData?.adresse || propData?.bezeichnung || '')
       setz('mhMieteAlt', v.nkm ? new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2 }).format(v.nkm) : '')
       setz('mhNk',       v.nk  ? new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2 }).format(v.nk)  : '')
       setz('mhProzent',  '')
       setz('mhMieteNeu', '')
       setz('mhBriefkopf', b.briefkopf || '')
-      setz('mhOrt',      b.ort || '')
+      setz('mhOrt',      b.ort || adr.ort || '')
       setz('mhAbsName',  b.absenderName || '')
       setz('mhAbsFirma', b.absenderFirma || '')
 

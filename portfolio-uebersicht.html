@@ -1378,18 +1378,13 @@
       let aum = 0, fk = 0, kaufpreis = 0, ekEingesetzt = 0
       let miete = 0, hausgeld = 0, bankrate = 0, cf = 0, nkmJahr = 0
 
-      // Portfoliowert nach derselben Einstellung wie in der Portfolioübersicht
-      let pwModus = 'kaufpreis'
-      try { pwModus = localStorage.getItem('ie_portfoliowert_modus') === 'wert' ? 'wert' : 'kaufpreis' } catch (e) {}
-      let ohneWert = 0
+      // Der Wert je Immobilie kommt aus deren eigener Einstellung
+      const zaehler = { kaufpreis: 0, steigerung: 0, eigen: 0 }
 
       properties.forEach(p => {
-        if (pwModus === 'wert') {
-          const w = Number(p.wert)
-          if (w > 0) { aum += w } else { ohneWert++; aum += window.IECalc.kaufpreis(p) }
-        } else {
-          aum += window.IECalc.kaufpreis(p)
-        }
+        aum += window.IECalc.aktuellerWert(p) || 0
+        const modus = (window.IECalc.wertEinstellung(p) || {}).modus || 'kaufpreis'
+        zaehler[modus] = (zaehler[modus] || 0) + 1
         fk  += window.IECalc.restschuld(p, m)
         kaufpreis += window.IECalc.kaufpreis(p)
         ekEingesetzt += Math.abs(window.IECalc.summeAlle(p, 'einzahlungEk'))
@@ -1427,9 +1422,9 @@
       el.innerHTML =
         gruppe('Vermögen & Finanzierung', [
           { l: 'Portfoliowert', v: formatEur(aum), c: 'gold',
-            s: pwModus === 'wert'
-                 ? (ohneWert ? 'Festgelegte Werte · ' + ohneWert + ' × Kaufpreis' : 'Summe der festgelegten Werte')
-                 : 'Summe der Kaufpreise' },
+            s: [zaehler.kaufpreis ? zaehler.kaufpreis + '× Kaufpreis' : '',
+                zaehler.steigerung ? zaehler.steigerung + '× mit Wertsteigerung' : '',
+                zaehler.eigen ? zaehler.eigen + '× eigener Wert' : ''].filter(Boolean).join(' · ') },
           { l: 'Restschuld',    v: formatEur(fk),  s: 'Darlehen abzüglich Tilgung' },
           { l: 'Eigenkapital',  v: formatEur(ek),  c: 'green', s: 'Wert abzüglich Restschuld' },
           { l: 'Beleihungsauslauf', v: pct(ltv), s: 'Restschuld ÷ Portfoliowert' },
