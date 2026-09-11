@@ -70,6 +70,40 @@
     .summary-stat .s-value.gold { color: var(--gold); }
     .summary-stat .s-value.green { color: var(--green); }
     .summary-stat .s-value.red { color: var(--red); }
+    .summary-stat .s-note { font-size: 0.72rem; color: var(--muted); margin-top: 5px; }
+
+    /* ── Portfoliowert: Zahnrad und Auswahl ── */
+    .summary-stat.has-gear { position: relative; }
+    .pw-gear {
+      position: absolute; top: 10px; right: 10px;
+      width: 26px; height: 26px; border-radius: 7px;
+      background: none; border: 1px solid transparent;
+      color: var(--muted); cursor: pointer; font-size: 0.85rem; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .pw-gear:hover, .pw-gear[aria-expanded="true"] {
+      background: rgba(211,172,95,0.12); color: var(--gold); border-color: rgba(211,172,95,0.3);
+    }
+    .pw-pop {
+      display: none; position: absolute; top: 42px; right: 10px; z-index: 60;
+      width: 290px; text-align: left;
+      background: var(--navy2); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px; padding: 14px; box-shadow: 0 18px 44px rgba(0,0,0,0.55);
+    }
+    .pw-pop.open { display: block; }
+    .pw-pop h4 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); margin-bottom: 10px; font-weight: 700; }
+    .pw-opt {
+      display: flex; gap: 10px; align-items: flex-start;
+      padding: 9px 10px; border-radius: 9px; cursor: pointer;
+      border: 1px solid transparent;
+    }
+    .pw-opt:hover { background: rgba(255,255,255,0.04); }
+    .pw-opt.sel { background: rgba(211,172,95,0.10); border-color: rgba(211,172,95,0.3); }
+    .pw-opt input { margin-top: 3px; accent-color: var(--gold); }
+    .pw-opt .t { font-size: 0.87rem; font-weight: 600; }
+    .pw-opt .d { font-size: 0.76rem; color: var(--muted); line-height: 1.45; margin-top: 2px; }
+    .pw-pop .pw-hint { font-size: 0.72rem; color: var(--muted); line-height: 1.5; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.07); }
 
     /* ── CTA-KACHEL (Erweiterte Übersicht) ── */
     .summary-cta {
@@ -257,6 +291,7 @@
     .pc-table td { padding: 5px 8px; border-top: 1px solid rgba(255,255,255,0.075); }
     .pc-table .ta-r, .pc-card .ta-r { text-align: right; }
 
+    .pc-leer { color: var(--muted); font-size: 0.85rem; text-align: center; padding: 48px 0; }
     @media (max-width: 900px) { .charts-section { grid-template-columns: 1fr; } }
     @media (max-width: 700px) { .charts-section { padding-left: 18px; padding-right: 18px; } }
   </style>
@@ -291,7 +326,7 @@
 
   <!-- Page Header -->
   <div class="page-header">
-    <h1>Mein <span>Portfolio</span></h1>
+    <h1>Portfolio<span>übersicht</span></h1>
     <p class="sub">Alle Ihre Immobilien auf einen Blick. Über „Bild" hinterlegen Sie ein Foto je Objekt.</p>
   </div>
 
@@ -301,9 +336,29 @@
       <div class="s-label">Objekte</div>
       <div class="s-value gold" id="sumAnzahl">0</div>
     </div>
-    <div class="summary-stat">
-      <div class="s-label">Gesamtkaufpreis</div>
+    <div class="summary-stat has-gear">
+      <button class="pw-gear" id="pwGear" type="button" aria-expanded="false" aria-label="Berechnung des Portfoliowerts">⚙</button>
+      <div class="s-label">Portfoliowert</div>
       <div class="s-value" id="sumKaufpreis">0 €</div>
+      <div class="s-note" id="pwNote">Summe der Kaufpreise</div>
+      <div class="pw-pop" id="pwPop">
+        <h4>Portfoliowert berechnen aus</h4>
+        <label class="pw-opt" data-mode="kaufpreis">
+          <input type="radio" name="pwModus" value="kaufpreis" />
+          <span>
+            <span class="t">Kaufpreisen</span>
+            <span class="d">Summe der tatsächlich gezahlten Kaufpreise.</span>
+          </span>
+        </label>
+        <label class="pw-opt" data-mode="wert">
+          <input type="radio" name="pwModus" value="wert" />
+          <span>
+            <span class="t">Festgelegten Werten</span>
+            <span class="d">Summe der Werte, die Sie je Immobilie hinterlegt haben.</span>
+          </span>
+        </label>
+        <p class="pw-hint">Den Wert einer Immobilie legen Sie in deren Einstellungen fest (Zahnrad auf der Immobilienseite). Ohne hinterlegten Wert zählt der Kaufpreis.</p>
+      </div>
     </div>
     <div class="summary-stat">
       <div class="s-label">Kaltmiete / Monat</div>
@@ -422,6 +477,74 @@
       loadPortfolio()
     })
 
+    // ── PORTFOLIOWERT: KAUFPREISE ODER FESTGELEGTE WERTE ──
+    // Die Auswahl gilt für diesen Browser (keine Serverdaten nötig).
+    const PW_KEY = 'ie_portfoliowert_modus'
+    let PW_DATA = { rows: [], stats: [] }
+
+    function pwModus() {
+      try { return localStorage.getItem(PW_KEY) === 'wert' ? 'wert' : 'kaufpreis' }
+      catch (e) { return 'kaufpreis' }
+    }
+
+    function renderPortfolioWert() {
+      const modus = pwModus()
+      const rows  = PW_DATA.rows || []
+      const stats = PW_DATA.stats || []
+      let summe = 0
+      let ohneWert = 0
+
+      if (modus === 'wert') {
+        rows.forEach((p, i) => {
+          const w = Number(p.wert)
+          if (w > 0) { summe += w } else { ohneWert++; summe += (stats[i] ? stats[i].kaufpreis : 0) }
+        })
+      } else {
+        stats.forEach(st => { summe += st.kaufpreis })
+      }
+
+      const wertEl = document.getElementById('sumKaufpreis')
+      const noteEl = document.getElementById('pwNote')
+      if (wertEl) wertEl.textContent = formatEur(summe)
+      if (noteEl) {
+        noteEl.textContent = modus === 'wert'
+          ? (ohneWert
+              ? 'Festgelegte Werte · ' + ohneWert + ' × Kaufpreis ersatzweise'
+              : 'Summe der festgelegten Werte')
+          : 'Summe der Kaufpreise'
+      }
+      document.querySelectorAll('.pw-opt').forEach(o => {
+        const sel = o.getAttribute('data-mode') === modus
+        o.classList.toggle('sel', sel)
+        const r = o.querySelector('input')
+        if (r) r.checked = sel
+      })
+    }
+
+    ;(function initPortfoliowertAuswahl() {
+      const gear = document.getElementById('pwGear')
+      const pop  = document.getElementById('pwPop')
+      if (!gear || !pop) return
+
+      gear.addEventListener('click', (e) => {
+        e.stopPropagation()
+        const open = pop.classList.toggle('open')
+        gear.setAttribute('aria-expanded', String(open))
+      })
+      pop.addEventListener('click', e => e.stopPropagation())
+      document.addEventListener('click', () => {
+        pop.classList.remove('open')
+        gear.setAttribute('aria-expanded', 'false')
+      })
+      pop.querySelectorAll('input[name="pwModus"]').forEach(r => {
+        r.addEventListener('change', () => {
+          try { localStorage.setItem(PW_KEY, r.value) } catch (e) {}
+          renderPortfolioWert()
+        })
+      })
+      renderPortfolioWert()
+    })()
+
     // ── PORTFOLIO LADEN ─────────────────────────────
     async function loadPortfolio() {
       const { data, error } = await sb
@@ -438,13 +561,13 @@
         const stats = data.map(p => liqStats(p))
 
         // Summary berechnen
-        const totalKauf  = stats.reduce((s, st) => s + st.kaufpreis, 0)
         const totalMiete = stats.reduce((s, st) => s + st.nkm, 0)
         const totalCf    = stats.reduce((s, st) => s + st.cf, 0)
         // Empfohlene Liquidität = Hausgeld + Zins + Tilgung (aktueller Monat) aller Immobilien
         const totalLiq   = Math.abs(stats.reduce((s, st) => s + st.hausgeld + st.zins + st.tilgung, 0))
         document.getElementById('sumAnzahl').textContent    = data.length
-        document.getElementById('sumKaufpreis').textContent = formatEur(totalKauf)
+        PW_DATA = { rows: data, stats: stats }
+        renderPortfolioWert()
         document.getElementById('sumMiete').textContent     = formatEur(totalMiete)
         const sumCf = document.getElementById('sumCf')
         sumCf.textContent = formatEur(totalCf)

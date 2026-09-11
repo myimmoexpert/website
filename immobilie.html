@@ -261,6 +261,147 @@
     .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; }
     .footer-copy { color: var(--muted); font-size: 0.82rem; }
 
+
+    /* ══ KOPFBEREICH DER IMMOBILIE ══ */
+    .prop-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+    .prop-gear {
+      flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px;
+      background: none; border: 1px solid rgba(255,255,255,0.14); color: var(--muted);
+      border-radius: 10px; padding: 9px 14px; font: 600 0.84rem/1 'Inter', sans-serif;
+      cursor: pointer; transition: background .15s, color .15s, border-color .15s;
+    }
+    .prop-gear:hover { background: rgba(211,172,95,0.12); color: var(--gold); border-color: rgba(211,172,95,0.35); }
+
+    .kpi-bar {
+      margin-top: 24px;
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px;
+    }
+    .kpi-stat {
+      background: var(--navy2); border: 1px solid rgba(255,255,255,0.088);
+      border-radius: 12px; padding: 15px 18px;
+    }
+    .kpi-stat .k-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 6px; }
+    .kpi-stat .k-value { font-size: 1.2rem; font-weight: 700; }
+    .kpi-stat .k-value.gold { color: var(--gold); }
+    .kpi-stat .k-value.green { color: var(--green); }
+    .kpi-stat .k-value.red { color: var(--red); }
+    .kpi-stat .k-note { font-size: 0.71rem; color: var(--muted); margin-top: 4px; }
+
+    .sec-bar {
+      margin-top: 18px; display: flex; align-items: center; justify-content: space-between;
+      gap: 18px; flex-wrap: wrap;
+      border-top: 1px solid rgba(255,255,255,0.07); padding-top: 16px;
+    }
+    .sec-hint { font-size: 0.82rem; color: var(--muted); line-height: 1.55; max-width: 640px; }
+    .sec-hint strong { color: var(--white); font-weight: 600; }
+    .linkish {
+      background: none; border: none; padding: 0; font: inherit; color: var(--gold);
+      cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
+    }
+    .sec-toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--muted); cursor: pointer; white-space: nowrap; }
+    .sec-toggle input { accent-color: var(--gold); }
+
+    /* ══ BEREICHE (einklappbar) ══ */
+    .sections { max-width: 980px; margin: 0 auto; width: 100%; padding: 26px 60px 80px; }
+    .ie-sec {
+      background: var(--navy2); border: 1px solid rgba(255,255,255,0.088);
+      border-radius: var(--radius); margin-bottom: 16px; overflow: hidden;
+    }
+    .ie-sec-head {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px 20px; cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .ie-sec.zu .ie-sec-head { border-bottom-color: transparent; }
+    .ie-sec-head h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.2px; flex: 1; }
+    .ie-sec-head .ie-sec-ico { font-size: 1.05rem; }
+    .ie-sec-tools { display: flex; align-items: center; gap: 6px; }
+    .ie-sec-btn {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: none; border: 1px solid transparent; color: var(--muted);
+      cursor: pointer; font-size: 0.9rem; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .ie-sec-btn:hover { background: rgba(255,255,255,0.06); color: var(--white); border-color: rgba(255,255,255,0.12); }
+    .ie-sec-btn.chev { transition: transform .18s, background .15s, color .15s; }
+    .ie-sec.zu .ie-sec-btn.chev { transform: rotate(-90deg); }
+    .ie-sec-body { padding: 4px 0 8px; }
+    .ie-sec.zu .ie-sec-body { display: none; }
+    .ie-sec.aus { opacity: 0.55; border-style: dashed; }
+    .ie-sec.aus .ie-sec-head h2::after {
+      content: 'ausgeblendet'; margin-left: 10px; font-size: 0.68rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted);
+    }
+    body:not(.zeige-aus) .ie-sec.aus { display: none; }
+
+    /* Panes liegen jetzt in den Bereichen und sind immer sichtbar */
+    .sections .tab-pane { display: block; }
+    .sections .detail-grid { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+    .sections .tab-content { padding-top: 10px; padding-bottom: 10px; max-width: none; }
+    .sections .tab-pane + .tab-pane { border-top: 1px solid rgba(255,255,255,0.06); margin-top: 6px; }
+    .sub-head {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+      color: var(--gold); margin: 22px 0 12px;
+    }
+    .sections .tab-content > .sub-head:first-child { margin-top: 4px; }
+
+    /* ══ MODAL: EINSTELLUNGEN ══ */
+    .ie-modal {
+      display: none; position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,0.66); padding: 24px;
+      align-items: flex-start; justify-content: center; overflow-y: auto;
+    }
+    .ie-modal.open { display: flex; }
+    .ie-modal-box {
+      background: var(--navy2); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px; width: 100%; max-width: 520px; margin-top: 6vh;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    }
+    .ie-modal-head {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+      padding: 20px 22px 14px; border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .ie-modal-title { font-size: 1.1rem; font-weight: 700; }
+    .ie-modal-sub { font-size: 0.82rem; color: var(--muted); margin-top: 3px; }
+    .ie-modal-x {
+      background: none; border: none; color: var(--muted); font-size: 1rem; cursor: pointer;
+      width: 30px; height: 30px; border-radius: 8px;
+    }
+    .ie-modal-x:hover { background: rgba(255,255,255,0.07); color: var(--white); }
+    .set-body { padding: 18px 22px 6px; }
+    .set-row { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+    .set-lbl { flex: 0 0 190px; font-size: 0.86rem; color: var(--muted); }
+    .set-row input {
+      flex: 1; background: var(--navy); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 9px; padding: 10px 12px; color: var(--white);
+      font: 500 0.9rem 'Inter', sans-serif;
+    }
+    .set-row input:focus { outline: none; border-color: rgba(211,172,95,0.5); }
+    .set-hint { font-size: 0.78rem; color: var(--muted); line-height: 1.55; margin: 4px 0 18px; }
+    .set-actions {
+      display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+      padding: 14px 22px 20px; border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .set-actions-right { display: flex; align-items: center; gap: 12px; }
+    .btn-save {
+      background: var(--gold); color: var(--navy); border: none; border-radius: 9px;
+      padding: 10px 20px; font: 600 0.88rem 'Inter', sans-serif; cursor: pointer;
+    }
+    .btn-save:hover { background: var(--gold2); }
+
+    @media (max-width: 900px) {
+      .kpi-bar { grid-template-columns: repeat(2, 1fr); }
+      .sections { padding-left: 20px; padding-right: 20px; }
+    }
+    @media (max-width: 600px) {
+      .kpi-bar { grid-template-columns: 1fr; }
+      .prop-gear span { display: none; }
+      .set-row { flex-direction: column; align-items: stretch; gap: 6px; }
+      .set-lbl { flex: none; }
+    }
+
     @media (max-width: 700px) {
       nav { padding: 18px 24px; }
       nav ul { display: none; }
@@ -367,13 +508,62 @@
 
   <div class="prop-header">
     <a href="portfolio.html" class="back-link">← Zurück zum Portfolio</a>
-    <div class="prop-meta">
-      <span class="prop-icon" id="propIcon">🏗️</span>
-      <span class="prop-badge" id="propBadge">–</span>
+    <div class="prop-top">
+      <div class="prop-ident">
+        <div class="prop-meta">
+          <span class="prop-icon" id="propIcon">🏗️</span>
+          <span class="prop-badge" id="propBadge">–</span>
+        </div>
+        <div class="prop-name" id="propName">–</div>
+        <div class="prop-adresse" id="propAdresse">–</div>
+      </div>
+      <button class="prop-gear" id="propGear" type="button" title="Einstellungen dieser Immobilie">⚙<span>Einstellungen</span></button>
     </div>
-    <div class="prop-name" id="propName">–</div>
-    <div class="prop-adresse" id="propAdresse">–</div>
+
+    <!-- Kennzahlen der Immobilie -->
+    <div class="kpi-bar" id="kpiBar">
+      <div class="kpi-stat">
+        <div class="k-label">Aktueller Wert</div>
+        <div class="k-value gold" id="kWert">–</div>
+        <div class="k-note" id="kWertNote">–</div>
+      </div>
+      <div class="kpi-stat">
+        <div class="k-label">Fremdkapital</div>
+        <div class="k-value" id="kFk">–</div>
+        <div class="k-note" id="kFkNote">Restschuld heute</div>
+      </div>
+      <div class="kpi-stat">
+        <div class="k-label">Eigenkapital investiert</div>
+        <div class="k-value" id="kEk">–</div>
+        <div class="k-note" id="kEkNote">seit Übernahme</div>
+      </div>
+      <div class="kpi-stat">
+        <div class="k-label">Im Portfolio seit</div>
+        <div class="k-value" id="kSeit">–</div>
+        <div class="k-note" id="kSeitNote">–</div>
+      </div>
+      <div class="kpi-stat">
+        <div class="k-label">Cashflow / Monat</div>
+        <div class="k-value" id="kCf">–</div>
+        <div class="k-note">laufender Monat</div>
+      </div>
+    </div>
+
+    <div class="sec-bar">
+      <p class="sec-hint">
+        Kaufpreis, Miete und Finanzierung pflegen Sie in der <strong>Liquiditätsplanung</strong>.
+        Stammdaten und der festgelegte Wert stehen in den
+        <button type="button" class="linkish" id="hintGear">Einstellungen dieser Immobilie</button>.
+      </p>
+      <label class="sec-toggle">
+        <input type="checkbox" id="showHidden" />
+        <span>Ausgeblendete Bereiche anzeigen</span>
+      </label>
+    </div>
   </div>
+
+  <!-- Alle Bereiche der Immobilie untereinander -->
+  <div class="sections" id="secHost"></div>
 
   <!-- ══════════════════════════════════════
        TAB 1: ÜBERBLICK
@@ -381,10 +571,9 @@
   <div class="tab-pane" id="pane-uberblick">
     <div class="tab-content">
 
-      <!-- Stammdaten + Finanzkennzahlen -->
+      <h4 class="sub-head">Stammdaten</h4>
       <div class="detail-grid">
         <div class="detail-card">
-          <h3>Stammdaten</h3>
           <div class="detail-row"><span class="lbl">Bezeichnung</span><input class="detail-input" id="sBezeichnung" type="text" placeholder="eintragen …" /></div>
           <div class="detail-row"><span class="lbl">Objektart</span>
             <select class="detail-input" id="sObjektart">
@@ -398,20 +587,12 @@
           <div class="detail-row"><span class="lbl">Übernahmestichtag</span><input class="detail-input" id="sKaufdatum" type="date" /></div>
           <div class="detail-row"><span class="lbl">Adresse</span><input class="detail-input" id="sAdresse" type="text" placeholder="eintragen …" /></div>
         </div>
-        <div class="detail-card">
-          <h3>Finanzkennzahlen</h3>
-          <div class="detail-row"><span class="lbl">Kaufpreis</span><span class="val gold" id="dKaufpreis">–</span></div>
-          <div class="detail-row"><span class="lbl">Kaltmiete / Monat</span><span class="val green" id="dKaltmiete">–</span></div>
-          <div class="detail-row"><span class="lbl">CF / Monat</span><span class="val" id="dCf">–</span></div>
-          <div class="detail-row"><span class="lbl">Brutto-Mietrendite</span><span class="val" id="dRendite">–</span></div>
-        </div>
       </div>
 
-      <!-- Finanzierung & Liquidität (berechnet aus der Liqui-Planung) -->
-      <div class="section-head">
-        <h3>Finanzierung &amp; <span>Liquidität</span></h3>
+      <h4 class="sub-head">
+        Finanzkennzahlen
         <div class="save-indicator" id="siUberblick"></div>
-      </div>
+      </h4>
 
       <div class="cl-table" id="clTableFixed">
         <div class="cl-section-label">Werte aus der Liquiditätsplanung (aktueller Monat)</div>
@@ -422,10 +603,6 @@
       </div>
 
       <button class="btn-add-row" onclick="addCustomRow()">+ Eigenes Feld hinzufügen</button>
-
-      <div class="actions-row">
-        <button class="btn-delete" onclick="deleteImmobilie()">Immobilie löschen</button>
-      </div>
 
     </div>
   </div>
@@ -653,6 +830,61 @@
     </div>
   </div>
 
+  <!-- ══ EINSTELLUNGEN DER IMMOBILIE ══ -->
+  <div class="ie-modal" id="setModal">
+    <div class="ie-modal-box">
+      <div class="ie-modal-head">
+        <div>
+          <div class="ie-modal-title">Einstellungen</div>
+          <div class="ie-modal-sub" id="setSub">–</div>
+        </div>
+        <button class="ie-modal-x" type="button" id="setClose" aria-label="Schließen">✕</button>
+      </div>
+
+      <div class="set-body">
+        <label class="set-row">
+          <span class="set-lbl">Festgelegter Wert</span>
+          <input type="text" id="setWert" inputmode="decimal" placeholder="z. B. 360000" />
+        </label>
+        <p class="set-hint">
+          Dieser Wert kann in der Portfolioübersicht statt des Kaufpreises als Portfoliowert
+          verwendet werden. Leer lassen, wenn stattdessen der Kaufpreis gelten soll.
+        </p>
+
+        <label class="set-row">
+          <span class="set-lbl">Kaufpreis</span>
+          <input type="text" id="setKaufpreis" inputmode="decimal" placeholder="z. B. 320000" />
+        </label>
+        <label class="set-row">
+          <span class="set-lbl">Kaltmiete / Monat</span>
+          <input type="text" id="setKaltmiete" inputmode="decimal" placeholder="z. B. 1200" />
+        </label>
+        <label class="set-row">
+          <span class="set-lbl">Hausgeld / Monat</span>
+          <input type="text" id="setHausgeld" inputmode="decimal" placeholder="z. B. 280" />
+        </label>
+        <label class="set-row">
+          <span class="set-lbl">Übernahmestichtag</span>
+          <input type="date" id="setKaufdatum" />
+        </label>
+
+        <p class="set-hint">
+          Kaufpreis, Miete und Hausgeld dienen als Ausgangswerte. Sobald Beträge in der
+          Liquiditätsplanung stehen, haben diese Vorrang – Kennzahlen und Graphen rechnen dann
+          mit den dort erfassten Monatswerten.
+        </p>
+      </div>
+
+      <div class="set-actions">
+        <button class="btn-delete" type="button" onclick="deleteImmobilie()">Immobilie löschen</button>
+        <div class="set-actions-right">
+          <span class="save-indicator" id="siSet"></span>
+          <button class="btn-save" type="button" id="setSave">Speichern</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <footer>
     <a href="index.html" class="logo">Immo<span>.Expert</span></a>
     <ul class="footer-links">
@@ -665,6 +897,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="notifications.js" defer></script>
+  <script src="portfolio-calc.js"></script>
   <script>
     const SUPABASE_URL = 'https://awvnfocepqkkncgqgaka.supabase.co'
     const SUPABASE_KEY = 'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
@@ -716,6 +949,7 @@
       initNotes(data.notes)
       initDateien(data.dateien)
       initNk(data)
+      if (typeof updateKpis === 'function') updateKpis()
     }
 
     // ════════════════════════════════════════
@@ -1263,6 +1497,9 @@
       }
       const dR = document.getElementById('dRendite')
       if (dR) dR.textContent = kaufpreis && v.nkm ? ((v.nkm * 12) / kaufpreis * 100).toFixed(2) + ' %' : '–'
+
+      // Kacheln im Kopfbereich mit denselben Zahlen versorgen
+      if (typeof updateKpis === 'function') updateKpis()
     }
 
     // Erstbefüllung automatisch aus Stammdaten + Überblick > "Finanzierung und Liquidität"
@@ -2600,55 +2837,252 @@
     }
 
     // ════════════════════════════════════════
-    // TABS & LÖSCHEN
+    // BEREICHE DER IMMOBILIE
+    // Alle Bereiche stehen untereinander und lassen sich
+    // einklappen oder ganz ausblenden. Der Zustand gilt für
+    // diesen Browser und für alle Immobilien gleichermaßen.
     // ════════════════════════════════════════
-    const TAB_ORDER = ['uberblick','kontakte','checkliste','mietverhaeltnis','liquiditaet','todos','notes','dateien']
-    function switchTab(name) {
-      document.querySelectorAll('.tab-btn').forEach((btn, i) => {
-        btn.classList.toggle('active', TAB_ORDER[i] === name)
+    const SECTIONS = [
+      { key: 'uebersicht',  ico: '📊', titel: 'Übersicht',             panes: ['uberblick', 'mietverhaeltnis', 'kontakte'] },
+      { key: 'liquiditaet', ico: '💧', titel: 'Liquidität',            panes: ['liquiditaet'] },
+      { key: 'nebenkosten', ico: '🧾', titel: 'Nebenkostenabrechnung', panes: ['nebenkosten'] },
+      { key: 'checkliste',  ico: '✅', titel: 'Checkliste Kauf',       panes: ['checkliste'] },
+      { key: 'notizen',     ico: '📝', titel: 'Notizen und To-Dos',    panes: ['todos', 'notes'] },
+      { key: 'dateien',     ico: '📁', titel: 'Dateien',               panes: ['dateien'] },
+    ]
+    // Auge (sichtbar) und durchgestrichenes Auge (ausgeblendet)
+    const ICON_EIN = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12S5 5.5 12 5.5 22.5 12 22.5 12 19 18.5 12 18.5 1.5 12 1.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>'
+    const ICON_AUS = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 5.7A9.9 9.9 0 0 1 12 5.5c7 0 10.5 6.5 10.5 6.5a17 17 0 0 1-3.2 4.1M6.2 7.9A17 17 0 0 0 1.5 12S5 18.5 12 18.5c1.6 0 3-.3 4.2-.8"/><path d="M3 3l18 18"/></svg>'
+
+    const LS_ZU   = 'ie_immo_bereiche_zu'
+    const LS_AUS  = 'ie_immo_bereiche_aus'
+    const LS_SHOW = 'ie_immo_zeige_ausgeblendete'
+
+    function lsListe(key) {
+      try { const v = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(v) ? v : [] }
+      catch (e) { return [] }
+    }
+    function lsSchalte(key, wert, an) {
+      const l = lsListe(key).filter(x => x !== wert)
+      if (an) l.push(wert)
+      try { localStorage.setItem(key, JSON.stringify(l)) } catch (e) {}
+    }
+
+    function updateAusZaehler() {
+      const n = document.querySelectorAll('.ie-sec.aus').length
+      const box = document.getElementById('showHidden')
+      if (!box) return
+      const txt = box.parentElement.querySelector('span')
+      if (txt) txt.textContent = n ? `Ausgeblendete Bereiche anzeigen (${n})` : 'Ausgeblendete Bereiche anzeigen'
+      box.parentElement.style.display = n ? '' : 'none'
+    }
+
+    function buildSections() {
+      const host = document.getElementById('secHost')
+      if (!host) return
+      const zu  = lsListe(LS_ZU)
+      const aus = lsListe(LS_AUS)
+
+      SECTIONS.forEach(def => {
+        const panes = def.panes.map(k => document.getElementById('pane-' + k)).filter(Boolean)
+        if (!panes.length) return
+
+        const sec = document.createElement('section')
+        sec.className = 'ie-sec' + (zu.includes(def.key) ? ' zu' : '') + (aus.includes(def.key) ? ' aus' : '')
+        sec.dataset.sec = def.key
+        sec.innerHTML =
+          '<header class="ie-sec-head">' +
+            '<span class="ie-sec-ico">' + def.ico + '</span>' +
+            '<h2>' + def.titel + '</h2>' +
+            '<div class="ie-sec-tools">' +
+              '<button class="ie-sec-btn aug" type="button" title="Bereich ausblenden">' + ICON_AUS + '</button>' +
+              '<button class="ie-sec-btn chev" type="button" title="Ein- und ausklappen">▾</button>' +
+            '</div>' +
+          '</header>' +
+          '<div class="ie-sec-body"></div>'
+
+        const body = sec.querySelector('.ie-sec-body')
+        panes.forEach(el => { el.classList.add('active'); body.appendChild(el) })
+        host.appendChild(sec)
+
+        const klapp = () => {
+          const jetztZu = sec.classList.toggle('zu')
+          lsSchalte(LS_ZU, def.key, jetztZu)
+          if (!jetztZu && def.key === 'liquiditaet' && typeof liqScrollToNow === 'function') liqScrollToNow()
+        }
+        sec.querySelector('.ie-sec-head').addEventListener('click', e => {
+          if (!e.target.closest('.ie-sec-btn')) klapp()
+        })
+        sec.querySelector('.chev').addEventListener('click', klapp)
+
+        const augBtn = sec.querySelector('.aug')
+        const augTitel = () => {
+          const ist = sec.classList.contains('aus')
+          augBtn.innerHTML = ist ? ICON_EIN : ICON_AUS
+          augBtn.title = ist ? 'Bereich wieder einblenden' : 'Bereich ausblenden'
+        }
+        augTitel()
+        augBtn.addEventListener('click', () => {
+          const jetztAus = sec.classList.toggle('aus')
+          lsSchalte(LS_AUS, def.key, jetztAus)
+          augTitel()
+          updateAusZaehler()
+        })
       })
-      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'))
-      const pane = document.getElementById('pane-' + name)
-      if (pane) pane.classList.add('active')
-      if (name === 'liquiditaet') liqScrollToNow()
+
+      // Schalter „Ausgeblendete Bereiche anzeigen“
+      const box = document.getElementById('showHidden')
+      if (box) {
+        let an = false
+        try { an = localStorage.getItem(LS_SHOW) === '1' } catch (e) {}
+        box.checked = an
+        document.body.classList.toggle('zeige-aus', an)
+        box.addEventListener('change', () => {
+          document.body.classList.toggle('zeige-aus', box.checked)
+          try { localStorage.setItem(LS_SHOW, box.checked ? '1' : '0') } catch (e) {}
+        })
+      }
+      updateAusZaehler()
     }
 
-
-    // ── ANSICHTEN DER SEITENLEISTE ──────────────────
-    // „Überblick" fasst Überblick, Mietverhältnis und Kontakte zusammen.
-    const VIEW_PANES = {
-      uberblick:   ['uberblick', 'mietverhaeltnis', 'kontakte'],
-      liquiditaet: ['liquiditaet'],
-      nebenkosten: ['nebenkosten'],
-      checkliste:  ['checkliste'],
-      dateien:     ['dateien'],
-      notes:       ['notes'],
-      todos:       ['todos'],
-      weg:         ['weg'],
+    // Menülinks der Seitenleiste springen zum passenden Bereich
+    window.ieSetView = function (key) {
+      const ALIAS = { uberblick: 'uebersicht', notes: 'notizen', todos: 'notizen', weg: 'dateien' }
+      const ziel = document.querySelector('.ie-sec[data-sec="' + (ALIAS[key] || key) + '"]')
+      if (!ziel) { window.scrollTo({ top: 0 }); return }
+      ziel.classList.remove('zu')
+      lsSchalte(LS_ZU, ziel.dataset.sec, false)
+      ziel.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
 
-    // Reihenfolge im DOM anpassen: Mietverhältnis vor Kontakte
-    ;(function () {
-      const k = document.getElementById('pane-kontakte')
-      const m = document.getElementById('pane-mietverhaeltnis')
-      if (k && m && k.parentNode) k.parentNode.insertBefore(m, k)
+    // ════════════════════════════════════════
+    // KENNZAHLEN IM KOPFBEREICH
+    // ════════════════════════════════════════
+    function propFuerCalc() {
+      const p = Object.assign({}, propData || {})
+      if (liqData) p.liquiditaet = liqData
+      return p
+    }
+
+    function monatsDauer(vonMonat) {
+      const a = String(vonMonat).split('-').map(Number)
+      const jetzt = new Date()
+      const mDiff = (jetzt.getFullYear() * 12 + jetzt.getMonth() + 1) - (a[0] * 12 + a[1])
+      if (mDiff < 0) return 'noch nicht übernommen'
+      const j = Math.floor(mDiff / 12), m = mDiff % 12
+      if (!j) return m + (m === 1 ? ' Monat' : ' Monate')
+      return j + (j === 1 ? ' Jahr' : ' Jahre') + (m ? ' ' + m + (m === 1 ? ' Monat' : ' Monate') : '')
+    }
+
+    function updateKpis() {
+      if (!propData || !window.IECalc) return
+      const C = window.IECalc
+      const p = propFuerCalc()
+      const m = C.jetztMonat()
+
+      const kaufpreis  = C.kaufpreis(p)
+      const festgelegt = Number(propData.wert) > 0 ? Number(propData.wert) : 0
+      const wert = festgelegt || C.wert(p, m) || kaufpreis
+      const fk   = C.restschuld(p, m)
+      const ekEinzahlung = Math.abs(C.summeBis(p, 'einzahlungEk', m))
+      const ek = ekEinzahlung || Math.max(0, kaufpreis - Math.abs(C.summeBis(p, 'einzahlungFk', m)))
+      const uebernahme = C.uebernahme(p)
+      const cf = (typeof liqNowVals === 'function' && liqData) ? liqNowVals().cf : 0
+
+      const setzen = (id, text, klasse) => {
+        const el = document.getElementById(id)
+        if (!el) return
+        el.textContent = text
+        if (klasse !== undefined) el.className = 'k-value ' + klasse
+      }
+      const note = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text }
+
+      setzen('kWert', wert ? formatEur(wert) : '–', 'gold')
+      note('kWertNote', festgelegt ? 'festgelegter Wert' : 'Kaufpreis + 2 % p. a.')
+
+      setzen('kFk', formatEur(fk), '')
+      note('kFkNote', wert > 0 ? 'Beleihung ' + Math.round(fk / wert * 100) + ' %' : 'Restschuld heute')
+
+      setzen('kEk', formatEur(ek), '')
+      note('kEkNote', ekEinzahlung ? 'aus der Liquiditätsplanung' : 'geschätzt: Kaufpreis − Darlehen')
+
+      const mm = String(uebernahme).slice(5, 7), jj = String(uebernahme).slice(0, 4)
+      setzen('kSeit', mm + '/' + jj, '')
+      note('kSeitNote', monatsDauer(uebernahme))
+
+      setzen('kCf', formatEur(cf), cf < -0.004 ? 'red' : 'green')
+    }
+
+    // ════════════════════════════════════════
+    // EINSTELLUNGEN DER IMMOBILIE
+    // ════════════════════════════════════════
+    function zahlEin(v) {
+      if (v === null || v === undefined) return ''
+      return new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 }).format(v)
+    }
+    function zahlAus(s) {
+      const t = String(s == null ? '' : s).replace(/[^0-9,.-]/g, '').replace(/\./g, '').replace(',', '.')
+      if (!t) return null
+      const n = Number(t)
+      return isNaN(n) ? null : n
+    }
+
+    function openSettings() {
+      if (!propData) return
+      document.getElementById('setSub').textContent = propData.bezeichnung || 'Immobilie'
+      document.getElementById('setWert').value      = propData.wert ? zahlEin(propData.wert) : ''
+      document.getElementById('setKaufpreis').value = propData.kaufpreis ? zahlEin(propData.kaufpreis) : ''
+      document.getElementById('setKaltmiete').value = propData.kaltmiete ? zahlEin(propData.kaltmiete) : ''
+      document.getElementById('setHausgeld').value  = propData.hausgeld ? zahlEin(propData.hausgeld) : ''
+      document.getElementById('setKaufdatum').value = propData.kaufdatum ? String(propData.kaufdatum).slice(0, 10) : ''
+      document.getElementById('siSet').textContent  = ''
+      document.getElementById('setModal').classList.add('open')
+    }
+    function closeSettings() { document.getElementById('setModal').classList.remove('open') }
+
+    async function saveSettings() {
+      const ind = document.getElementById('siSet')
+      const patch = {
+        wert:      zahlAus(document.getElementById('setWert').value),
+        kaufpreis: zahlAus(document.getElementById('setKaufpreis').value),
+        kaltmiete: zahlAus(document.getElementById('setKaltmiete').value),
+        hausgeld:  zahlAus(document.getElementById('setHausgeld').value),
+        kaufdatum: document.getElementById('setKaufdatum').value || null,
+      }
+      ind.textContent = 'Speichert …'
+      const { error } = await sb.from('portfolio').update(patch).eq('id', id)
+      if (error) {
+        ind.textContent = '⚠ ' + (/(column|spalte).*wert/i.test(error.message)
+          ? 'Spalte „wert" fehlt in der Datenbank'
+          : 'Fehler beim Speichern')
+        ind.style.color = 'var(--red)'
+        console.error('Einstellungen speichern fehlgeschlagen:', error)
+        return
+      }
+      ind.style.color = ''
+      ind.textContent = '✓ Gespeichert'
+      Object.assign(propData, patch)
+      const kd = document.getElementById('sKaufdatum')
+      if (kd) kd.value = patch.kaufdatum || ''
+      updateKpis()
+      setTimeout(() => { ind.textContent = ''; closeSettings() }, 700)
+    }
+
+    ;(function initSettings() {
+      const gear = document.getElementById('propGear')
+      const hint = document.getElementById('hintGear')
+      const modal = document.getElementById('setModal')
+      if (gear) gear.addEventListener('click', openSettings)
+      if (hint) hint.addEventListener('click', openSettings)
+      const x = document.getElementById('setClose')
+      if (x) x.addEventListener('click', closeSettings)
+      const save = document.getElementById('setSave')
+      if (save) save.addEventListener('click', saveSettings)
+      if (modal) modal.addEventListener('click', e => { if (e.target === modal) closeSettings() })
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSettings() })
     })()
 
-    window.ieSetView = function (key) {
-      const panes = VIEW_PANES[key] || VIEW_PANES.uberblick
-      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'))
-      panes.forEach((k, i) => {
-        const el = document.getElementById('pane-' + k)
-        if (!el) return
-        el.classList.add('active')
-        el.classList.toggle('stacked', i > 0)
-      })
-      if (key === 'liquiditaet' && typeof liqScrollToNow === 'function') liqScrollToNow()
-      window.scrollTo({ top: 0 })
-    }
-
-    const tabParam = new URLSearchParams(window.location.search).get('tab')
-    window.ieSetView(tabParam || 'uberblick')
+    buildSections()
 
     async function deleteImmobilie() {
       if (!confirm('Immobilie löschen?\n\nDieser Eintrag wird vollständig gelöscht und kann nicht wiederhergestellt werden.')) return

@@ -711,17 +711,48 @@
   <link rel="stylesheet" href="app.css" />
   <style>
 
-    .ie-view#viewSteckbriefe { padding: 44px 40px 60px; }
-    .sb-head h1 { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }
+    /* Beide Bereiche stehen untereinander auf einer Seite – kein Seitenmenü */
+    .ie-view { display: block !important; }
+
+    /* Gemeinsame Spaltenbreite für Kopf, Eingabe und Steckbriefe */
+    body.ie-app .page-header,
+    body.ie-app .input-section,
+    body.ie-app .ie-view#viewSteckbriefe,
+    body.ie-app .freemium-banner {
+      width: 100% !important;
+      max-width: 940px !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+      padding-left: 24px !important;
+      padding-right: 24px !important;
+    }
+    body.ie-app .loading, body.ie-app .result {
+      max-width: 1180px !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+
+    .ie-view#viewSteckbriefe { padding-top: 8px; padding-bottom: 64px; }
+    .sb-head { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 36px; }
+    .sb-head h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 6px; }
     .sb-head h1 span { color: var(--gold); }
-    .sb-head p { color: var(--muted); font-size: 0.92rem; margin-bottom: 28px; }
+    .sb-head p { color: var(--muted); font-size: 0.9rem; margin-bottom: 24px; }
     #viewSteckbriefe .saved-section { display: block !important; padding: 0 !important; opacity: 1 !important; }
     #viewSteckbriefe .saved-section h2 { display: none; }
+    #viewSteckbriefe .ie-placeholder { max-width: none; }
     .input-card, .saved-item, .result-card, .loading-card { background: var(--navy2); }
-    @media (max-width: 700px) { .ie-view#viewSteckbriefe { padding: 28px 18px 48px; } }
+
+    /* Fußzeile sitzt immer am unteren Seitenrand */
+    body.ie-app .ie-content > footer { margin-top: auto !important; }
+
+    @media (max-width: 700px) {
+      body.ie-app .page-header,
+      body.ie-app .input-section,
+      body.ie-app .ie-view#viewSteckbriefe { padding-left: 18px !important; padding-right: 18px !important; }
+    }
 
   </style>
-  <script>window.IE_PAGE = { area: 'finder', view: new URLSearchParams(location.search).get('tab') || 'analyse' }</script>
+  <script>window.IE_PAGE = {}</script>
   <script src="app-shell.js"></script>
 </head>
 <body>
@@ -922,7 +953,7 @@
     <div class="ie-placeholder">
       <div class="ie-ph-icon">📋</div>
       <h3>Noch keine Steckbriefe</h3>
-      <p>Analysieren Sie ein Inserat unter „Inseratanalyse" und speichern Sie das Ergebnis – es erscheint dann hier.</p>
+      <p>Analysieren Sie oben ein Inserat und speichern Sie das Ergebnis – es erscheint dann hier.</p>
     </div>
   </div>
   <div class="saved-section" id="savedSection">

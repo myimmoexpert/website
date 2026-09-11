@@ -36,20 +36,8 @@
     'Sonstiges':        '🏗️'
   }
 
-  var PROP_VIEWS = [
-    { key: 'uberblick',   label: 'Überblick' },
-    { key: 'liquiditaet', label: 'Liquidität' },
-    { key: 'nebenkosten', label: 'NK-Abrechnung' },
-    { key: 'weitere', label: 'Weitere', children: [
-      { key: 'checkliste', label: 'Checkliste Kauf' },
-      { key: 'dateien',    label: 'Dateien' },
-      { key: 'notes',      label: 'Notes' },
-      { key: 'todos',      label: 'To-Dos' },
-      { key: 'weg',        label: 'WEG-Versammlungen' }
-    ]}
-  ]
-
-  var WEITERE_KEYS = ['checkliste', 'dateien', 'notes', 'todos', 'weg']
+  /* Die Immobilienseite zeigt alle Bereiche untereinander auf einer Seite;
+     das Menü verlinkt deshalb nur noch die Immobilie selbst. */
 
   function el (tag, cls, html) {
     var n = document.createElement(tag)
@@ -161,17 +149,17 @@
   }
 
   function buildPortfolioMenu (nav) {
-    // Mein Portfolio ist eine eigene Seite
+    // Portfolioübersicht ist eine eigene Seite
     var mp = makeItem({
-      label: 'Mein Portfolio',
+      label: 'Portfolioübersicht',
       href: P.portfolio,
       active: !PROP && (VIEW === 'mein-portfolio' || currentFile() === P.portfolio)
     })
     mp.setAttribute('data-key', 'mein-portfolio')
     nav.appendChild(mp)
 
-    ;[['liquiditaet', 'Liquidität'], ['aum', 'AUM Entwicklung'],
-      ['todos', 'To-Dos'], ['notes', 'Notes']].forEach(function (v) {
+    ;[['liquiditaet', 'Liquiditätsübersicht'],
+      ['notizen', 'Notizen & To-Dos']].forEach(function (v) {
       addSimple(nav, P.global, v[0], v[1])
     })
 
@@ -207,59 +195,15 @@
     }).catch(function () { fail('–') })
   }
 
+  /* Eine Immobilie = ein Menüeintrag = eine Seite */
   function buildPropGroup (p) {
-    var isOpen = (PROP === p.id)
-    var group = el('div', 'ie-sb-group' + (isOpen ? ' open' : ''))
-    var icon = OBJEKTART_ICONS[p.objektart] || '🏗️'
-
-    var head = makeItem({
+    var n = makeItem({
       label: p.bezeichnung || 'Immobilie',
-      thumb: icon,
-      chevron: true,
-      onClick: function () { group.classList.toggle('open') }
+      thumb: OBJEKTART_ICONS[p.objektart] || '🏗️',
+      href: P.immobilie + '?id=' + p.id,
+      active: PROP === p.id
     })
-    group.appendChild(head)
-
-    var sub = el('div', 'ie-sb-sub')
-    PROP_VIEWS.forEach(function (v) {
-      if (v.children) {
-        var openW = isOpen && WEITERE_KEYS.indexOf(VIEW) !== -1
-        var g2 = el('div', 'ie-sb-group' + (openW ? ' open' : ''))
-        g2.appendChild(makeItem({
-          label: v.label, sub: true, chevron: true,
-          onClick: function () { g2.classList.toggle('open') }
-        }))
-        var sub2 = el('div', 'ie-sb-sub')
-        v.children.forEach(function (c) { sub2.appendChild(propLink(p, c, isOpen)) })
-        g2.appendChild(sub2)
-        sub.appendChild(g2)
-      } else {
-        sub.appendChild(propLink(p, v, isOpen))
-      }
-    })
-    group.appendChild(sub)
-    return group
-  }
-
-  function propLink (p, v, isOpen) {
-    var file = P.immobilie
-    var active = isOpen && VIEW === v.key
-    var n
-    if (currentFile() === file && isOpen && typeof window.ieSetView === 'function') {
-      n = makeItem({ label: v.label, sub: true, active: active, onClick: function (e) {
-        e.preventDefault()
-        window.ieSetView(v.key)
-        history.replaceState(null, '', file + '?id=' + p.id + '&tab=' + v.key)
-        setActive(v.key)
-        closeMobile()
-      }})
-    } else {
-      n = makeItem({
-        label: v.label, sub: true, active: active,
-        href: file + '?id=' + p.id + '&tab=' + v.key
-      })
-    }
-    n.setAttribute('data-key', isOpen ? v.key : p.id + ':' + v.key)
+    n.setAttribute('data-key', 'prop:' + p.id)
     return n
   }
 

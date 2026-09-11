@@ -414,21 +414,10 @@
 
 
   <!-- ══ ANSICHT: AUM ENTWICKLUNG ══ -->
-  <div class="tab-pane" id="pane-aum">
+  <!-- ══ TAB: NOTIZEN & TO-DOS ══ -->
+  <div class="tab-pane" id="pane-notizen">
     <div class="tab-content">
-      <div class="ie-placeholder">
-        <div class="ie-ph-icon">📈</div>
-        <h3>Wird gerade gebaut</h3>
-        <p>Hier entsteht die Entwicklung Ihres verwalteten Immobilienvermögens über die Zeit –
-           Verkehrswert, Restschuld und Nettovermögen im Verlauf. Der Bereich ist bereits
-           angelegt und wird im nächsten Schritt mit Leben gefüllt.</p>
-      </div>
-    </div>
-  </div>
 
-  <!-- ══ TAB: TO-DOS ══ -->
-  <div class="tab-pane" id="pane-todos">
-    <div class="tab-content">
       <div class="section-head" style="margin-bottom:16px;">
         <h3>To-<span>Dos</span></h3>
         <div class="save-indicator" id="siTodos"></div>
@@ -439,18 +428,14 @@
         <button class="todo-btn" onclick="addTodo()">+ Hinzufügen</button>
       </div>
       <div class="checklist-card" id="todoList"></div>
-    </div>
-  </div>
 
-  <!-- ══ TAB: NOTES ══ -->
-  <div class="tab-pane" id="pane-notes">
-    <div class="tab-content">
-      <div class="section-head" style="margin-bottom:16px;">
-        <h3>No<span>tes</span></h3>
+      <div class="section-head" style="margin:34px 0 16px;">
+        <h3>Noti<span>zen</span></h3>
         <div class="save-indicator" id="siNotes"></div>
       </div>
       <textarea class="notes-area" id="notesArea"
                 placeholder="Portfolio-weite Notizen, Erinnerungen und wichtige Informationen …"></textarea>
+
     </div>
   </div>
 
@@ -538,7 +523,8 @@
 
       // Deep-Link ?tab=…
       const tabParam = new URLSearchParams(window.location.search).get('tab')
-      switchTab(TAB_ORDER.includes(tabParam) ? tabParam : 'liquiditaet')
+      const tabZiel  = TAB_ALIAS[tabParam] || tabParam
+      switchTab(TAB_ORDER.includes(tabZiel) ? tabZiel : 'liquiditaet')
     }
 
     // ════════════════════════════════════════
@@ -931,8 +917,11 @@
     // ════════════════════════════════════════
     // TABS
     // ════════════════════════════════════════
-    const TAB_ORDER = ['uebersicht', 'kontakte', 'liquiditaet', 'aum', 'todos', 'notes']
+    const TAB_ORDER = ['uebersicht', 'kontakte', 'liquiditaet', 'notizen']
+    // frühere Einzelbereiche auf die zusammengefassten Ansichten umlenken
+    const TAB_ALIAS = { todos: 'notizen', notes: 'notizen', aum: 'liquiditaet' }
     function switchTab(name) {
+      name = TAB_ALIAS[name] || name
       document.querySelectorAll('.tab-btn').forEach((btn, i) => {
         btn.classList.toggle('active', TAB_ORDER[i] === name)
       })
@@ -940,10 +929,8 @@
       const pane = document.getElementById('pane-' + name)
       if (pane) pane.classList.add('active')
       const HD = {
-        liquiditaet: ['💧', 'Liqui<span>dität</span>', 'Kontoauszug einlesen, Monatswechsel und Cashflow je Wohnung.'],
-        aum:         ['📈', 'AUM <span>Entwicklung</span>', 'Entwicklung des verwalteten Immobilienvermögens.'],
-        todos:       ['✅', 'To-<span>Dos</span>', 'Aufgaben über das gesamte Portfolio.'],
-        notes:       ['📝', 'No<span>tes</span>', 'Portfolio-weite Notizen.'],
+        liquiditaet: ['💧', 'Liquiditäts<span>übersicht</span>', 'Kontoauszug einlesen, Monatswechsel und Cashflow je Wohnung.'],
+        notizen:     ['📝', 'Notizen <span>& To-Dos</span>', 'Aufgaben und Notizen über das gesamte Portfolio.'],
         uebersicht:  ['📊', 'Über<span>sicht</span>', 'Kennzahlen je Immobilie.'],
         kontakte:    ['👤', 'Kon<span>takte</span>', 'Portfolio-weite Kontakte.'],
       }[name]
@@ -1399,8 +1386,18 @@
       let aum = 0, fk = 0, kaufpreis = 0, ekEingesetzt = 0
       let miete = 0, hausgeld = 0, bankrate = 0, cf = 0, nkmJahr = 0
 
+      // Portfoliowert nach derselben Einstellung wie in der Portfolioübersicht
+      let pwModus = 'kaufpreis'
+      try { pwModus = localStorage.getItem('ie_portfoliowert_modus') === 'wert' ? 'wert' : 'kaufpreis' } catch (e) {}
+      let ohneWert = 0
+
       properties.forEach(p => {
-        aum += window.IECalc.wert(p, m)
+        if (pwModus === 'wert') {
+          const w = Number(p.wert)
+          if (w > 0) { aum += w } else { ohneWert++; aum += window.IECalc.kaufpreis(p) }
+        } else {
+          aum += window.IECalc.kaufpreis(p)
+        }
         fk  += window.IECalc.restschuld(p, m)
         kaufpreis += window.IECalc.kaufpreis(p)
         ekEingesetzt += Math.abs(window.IECalc.summeAlle(p, 'einzahlungEk'))
@@ -1437,7 +1434,10 @@
 
       el.innerHTML =
         gruppe('Vermögen & Finanzierung', [
-          { l: 'Portfoliowert', v: formatEur(aum), c: 'gold', s: 'Kaufpreis + 2 % p. a.' },
+          { l: 'Portfoliowert', v: formatEur(aum), c: 'gold',
+            s: pwModus === 'wert'
+                 ? (ohneWert ? 'Festgelegte Werte · ' + ohneWert + ' × Kaufpreis' : 'Summe der festgelegten Werte')
+                 : 'Summe der Kaufpreise' },
           { l: 'Restschuld',    v: formatEur(fk),  s: 'Darlehen abzüglich Tilgung' },
           { l: 'Eigenkapital',  v: formatEur(ek),  c: 'green', s: 'Wert abzüglich Restschuld' },
           { l: 'Beleihungsauslauf', v: pct(ltv), s: 'Restschuld ÷ Portfoliowert' },
