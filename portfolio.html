@@ -70,7 +70,6 @@
     .summary-stat .s-value.gold { color: var(--gold); }
     .summary-stat .s-value.green { color: var(--green); }
     .summary-stat .s-value.red { color: var(--red); }
-    .summary-stat .s-note { font-size: 0.72rem; color: var(--muted); margin-top: 5px; }
 
     .modal-box .opt { font-weight: 500; font-size: 0.72rem; color: var(--muted); text-transform: none; letter-spacing: 0; }
     .modal-box .form-hint { font-size: 0.76rem; color: var(--muted); margin-top: 6px; line-height: 1.5; }
@@ -238,17 +237,13 @@
     }
     .pc-card { background: var(--navy2); border: 1px solid rgba(255,255,255,0.112);
       border-radius: var(--radius); padding: 20px 22px 16px; min-width: 0; }
-    .pc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .pc-head { display: flex; align-items: flex-start; gap: 12px; }
     .pc-title { font-size: 1rem; font-weight: 700; letter-spacing: -0.2px; }
-    .pc-sub { font-size: 0.76rem; color: var(--muted); margin-top: 3px; line-height: 1.45; }
-    .pc-tbl-btn { flex: 0 0 auto; background: transparent; border: 1px solid rgba(255,255,255,0.175);
-      border-radius: 7px; padding: 5px 10px; font: 500 0.74rem/1 'Inter', sans-serif;
-      color: var(--muted); cursor: pointer; }
-    .pc-tbl-btn:hover { color: var(--gold); border-color: rgba(211,172,95,0.45); }
-    .pc-legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 12px 0 4px; }
+    .pc-legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 14px 0 0; padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.075); }
     .pc-leg { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); }
     .pc-leg i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
-    .pc-plot { position: relative; }
+    .pc-plot { position: relative; margin-top: 18px; }
     .pc-svg { display: block; overflow: visible; }
     .pc-tip { position: absolute; top: 8px; background: #18181b; border: 1px solid rgba(255,255,255,0.15);
       border-radius: 9px; box-shadow: 0 10px 28px rgba(0,0,0,0.63); padding: 9px 12px;
@@ -260,13 +255,6 @@
     .pc-hero { display: flex; align-items: baseline; gap: 9px; margin-top: 14px; }
     .pc-hero-val { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; color: var(--white); }
     .pc-hero-lab { font-size: 0.76rem; color: var(--muted); }
-    .pc-table { margin-top: 12px; max-height: 260px; overflow: auto; }
-    .pc-table table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
-    .pc-table th { text-align: left; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.4px;
-      color: var(--muted); padding: 6px 8px; position: sticky; top: 0; background: #26262b; }
-    .pc-table td { padding: 5px 8px; border-top: 1px solid rgba(255,255,255,0.075); }
-    .pc-table .ta-r, .pc-card .ta-r { text-align: right; }
-
     .pc-leer { color: var(--muted); font-size: 0.85rem; text-align: center; padding: 48px 0; }
     @media (max-width: 900px) { .charts-section { grid-template-columns: 1fr; } }
     @media (max-width: 700px) { .charts-section { padding-left: 18px; padding-right: 18px; } }
@@ -303,8 +291,7 @@
 
   <!-- Page Header -->
   <div class="page-header">
-    <h1>Portfolio<span>übersicht</span></h1>
-    <p class="sub">Alle Ihre Immobilien auf einen Blick. Über „Bild" hinterlegen Sie ein Foto je Objekt.</p>
+    <h1>Portfolioübersicht</h1>
   </div>
 
   <!-- Summary Bar (nur sichtbar wenn Objekte vorhanden) -->
@@ -316,7 +303,6 @@
     <div class="summary-stat">
       <div class="s-label">Portfoliowert</div>
       <div class="s-value" id="sumKaufpreis">0 €</div>
-      <div class="s-note" id="pwNote">Summe der Werte aus den Immobilien</div>
     </div>
     <div class="summary-stat">
       <div class="s-label">Kaltmiete / Monat</div>
@@ -451,15 +437,7 @@
       })
 
       const wertEl = document.getElementById('sumKaufpreis')
-      const noteEl = document.getElementById('pwNote')
       if (wertEl) wertEl.textContent = formatEur(summe)
-      if (noteEl) {
-        const teile = []
-        if (zaehler.kaufpreis)  teile.push(zaehler.kaufpreis + '× Kaufpreis')
-        if (zaehler.steigerung) teile.push(zaehler.steigerung + '× mit Wertsteigerung')
-        if (zaehler.eigen)      teile.push(zaehler.eigen + '× eigener Wert')
-        noteEl.textContent = teile.length ? teile.join(' · ') : 'Summe der Werte aus den Immobilien'
-      }
     }
 
     // ── PORTFOLIO LADEN ─────────────────────────────

@@ -110,9 +110,8 @@
 
     /* ── STECKBRIEFE TAB ── */
     .steckbriefe-wrap { max-width: 900px; margin: 0 auto; padding: 48px 60px 80px; }
-    .steckbriefe-wrap h2 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 8px; }
+    .steckbriefe-wrap h2 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 30px; }
     .steckbriefe-wrap h2 span { color: var(--gold); }
-    .steckbriefe-wrap .sub { color: var(--muted); font-size: 0.92rem; margin-bottom: 32px; }
 
     /* Saved list */
     .saved-list { display: flex; flex-direction: column; gap: 12px; }
@@ -233,7 +232,6 @@
     .m-cf-result.positive { background: rgba(92,201,138,0.1);  border: 1px solid rgba(92,201,138,0.25); }
     .m-cf-total.neg { color: var(--red); font-size: 1.05rem; }
     .m-cf-total.pos { color: var(--green); font-size: 1.05rem; }
-    .m-cf-note { font-size: 0.76rem; color: var(--muted); margin-top: 10px; }
 
     /* Modal: Beschreibung + Rating */
     .m-desc-card, .m-rating-card { background: var(--navy2); border: 1px solid rgba(255,255,255,0.088); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
@@ -292,9 +290,8 @@
   <style>
 
     .profil-wrap { max-width: 760px !important; margin: 0 auto !important; padding: 44px 40px 70px; }
-    .set-h1 { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .set-h1 { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 26px; }
     .set-h1 span { color: var(--gold); }
-    .set-sub { color: var(--muted); font-size: 0.92rem; margin-bottom: 28px; }
     .set-row { display: grid; grid-template-columns: 170px 1fr; align-items: center; gap: 14px; margin-bottom: 14px; }
     .set-row label { font-size: 0.82rem; color: var(--muted); font-weight: 600; }
     .set-row input {
@@ -376,8 +373,7 @@
   ════════════════════════════════════ -->
   <div class="tab-pane" id="pane-steckbriefe">
     <div class="steckbriefe-wrap">
-      <h2>Meine <span>Steckbriefe</span></h2>
-      <p class="sub">Alle analysierten Immobilien auf einen Blick.</p>
+      <h2>Meine <span>Steckbriefe</span> <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Alle analysierten Immobilien auf einen Blick.</span></span></h2>
 
       <!-- Gefüllte Liste -->
       <div class="saved-list" id="savedList"></div>
@@ -426,8 +422,7 @@
   <!-- ══ ANSICHT: EINSTELLUNGEN ══ -->
   <div class="tab-pane" id="pane-einstellungen">
     <div class="profil-wrap">
-      <h2 class="set-h1">Ein<span>stellungen</span></h2>
-      <p class="set-sub">Konto, Anmeldung und Darstellung verwalten.</p>
+      <h2 class="set-h1">Einstellungen <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Konto, Anmeldung und Darstellung verwalten.</span></span></h2>
 
       <div class="info-card">
         <h3>Name</h3>
@@ -458,10 +453,8 @@
       </div>
 
       <div class="info-card">
-        <h3>E-Mail-Adresse</h3>
+        <h3>E-Mail-Adresse <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Eine Änderung der E-Mail-Adresse ist derzeit nur über <a href="kontakt.html">hello@myimmoexpert.de</a> möglich.</span></span></h3>
         <div class="info-row"><span class="lbl">Aktuelle Adresse</span><span class="val" id="setEmail">–</span></div>
-        <p class="set-hint">Eine Änderung der E-Mail-Adresse ist derzeit nur über
-           <a href="kontakt.html">hello@myimmoexpert.de</a> möglich.</p>
       </div>
 
       <div class="info-card">
@@ -528,7 +521,7 @@
       </div>
 
       <div class="m-cf-card">
-        <h3>Cashflow Analyse</h3>
+        <h3>Cashflow Analyse <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Bankrate basiert auf 5 % des Kaufpreises p. a. · Steuern nicht berücksichtigt</span></span></h3>
         <div class="m-cf-row"><span class="lbl">Jährliche Warmmiete</span><span class="amt plus" id="mCfWarmmiete">–</span></div>
         <div class="m-cf-row"><span class="lbl">Hausgeld</span><span class="amt minus" id="mCfHausgeld">–</span></div>
         <div class="m-cf-row" style="border-bottom:none;"><span class="lbl">Voraussichtliche Bankrate <span style="font-size:0.76rem;">(Kaufpreis × 5 %)</span></span><span class="amt minus" id="mCfBankrate">–</span></div>
@@ -536,7 +529,6 @@
           <span>Monatlicher CF <span style="font-weight:400;font-size:0.8rem;color:var(--muted);">(ohne Steuern)</span></span>
           <span class="m-cf-total" id="mCfMonatlich">–</span>
         </div>
-        <p class="m-cf-note">* Bankrate basiert auf 5 % des Kaufpreises p.a. · Steuern nicht berücksichtigt</p>
       </div>
 
       <div class="m-desc-card">

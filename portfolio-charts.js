@@ -83,29 +83,14 @@
   function huelle (id, titel, unter, legendeHtml) {
     return '<div class="pc-card" id="' + id + '">' +
       '<div class="pc-head">' +
-        '<div><div class="pc-title">' + esc(titel) + '</div>' +
-        '<div class="pc-sub">' + esc(unter) + '</div></div>' +
-        '<button class="pc-tbl-btn" type="button">Tabelle</button>' +
-      '</div>' + legendeHtml +
+        '<div class="pc-title">' + esc(titel) +
+          (unter ? ' <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung">' +
+                   '<span class="ie-info-pop">' + esc(unter) + '</span></span>' : '') +
+        '</div>' +
+      '</div>' +
       '<div class="pc-plot"><div class="pc-tip" hidden></div></div>' +
-      '<div class="pc-table" hidden></div></div>'
-  }
-
-  function verdrahten (root, daten, spalten, kopf, schluessel) {
-    var btn = root.querySelector('.pc-tbl-btn')
-    var tbl = root.querySelector('.pc-table')
-    btn.addEventListener('click', function () {
-      var zu = tbl.hasAttribute('hidden')
-      if (zu) {
-        tbl.innerHTML = '<table><thead><tr><th>' + esc(kopf || 'Jahr') + '</th>' +
-          spalten.map(function (c) { return '<th class="ta-r">' + esc(c.t) + '</th>' }).join('') +
-          '</tr></thead><tbody>' + daten.map(function (d) {
-            return '<tr><td>' + esc(schluessel ? schluessel(d) : d.jahr) + '</td>' +
-              spalten.map(function (c) { return '<td class="ta-r">' + esc(c.f ? c.f(d) : eur(c.v(d))) + '</td>' }).join('') + '</tr>'
-          }).join('') + '</tbody></table>'
-        tbl.removeAttribute('hidden'); btn.textContent = 'Tabelle ausblenden'
-      } else { tbl.setAttribute('hidden', ''); btn.textContent = 'Tabelle' }
-    })
+      legendeHtml +
+      '</div>'
   }
 
   /* ── Datenaufbereitung ───────────────────────────────────── */
@@ -232,7 +217,7 @@
           '<circle r="5" fill="' + SURF + '" stroke="' + INK + '" stroke-width="2"/></g>' +
       '</svg>')
 
-    root.querySelector('.pc-legend').insertAdjacentHTML('beforebegin',
+    root.querySelector('.pc-head').insertAdjacentHTML('afterend',
       '<div class="pc-hero"><span class="pc-hero-val">' + eur(heuteWert) + '</span>' +
       '<span class="pc-hero-lab">Portfoliowert Ende ' + (ji >= 0 ? jetztJ : daten[daten.length - 1].jahr) + '</span></div>')
 
@@ -363,7 +348,7 @@
       '</svg>')
 
     var akt = ji >= 0 ? daten[ji] : daten[daten.length - 1]
-    root.querySelector('.pc-legend').insertAdjacentHTML('beforebegin',
+    root.querySelector('.pc-head').insertAdjacentHTML('afterend',
       '<div class="pc-hero"><span class="pc-hero-val">' + eur(akt.fremdkapital) + '</span>' +
       '<span class="pc-hero-lab">Restschuld Ende ' + akt.jahr + '</span></div>')
 
@@ -420,7 +405,7 @@
         gitter + reihen + schnittLinie +
       '</svg>')
 
-    root.querySelector('.pc-legend').insertAdjacentHTML('beforebegin',
+    root.querySelector('.pc-head').insertAdjacentHTML('afterend',
       '<div class="pc-hero"><span class="pc-hero-val">' + pct(schnitt) + '</span>' +
       '<span class="pc-hero-lab">Portfolio im Schnitt</span></div>')
   }
@@ -493,27 +478,10 @@
 
     if (objekte.length) {
       zeichneRendite(rd, objekte)
-      verdrahten(rd, objekte, [
-        { t: 'Mietrendite', f: function (o) { return pct(o.rendite) } },
-        { t: 'Jahresmiete', v: function (o) { return o.miete } },
-        { t: 'Basis',       v: function (o) { return o.basis } }
-      ], 'Immobilie', function (o) { return o.name })
     } else {
       rd.querySelector('.pc-plot').innerHTML = '<div class="pc-leer">Noch keine Immobilie mit Kaufpreis erfasst.</div>'
     }
 
-    verdrahten(aum, daten, [
-      { t: 'Eigenkapital', v: function (d) { return d.eigenkapital } },
-      { t: 'Fremdkapital', v: function (d) { return d.fremdkapital } },
-      { t: 'Gesamtwert',   v: function (d) { return d.wert } }])
-    verdrahten(cf, daten, [
-      { t: 'Miete',    v: function (d) { return d.miete } },
-      { t: 'Hausgeld', v: function (d) { return d.hausgeld } },
-      { t: 'Bankrate', v: function (d) { return d.bankrate } },
-      { t: 'Cashflow', v: function (d) { return d.cf } }])
-    verdrahten(tg, daten, [
-      { t: 'Restschuld',      v: function (d) { return d.fremdkapital } },
-      { t: 'Tilgung im Jahr', v: function (d) { return d.tilgung } }])
   }
 
   var letzteProps = null, resizeTimer = null

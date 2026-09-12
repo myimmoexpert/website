@@ -60,7 +60,8 @@
     .tab-content { max-width: 980px; margin: 0 auto; padding: 48px 60px 80px; }
 
     /* ── SECTION HEADER ── */
-    .section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .section-head { display: flex; align-items: center; gap: 9px; margin-bottom: 16px; }
+    .section-head .save-indicator { margin-left: auto; }
     .section-head h3 { font-size: 1rem; font-weight: 600; }
     .section-head h3 span { color: var(--gold); }
     .save-indicator { font-size: 0.76rem; }
@@ -82,7 +83,6 @@
     .btn-add-row:hover { border-color: rgba(211,172,95,0.4); color: var(--gold); }
 
     /* ── ÜBERSICHT-TABELLE ── */
-    .ov-intro { color: var(--muted); font-size: 0.88rem; margin-bottom: 20px; line-height: 1.6; }
     .ov-table-wrap { overflow-x: auto; border: 1px solid rgba(255,255,255,0.088); border-radius: var(--radius); background: var(--navy2); }
     .ov-table { border-collapse: collapse; width: 100%; min-width: 660px; }
     .ov-table th, .ov-table td { padding: 13px 18px; text-align: right; font-size: 0.86rem; border-bottom: 1px solid rgba(255,255,255,0.062); white-space: nowrap; }
@@ -266,9 +266,14 @@
     }
 
     /* ── Kennzahlen ── */
-    .kpi-group { margin-bottom: 20px; }
-    .kpi-group-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.6px; color: var(--muted); margin-bottom: 9px; }
+    .kpi-group { margin-bottom: 4px; }
+    .kpi-group + .kpi-group { margin-top: 28px; padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.1); }
+    .kpi-group-title { display: flex; align-items: center; gap: 9px;
+      font-size: 0.76rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.7px; color: var(--white); margin-bottom: 13px; }
+    .kpi-group-title::before { content: ''; display: inline-block; width: 3px; height: 13px;
+      border-radius: 2px; background: var(--gold); }
     .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
     .kpi-tile { background: var(--navy2); border: 1px solid rgba(255,255,255,0.112); border-radius: 12px;
       padding: 15px 18px; display: flex; flex-direction: column; gap: 5px; }
@@ -278,7 +283,7 @@
     .kpi-value.gold { color: var(--gold); }
     .kpi-value.green { color: var(--green); }
     .kpi-value.red { color: var(--red); }
-    .kpi-sub { font-size: 0.7rem; color: var(--muted); line-height: 1.4; }
+    .kpi-label-row { display: flex; align-items: center; gap: 7px; }
   </style>
   <link rel="stylesheet" href="app.css" />
   <style>
@@ -305,17 +310,16 @@
       <span class="prop-icon" id="hdIcon">📊</span>
       <span class="prop-badge">Gesamtportfolio</span>
     </div>
-    <div class="prop-name" id="hdName">Liqui<span>dität</span></div>
-    <div class="prop-adresse" id="hdSub">Alle Immobilien zusammengefasst.</div>
+    <div class="prop-name" id="hdName">Liquidität</div>
   </div>
 
   <!-- ══ TAB: ÜBERSICHT ══ -->
   <div class="tab-pane" id="pane-uebersicht">
     <div class="tab-content">
       <div class="section-head" style="margin-bottom:16px;">
-        <h3>Über<span>sicht</span></h3>
+        <h3>Übersicht</h3>
+        <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Kennzahlen je Immobilie (aktueller Monat aus der Liquiditätsplanung). Zeile anklicken, um die Immobilie zu öffnen.</span></span>
       </div>
-      <p class="ov-intro">Kennzahlen je Immobilie (aktueller Monat aus der Liquiditätsplanung). Zeile anklicken, um die Immobilie zu öffnen.</p>
       <div class="ov-table-wrap" id="ovTableWrap"></div>
     </div>
   </div>
@@ -324,7 +328,7 @@
   <div class="tab-pane" id="pane-kontakte">
     <div class="tab-content">
       <div class="section-head" style="margin-bottom:16px;">
-        <h3>Kon<span>takte</span></h3>
+        <h3>Kontakte</h3>
         <div class="save-indicator" id="siKontakte"></div>
       </div>
       <div id="kontakteWrap"></div>
@@ -338,39 +342,16 @@
 
       <!-- ── Kennzahlen ── -->
       <div class="section-head" style="margin-bottom:10px;">
-        <h3>Kenn<span>zahlen</span></h3>
+        <h3>Kennzahlen</h3>
       </div>
       <div id="kpiWrap"></div>
 
-      <!-- ── 1. Kontoauszug einlesen ── -->
-      <div class="section-head" style="margin-bottom:10px;">
-        <h3>Konto<span>auszug einlesen</span></h3>
-        <div class="save-indicator" id="siImport"></div>
-      </div>
-      <p class="ov-intro">
-        Screenshot aus dem Online-Banking hochladen. Die Buchungen werden ausgelesen und,
-        soweit erkennbar, direkt der richtigen Immobilie und Zeile zugeordnet.
-        Was unklar bleibt, wird unten abgefragt. Das Bild wird nicht gespeichert.
-      </p>
-
-      <div class="bk-drop" id="bkDrop">
-        <div class="bk-drop-icon">🧾</div>
-        <div class="bk-drop-title">Screenshot hierher ziehen oder klicken</div>
-        <div class="bk-drop-sub">PNG oder JPG · mehrere Bilder auf einmal möglich</div>
-      </div>
-      <input type="file" id="bkFile" accept="image/png,image/jpeg,image/webp" multiple style="display:none" />
-
-      <div id="bkStatus" class="bk-status"></div>
-      <div id="bkResult"></div>
-
       <!-- ── 2. Monatswechsel ── -->
       <div class="section-head" style="margin:46px 0 10px;">
-        <h3>Monats<span>wechsel</span></h3>
+        <h3>Monatswechsel</h3>
+        <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Reicht das Geld auf dem Konto für die Zahlungen dieses Monats?</span></span>
         <div class="save-indicator" id="siKonto"></div>
       </div>
-      <p class="ov-intro">
-        Reicht das Geld auf dem Konto für die Zahlungen dieses Monats?
-      </p>
 
       <div class="mw-grid">
         <div class="mw-card">
@@ -403,12 +384,32 @@
       <!-- ── 3. Cashflow je Wohnung ── -->
       <div class="section-head" style="margin:46px 0 10px;">
         <h3>Cash<span>flow je Wohnung</span></h3>
+        <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Monatlicher Überschuss beziehungsweise Unterdeckung im laufenden Monat. Zeile anklicken, um die Immobilie zu öffnen.</span></span>
       </div>
-      <p class="ov-intro">
-        Monatlicher Überschuss beziehungsweise Unterdeckung im laufenden Monat.
-        Zeile anklicken, um die Immobilie zu öffnen.
-      </p>
       <div id="cfList"></div>
+
+    </div>
+  </div>
+
+  <!-- ══ TAB: BUCHUNGEN BANKKONTO ══ -->
+  <div class="tab-pane" id="pane-bank">
+    <div class="tab-content">
+
+      <div class="section-head" style="margin-bottom:10px;">
+        <h3>Konto<span>auszug einlesen</span></h3>
+        <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Screenshot aus dem Online-Banking hochladen. Die Buchungen werden ausgelesen und, soweit erkennbar, direkt der richtigen Immobilie und Zeile zugeordnet. Was unklar bleibt, wird darunter abgefragt. Das Bild wird nicht gespeichert.</span></span>
+        <div class="save-indicator" id="siImport"></div>
+      </div>
+
+      <div class="bk-drop" id="bkDrop">
+        <div class="bk-drop-icon">🧾</div>
+        <div class="bk-drop-title">Screenshot hierher ziehen oder klicken</div>
+        <div class="bk-drop-sub">PNG oder JPG · mehrere Bilder auf einmal möglich</div>
+      </div>
+      <input type="file" id="bkFile" accept="image/png,image/jpeg,image/webp" multiple style="display:none" />
+
+      <div id="bkStatus" class="bk-status"></div>
+      <div id="bkResult"></div>
 
     </div>
   </div>
@@ -909,7 +910,7 @@
     // ════════════════════════════════════════
     // TABS
     // ════════════════════════════════════════
-    const TAB_ORDER = ['uebersicht', 'kontakte', 'liquiditaet', 'notizen']
+    const TAB_ORDER = ['uebersicht', 'kontakte', 'liquiditaet', 'bank', 'notizen']
     // frühere Einzelbereiche auf die zusammengefassten Ansichten umlenken
     const TAB_ALIAS = { todos: 'notizen', notes: 'notizen', aum: 'liquiditaet' }
     function switchTab(name) {
@@ -921,15 +922,15 @@
       const pane = document.getElementById('pane-' + name)
       if (pane) pane.classList.add('active')
       const HD = {
-        liquiditaet: ['💧', 'Liquiditäts<span>übersicht</span>', 'Kontoauszug einlesen, Monatswechsel und Cashflow je Wohnung.'],
-        notizen:     ['📝', 'Noti<span>zen</span>', 'Notizen über das gesamte Portfolio.'],
-        uebersicht:  ['📊', 'Über<span>sicht</span>', 'Kennzahlen je Immobilie.'],
-        kontakte:    ['👤', 'Kon<span>takte</span>', 'Portfolio-weite Kontakte.'],
+        liquiditaet: ['💧', 'Liquiditätsübersicht'],
+        bank:        ['🧾', 'Buchungen <span>Bankkonto</span>'],
+        notizen:     ['📝', 'Notizen'],
+        uebersicht:  ['📊', 'Übersicht'],
+        kontakte:    ['👤', 'Kontakte'],
       }[name]
       if (HD) {
         document.getElementById('hdIcon').textContent = HD[0]
         document.getElementById('hdName').innerHTML   = HD[1]
-        document.getElementById('hdSub').textContent  = HD[2]
       }
       if (name === 'liquiditaet') liqScrollToNow()
     }
@@ -1412,9 +1413,11 @@
           <div class="kpi-row">
             ${kacheln.map(k => `
               <div class="kpi-tile">
-                <span class="kpi-label">${esc(k.l)}</span>
+                <span class="kpi-label-row">
+                  <span class="kpi-label">${esc(k.l)}</span>
+                  ${k.s ? `<span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">${esc(k.s)}</span></span>` : ''}
+                </span>
                 <span class="kpi-value ${k.c || ''}">${k.v}</span>
-                ${k.s ? `<span class="kpi-sub">${esc(k.s)}</span>` : ''}
               </div>`).join('')}
           </div>
         </div>`

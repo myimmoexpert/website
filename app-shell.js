@@ -159,6 +159,7 @@
     nav.appendChild(mp)
 
     ;[['liquiditaet', 'Liquiditätsübersicht'],
+      ['bank', 'Buchungen Bankkonto'],
       ['notizen', 'Notizen']].forEach(function (v) {
       addSimple(nav, P.global, v[0], v[1])
     })

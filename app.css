@@ -283,3 +283,44 @@ body.ie-app .tab-pane { flex: 1; }
   .ie-topnav a { padding: 8px 10px; font-size: 0.8rem; }
   .ie-topbar { padding: 0 14px; gap: 10px; }
 }
+
+/* ── Erklärung hinter dem kleinen i ───────────────────────── */
+
+.ie-info {
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; flex: 0 0 16px;
+  border-radius: 50%;
+  border: 1px solid var(--ie-line);
+  background: none; padding: 0; cursor: help;
+  color: var(--ie-ink-soft);
+  font: 700 0.62rem/1 'Inter', sans-serif;
+  vertical-align: middle;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.ie-info::after { content: 'i'; }
+.ie-info:hover, .ie-info:focus-visible {
+  color: var(--ie-accent); border-color: var(--ie-accent); background: var(--ie-accent-bg);
+  outline: none;
+}
+
+.ie-info .ie-info-pop {
+  position: absolute; left: 50%; top: calc(100% + 8px);
+  transform: translateX(-50%);
+  width: max-content; max-width: 260px;
+  background: var(--ie-surface-2); color: var(--ie-ink);
+  border: 1px solid var(--ie-line);
+  border-radius: 10px; padding: 9px 12px;
+  font: 400 0.76rem/1.5 'Inter', sans-serif;
+  text-align: left; text-transform: none; letter-spacing: 0;
+  box-shadow: 0 14px 36px rgba(0,0,0,0.5);
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity .14s, visibility .14s;
+  z-index: 500;
+}
+.ie-info:hover .ie-info-pop,
+.ie-info:focus .ie-info-pop,
+.ie-info:focus-within .ie-info-pop { opacity: 1; visibility: visible; }
+
+/* nahe am rechten Rand nach links ausrichten */
+.ie-info.links .ie-info-pop { left: auto; right: -6px; transform: none; }
