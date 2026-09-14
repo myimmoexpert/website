@@ -324,3 +324,49 @@ body.ie-app .tab-pane { flex: 1; }
 
 /* nahe am rechten Rand nach links ausrichten */
 .ie-info.links .ie-info-pop { left: auto; right: -6px; transform: none; }
+
+/* ══════════════════════════════════════════════════════════════
+   Rechtstexte – Zustimmung bei der Registrierung (login.html)
+   und Betroffenenrechte im Profil (profil.html)
+   ══════════════════════════════════════════════════════════════ */
+
+/* Zustimmung zu AGB und Auftragsverarbeitung */
+.ie-zust { margin: 20px 0 20px; text-align: left; }
+/* wichtig: seiteneigene label-Regeln (Großschrift, Sperrung) hier zurücksetzen */
+label.ie-zust-zeile {
+  display: flex; gap: 10px; align-items: flex-start;
+  font: 400 0.875rem/1.55 'Inter', sans-serif;
+  text-transform: none; letter-spacing: normal;
+  color: var(--ie-ink, #f1eee7); cursor: pointer; margin-bottom: 0;
+}
+label.ie-zust-zeile input {
+  margin-top: 3px; flex: 0 0 auto; width: 16px; height: 16px;
+  accent-color: var(--ie-accent, #d3ac5f); cursor: pointer;
+}
+label.ie-zust-zeile a { color: var(--ie-accent, #d3ac5f); }
+.ie-zust-hinweis {
+  margin: 10px 0 0 26px; text-transform: none; letter-spacing: normal;
+  font: 400 0.8rem/1.5 'Inter', sans-serif;
+  color: var(--ie-ink-soft, #9b968c);
+}
+.ie-zust-hinweis a { color: var(--ie-ink-soft, #9b968c); text-decoration: underline; }
+.ie-zust-hinweis a:hover { color: var(--ie-accent, #d3ac5f); }
+
+/* Meine Daten – Export und Kontolöschung */
+.ie-konto-zeile {
+  display: flex; gap: 20px; align-items: center; justify-content: space-between;
+  padding: 16px 0; border-top: 1px solid var(--ie-line, rgba(255,255,255,.11));
+  flex-wrap: wrap;
+}
+.ie-konto-zeile:first-of-type { border-top: none; padding-top: 4px; }
+.ie-konto-zeile strong { display: block; margin-bottom: 4px; color: var(--ie-ink); }
+.ie-konto-zeile p {
+  margin: 0; font: 400 0.8rem/1.55 'Inter', sans-serif;
+  color: var(--ie-ink-soft, #9b968c); max-width: 52ch;
+}
+.ie-btn-gefahr {
+  background: transparent !important; color: #ef6b6b !important;
+  border: 1px solid #ef6b6b !important;
+}
+.ie-btn-gefahr:hover { background: #ef6b6b !important; color: #17130a !important; }
+#ie-konto-meldung { margin: 14px 0 0; font: 400 0.82rem/1.5 'Inter', sans-serif; }

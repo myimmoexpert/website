@@ -1,252 +1,291 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <script>if(sessionStorage.getItem('ie_gate')!=='1')document.documentElement.style.visibility='hidden'</script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Datenschutz – Immo.Expert</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --navy:  #0f0f11;
-      --navy2: #18181b;
-      --gold:  #d3ac5f;
-      --muted: #9b968c;
-      --white: #f1eee7;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--navy);
-      color: var(--white);
-      min-height: 100vh;
-    }
-
-    nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 24px 60px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(15,15,17,0.92);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(211,172,95,0.15);
-    }
-
-    .logo {
-      font-size: 1.4rem;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      color: var(--white);
-      text-decoration: none;
-    }
-
-    .logo span { color: var(--gold); }
-
-    nav ul { list-style: none; display: flex; gap: 36px; }
-    nav ul a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
-    nav ul a:hover { color: var(--white); }
-    .nav-cta { background: var(--gold); color: var(--navy) !important; padding: 10px 22px; border-radius: 8px; font-weight: 600 !important; }
-
-    .content {
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 70px 60px 100px;
-    }
-
-    .badge {
-      display: inline-block;
-      background: rgba(211,172,95,0.12);
-      color: var(--gold);
-      border: 1px solid rgba(211,172,95,0.3);
-      border-radius: 50px;
-      padding: 5px 16px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      margin-bottom: 20px;
-    }
-
-    h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      margin-bottom: 12px;
-    }
-
-    .last-updated {
-      color: var(--muted);
-      font-size: 0.85rem;
-      margin-bottom: 48px;
-    }
-
-    .section { margin-bottom: 40px; }
-
-    h2 {
-      font-size: 0.82rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--gold);
-      margin-bottom: 14px;
-    }
-
-    p {
-      font-size: 0.95rem;
-      color: var(--muted);
-      line-height: 1.75;
-      margin-bottom: 12px;
-    }
-
-    p:last-child { margin-bottom: 0; }
-
-    .placeholder {
-      background: rgba(211,172,95,0.08);
-      border: 1px dashed rgba(211,172,95,0.3);
-      border-radius: 8px;
-      padding: 12px 16px;
-      color: var(--gold);
-      font-size: 0.88rem;
-      display: inline-block;
-      margin: 2px 0;
-    }
-
-    a { color: var(--gold); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-
-    .divider {
-      border: none;
-      border-top: 1px solid rgba(255,255,255,0.088);
-      margin: 40px 0;
-    }
-
-    footer {
-      border-top: 1px solid rgba(255,255,255,0.088);
-      padding: 36px 60px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .footer-links { display: flex; gap: 28px; list-style: none; }
-    .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; }
-    .footer-copy { color: var(--muted); font-size: 0.82rem; }
-
-    @media (max-width: 700px) {
-      nav { padding: 18px 24px; }
-      nav ul { display: none; }
-      .content { padding: 50px 24px 80px; }
-      footer { padding: 28px 24px; flex-direction: column; align-items: flex-start; }
-    }
-  </style>
-  <link rel="stylesheet" href="app.css" />
-  <style>
-
-    .card, .info-card, .auth-card, .legal-card, .kontakt-card,
-    .form-card, section.services .card { background: var(--navy2); }
-    .hero { padding-top: 72px !important; }
-
-  </style>
-  <script>window.IE_PAGE = {}</script>
-  <script src="app-shell.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Datenschutzerklärung – Immo.Expert</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="rechtstexte.css">
 </head>
-<body>
+<body class="lt">
 
-  <div class="content">
-    <div class="badge">Rechtliches</div>
-    <h1>Datenschutzerklärung</h1>
-    <p class="last-updated">Stand: Juni 2026</p>
+<header class="lt-top">
+  <a class="lt-logo" href="index.html">Immo<span>.</span>Expert</a>
+  <a class="lt-back" href="index.html">Zurück zur Startseite</a>
+</header>
 
-    <div class="section">
-      <h2>1. Verantwortlicher</h2>
-      <p>Verantwortlicher im Sinne der DSGVO ist:</p>
-      <p>
-        Philipp Rothe<br />
-        E-Mail: <a href="mailto:hello@myimmoexpert.de">hello@myimmoexpert.de</a>
-      </p>
-    </div>
+<main class="lt-wrap">
 
-    <hr class="divider" />
+<h1>Datenschutzerklärung</h1>
+<p class="lt-stand">Fassung 1.0, Stand: 12. September 2026</p>
 
-    <div class="section">
-      <h2>2. Erhebung und Verarbeitung personenbezogener Daten</h2>
-      <p>Wir erheben personenbezogene Daten nur, soweit dies für die Bereitstellung unserer Dienste erforderlich ist. Bei der Nutzung von Immo.Expert werden folgende Daten verarbeitet:</p>
-      <p><strong style="color: var(--white);">Bei der Registrierung:</strong> Vorname, Nachname, E-Mail-Adresse und Passwort (verschlüsselt gespeichert).</p>
-      <p><strong style="color: var(--white);">Bei der Nutzung von Immo.Finder:</strong> Die von Ihnen eingegebenen Inserat-Links werden zur Analyse an unsere Server übermittelt. Es werden keine personenbezogenen Daten aus den Inseraten dauerhaft gespeichert.</p>
-      <p><strong style="color: var(--white);">Bei der Nutzung von Immo.Portfolio:</strong> Die von Ihnen eingetragenen Objektdaten werden in Ihrem Nutzerkonto gespeichert und sind nur für Sie zugänglich.</p>
-    </div>
 
-    <hr class="divider" />
+<h2>1. Verantwortlicher</h2>
+<div class="lt-box">
+  <p>
+    Philipp Rothe<br>
+    Semperstraße 15<br>
+    22303 Hamburg<br>
+    Deutschland
+  </p>
+  <p>E‑Mail: <a href="mailto:hello@myimmoexpert.de">hello@myimmoexpert.de</a></p>
+</div>
+<p>
+  Ein Datenschutzbeauftragter ist nicht bestellt; die gesetzlichen Voraussetzungen
+  nach Art. 37 DSGVO in Verbindung mit § 38 BDSG liegen nicht vor.
+</p>
 
-    <div class="section">
-      <h2>3. Rechtsgrundlage</h2>
-      <p>Die Verarbeitung Ihrer Daten erfolgt auf Grundlage von Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung) sowie Art. 6 Abs. 1 lit. f DSGVO (berechtigte Interessen), soweit keine anderen Rechtsgrundlagen einschlägig sind.</p>
-    </div>
+<h2>2. Überblick über diese Erklärung</h2>
+<p>
+  Immo.Expert ist eine Webanwendung für die Bewertung von Immobilieninseraten
+  (Immo.Finder) und die Verwaltung eines eigenen Immobilienbestands (Immo.Portfolio).
+  Diese Erklärung beschreibt, welche Daten beim Besuch der Website und bei der Nutzung
+  des Nutzerkontos verarbeitet werden, worauf sich das stützt und wie lange die Daten
+  gespeichert bleiben.
+</p>
+<p>
+  Wenn Sie in Immo.Portfolio Daten über Dritte erfassen – etwa Ihre Mieterinnen und
+  Mieter – sind Sie für diese Daten datenschutzrechtlich verantwortlich und wir
+  verarbeiten sie ausschließlich in Ihrem Auftrag. Was dabei gilt, regelt der
+  <a href="avv.html">Vertrag zur Auftragsverarbeitung</a>; Abschnitt 9 dieser Erklärung
+  fasst es zusammen.
+</p>
 
-    <hr class="divider" />
+<h2>3. Aufruf der Website</h2>
+<h3>Server‑Protokolle</h3>
+<p>
+  Die Website wird von Netlify ausgeliefert. Bei jedem Aufruf überträgt Ihr Browser
+  technisch notwendige Daten, die vom Hoster protokolliert werden: IP‑Adresse,
+  Datum und Uhrzeit, aufgerufene Adresse, übertragene Datenmenge, Statuscode,
+  Referrer sowie Browser- und Betriebssystemkennung.
+</p>
+<p>
+  <strong>Zweck:</strong> Auslieferung der Seite, Betriebssicherheit, Abwehr von Angriffen.<br>
+  <strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO. Unser berechtigtes Interesse
+  liegt im stabilen und sicheren Betrieb des Angebots.<br>
+  <strong>Speicherdauer:</strong> Die Protokolle werden beim Hoster kurzfristig vorgehalten
+  und automatisch gelöscht; eine Zusammenführung mit Ihrem Nutzerkonto findet nicht statt.
+</p>
 
-    <div class="section">
-      <h2>4. Datenspeicherung und Drittanbieter</h2>
-      <p>Zur Speicherung Ihrer Nutzerdaten und zur Authentifizierung verwenden wir <strong style="color: var(--white);">Supabase</strong> (Supabase Inc., San Francisco, USA). Die Daten werden auf Servern in der EU gespeichert. Supabase ist nach dem EU-US Data Privacy Framework zertifiziert.</p>
-      <p>Unsere Website wird über <strong style="color: var(--white);">Netlify</strong> (Netlify Inc., San Francisco, USA) gehostet. Beim Aufruf der Website werden Zugriffsdaten (IP-Adresse, Zeitstempel) protokolliert.</p>
-    </div>
+<h3>Cookies und lokale Speicherung</h3>
+<p>
+  Wir setzen keine Cookies zu Analyse-, Werbe- oder Reichweitenmesszwecken ein und binden
+  keine Tracking‑Dienste ein. Verwendet werden ausschließlich technisch erforderliche
+  Speicherungen im Browser:
+</p>
+<ul>
+  <li><strong>Anmeldedaten</strong> – ein Token, das Sie über die Dauer der Sitzung angemeldet hält.</li>
+  <li><strong>Ansichtseinstellungen</strong> – etwa welche Bereiche einer Immobilie Sie ausgeblendet
+      haben oder wie Sie den Portfoliowert berechnen lassen. Diese Werte verbleiben in Ihrem Browser
+      und werden nicht an uns übertragen.</li>
+</ul>
+<p>
+  Diese Speicherung ist für den von Ihnen ausdrücklich gewünschten Dienst unbedingt erforderlich
+  (§ 25 Abs. 2 Nr. 2 TDDDG). Eine Einwilligung ist dafür nicht erforderlich, ein Cookie‑Banner
+  entfällt deshalb.
+</p>
 
-    <hr class="divider" />
+<h3>Schriftarten</h3>
+<p>
+  Die verwendete Schriftart wird von unserem eigenen Server ausgeliefert. Eine Verbindung
+  Ihres Browsers zu Google Fonts oder einem anderen externen Anbieter findet nicht statt.
+</p>
 
-    <div class="section">
-      <h2>5. Cookies</h2>
-      <p>Wir verwenden ausschließlich technisch notwendige Cookies zur Aufrechterhaltung Ihrer Anmeldesitzung. Es werden keine Tracking- oder Marketing-Cookies eingesetzt.</p>
-    </div>
+<h2>4. Nutzerkonto</h2>
+<p>
+  Für die Nutzung von Immo.Finder und Immo.Portfolio ist ein Konto erforderlich.
+  Dabei verarbeiten wir:
+</p>
+<table class="lt-tab">
+  <tr><th>Daten</th><td>E‑Mail‑Adresse, Passwort (ausschließlich als kryptografischer Hashwert),
+      optional Ihr Name, Zeitpunkt der Registrierung und der letzten Anmeldung</td></tr>
+  <tr><th>Zweck</th><td>Einrichtung und Führung des Kontos, Authentifizierung, Zusendung von
+      Bestätigungs- und Passwort‑Zurücksetzen‑Mails</td></tr>
+  <tr><th>Rechtsgrundlage</th><td>Art. 6 Abs. 1 lit. b DSGVO (Erfüllung des Nutzungsvertrags)</td></tr>
+  <tr><th>Speicherdauer</th><td>bis zur Löschung des Kontos; danach unverzüglich, spätestens
+      innerhalb von 30 Tagen einschließlich der Sicherungskopien</td></tr>
+</table>
+<p>
+  Beim Anlegen des Kontos speichern wir zusätzlich, welcher Fassung der Allgemeinen
+  Geschäftsbedingungen Sie zugestimmt haben, und den Zeitpunkt der Zustimmung. Das dient
+  dem Nachweis nach Art. 7 Abs. 1 DSGVO und beruht auf Art. 6 Abs. 1 lit. c und lit. f DSGVO.
+</p>
 
-    <hr class="divider" />
+<h2>5. Immo.Finder – Analyse von Inseraten</h2>
+<p>
+  Wenn Sie die Adresse eines Immobilieninserats einfügen, rufen wir die Seite über einen
+  Abrufdienst ab und lassen ihren Inhalt von einem KI‑Sprachmodell zu einem strukturierten
+  Steckbrief auswerten. Auf Wunsch erstellen wir daraus außerdem einen Entwurf für ein
+  Anschreiben an die anbietende Person.
+</p>
+<p>
+  <strong>Was dabei übertragen wird:</strong> die von Ihnen eingefügte Adresse und der öffentlich
+  abrufbare Inhalt des Inserats. Inserate enthalten regelmäßig Kontaktdaten der anbietenden
+  Person oder des Maklerbüros. Diese Daten werden für die Analyse verarbeitet; im gespeicherten
+  Steckbrief werden Kontaktdaten Dritter nicht dauerhaft abgelegt.
+</p>
+<p>
+  <strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b DSGVO gegenüber Ihnen; hinsichtlich der im
+  Inserat enthaltenen Daten Dritter Art. 6 Abs. 1 lit. f DSGVO. Das berechtigte Interesse besteht
+  darin, Ihnen eine Auswertung eines von Ihnen ausgewählten, öffentlich zugänglichen Angebots zu
+  ermöglichen. Die Daten stammen aus einer allgemein zugänglichen Quelle; eine gesonderte
+  Benachrichtigung der betroffenen Personen nach Art. 14 Abs. 5 lit. b DSGVO wäre mit einem
+  unverhältnismäßigen Aufwand verbunden, weshalb diese Erklärung an ihre Stelle tritt.
+</p>
+<p>
+  <strong>Speicherdauer:</strong> Gespeicherte Steckbriefe bleiben erhalten, bis Sie sie löschen
+  oder Ihr Konto auflösen. Die Inhalte werden von uns nicht zum Training von KI‑Modellen verwendet;
+  das ist mit dem eingesetzten Anbieter vertraglich ausgeschlossen.
+</p>
 
-    <div class="section">
-      <h2>6. Ihre Rechte</h2>
-      <p>Sie haben gemäß DSGVO folgende Rechte: Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20) sowie Widerspruch (Art. 21).</p>
-      <p>Zur Ausübung Ihrer Rechte wenden Sie sich an: <a href="mailto:hello@myimmoexpert.de">hello@myimmoexpert.de</a></p>
-      <p>Sie haben zudem das Recht, sich bei einer Datenschutzaufsichtsbehörde zu beschweren.</p>
-    </div>
+<h2>6. Immo.Portfolio – Verwaltung Ihrer Immobilien</h2>
+<p>
+  In Immo.Portfolio hinterlegen Sie Angaben zu Ihren Immobilien: Stammdaten und Adresse,
+  Kaufpreis und Übernahmestichtag, Finanzierung und Liquiditätsplanung, Notizen, Aufgaben,
+  Kontakte, Objektbilder sowie hochgeladene Dokumente wie Tilgungspläne, Wirtschaftspläne,
+  Abrechnungen und Protokolle.
+</p>
+<p>
+  Hochgeladene Nebenkostenabrechnungen werden zum Auslesen der enthaltenen Positionen an ein
+  KI‑Sprachmodell übermittelt. Ergebnis und Ausgangsdatei verbleiben in Ihrem Konto.
+</p>
+<p>
+  <strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b DSGVO.<br>
+  <strong>Speicherdauer:</strong> bis Sie den jeweiligen Eintrag oder Ihr Konto löschen.
+</p>
+<p>
+  Alle Daten sind durch Zugriffsregeln auf Datenbankebene (Row Level Security) auf Ihr Konto
+  beschränkt. Andere Nutzerinnen und Nutzer haben keinen Zugriff.
+</p>
 
-    <hr class="divider" />
+<h2>7. Kontaktaufnahme</h2>
+<p>
+  Wenn Sie uns per E‑Mail schreiben, verarbeiten wir Ihre Adresse und den Inhalt der Nachricht,
+  um sie zu beantworten. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO, wenn die Anfrage der
+  Anbahnung oder Durchführung eines Vertrags dient, sonst Art. 6 Abs. 1 lit. f DSGVO.
+  Die Korrespondenz wird gelöscht, sobald der Vorgang abgeschlossen ist und keine
+  Aufbewahrungspflichten entgegenstehen.
+</p>
+<p>
+  Das Postfach <em>hello@myimmoexpert.de</em> wird bei der Checkdomain GmbH in Deutschland
+  geführt. Eingehende Nachrichten werden zusätzlich an ein bei der Google Ireland Limited
+  geführtes Postfach weitergeleitet, über das wir sie bearbeiten und beantworten. Dabei kann
+  eine Verarbeitung auf Servern der Google LLC in den Vereinigten Staaten erfolgen. Wenn Sie
+  dies vermeiden möchten, nutzen Sie für vertrauliche Anliegen bitte einen anderen Weg der
+  Kontaktaufnahme.
+</p>
 
-    <div class="section">
-      <h2>7. Kontakt Datenschutz</h2>
-      <p>Bei Fragen zum Datenschutz erreichen Sie uns unter: <a href="mailto:hello@myimmoexpert.de">hello@myimmoexpert.de</a></p>
-    </div>
-  </div>
+<h2>8. Empfänger und Auftragsverarbeiter</h2>
+<p>
+  Wir setzen Dienstleister ein, die personenbezogene Daten ausschließlich weisungsgebunden für
+  uns verarbeiten. Mit allen aufgeführten Anbietern bestehen Verträge nach Art. 28 DSGVO.
+</p>
+<table class="lt-tab">
+  <tr><th>Anbieter</th><th>Aufgabe</th><th>Ort der Verarbeitung</th></tr>
+  <tr><td>Supabase Inc., USA</td><td>Datenbank, Anmeldung, Dateiablage, Serverfunktionen</td>
+      <td>Rechenzentrum Irland (EU)</td></tr>
+  <tr><td>Netlify Inc., USA</td><td>Auslieferung der Website</td><td>USA</td></tr>
+  <tr><td>Anthropic PBC, USA</td><td>KI‑Auswertung von Inseraten, Anschreiben und Abrechnungen</td>
+      <td>USA</td></tr>
+  <tr><td>ScrapingBee SAS, Frankreich</td><td>Abruf öffentlich zugänglicher Inserate</td>
+      <td>EU</td></tr>
+  <tr><td>Checkdomain GmbH, Lübeck</td><td>Domain, E‑Mail‑Postfach, Versand der System‑E‑Mails</td>
+      <td>Deutschland</td></tr>
+  <tr><td>Google Ireland Limited</td><td>Postfach für die Bearbeitung eingehender Anfragen</td>
+      <td>EU, Verarbeitung in den USA möglich</td></tr>
+</table>
 
-  <footer>
-    <a href="index.html" class="logo">Immo<span>.Expert</span></a>
-    <ul class="footer-links">
-      <li><a href="impressum.html">Impressum</a></li>
-      <li><a href="datenschutz.html">Datenschutz</a></li>
-      <li><a href="kontakt.html">Kontakt</a></li>
-    </ul>
-    <span class="footer-copy">© 2026 Immo.Expert</span>
-  </footer>
+<h3>Übermittlung in die USA</h3>
+<p>
+  Bei Netlify und Anthropic werden Daten in den Vereinigten Staaten verarbeitet. Grundlage sind
+  die von der Europäischen Kommission erlassenen Standardvertragsklauseln nach Art. 46 Abs. 2
+  lit. c DSGVO, ergänzt um technische Schutzmaßnahmen wie durchgehende Transportverschlüsselung
+  und Verschlüsselung im Ruhezustand. In den USA besteht kein Schutzniveau, das dem der
+  Europäischen Union in jeder Hinsicht entspricht; insbesondere lässt sich ein Zugriff
+  US‑amerikanischer Behörden nicht vollständig ausschließen. Wir beschränken die Übermittlung
+  deshalb auf das für den Betrieb Erforderliche.
+</p>
+<p>
+  Eine Weitergabe Ihrer Daten zu Werbezwecken oder ein Verkauf an Dritte findet nicht statt.
+</p>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="notifications.js" defer></script>
-  <script>
-    (function() {
-      const sb = window.supabase.createClient(
-        'https://awvnfocepqkkncgqgaka.supabase.co',
-        'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
-      )
-      sb.auth.getSession().then(({ data }) => {
-        if (data.session) {
-          const link = document.getElementById('navAuthLink')
-          if (link) { link.href = 'profil.html'; link.textContent = 'Profil' }
-        }
-      })
-    })()
-  </script>
-  <script 
+<h2>9. Daten, die Sie über Dritte erfassen</h2>
+<p>
+  Soweit Sie in Immo.Portfolio Daten Dritter hinterlegen – Namen, Anschriften, Telefonnummern,
+  E‑Mail‑Adressen und Vertragsdaten Ihrer Mieterinnen und Mieter oder Ihrer Dienstleister –
+  sind Sie hierfür Verantwortlicher im Sinne der DSGVO. Wir verarbeiten diese Daten
+  ausschließlich nach Ihrer Weisung und zur Erbringung der Funktionen der Anwendung.
+</p>
+<p>
+  Die Einzelheiten, einschließlich der eingesetzten Unterauftragsverarbeiter und der technischen
+  und organisatorischen Maßnahmen, regelt der
+  <a href="avv.html">Vertrag zur Auftragsverarbeitung</a>, dem Sie bei der Registrierung zustimmen.
+  Für die Zulässigkeit der Erfassung dieser Daten und für die Information der betroffenen Personen
+  sind Sie verantwortlich.
+</p>
+
+<h2>10. Ihre Rechte</h2>
+<p>Sie haben nach der DSGVO jederzeit das Recht auf:</p>
+<ul>
+  <li><strong>Auskunft</strong> über die zu Ihnen gespeicherten Daten (Art. 15)</li>
+  <li><strong>Berichtigung</strong> unrichtiger Daten (Art. 16)</li>
+  <li><strong>Löschung</strong> (Art. 17) – im Profil können Sie Ihr Konto jederzeit selbst
+      vollständig löschen</li>
+  <li><strong>Einschränkung der Verarbeitung</strong> (Art. 18)</li>
+  <li><strong>Datenübertragbarkeit</strong> (Art. 20) – im Profil können Sie alle Ihre Daten
+      jederzeit als maschinenlesbare Datei herunterladen</li>
+  <li><strong>Widerspruch</strong> gegen Verarbeitungen, die auf Art. 6 Abs. 1 lit. f DSGVO
+      beruhen (Art. 21)</li>
+  <li><strong>Widerruf erteilter Einwilligungen</strong> mit Wirkung für die Zukunft (Art. 7 Abs. 3)</li>
+</ul>
+<p>
+  Zur Ausübung genügt eine Nachricht an
+  <a href="mailto:hello@myimmoexpert.de">hello@myimmoexpert.de</a>.
+</p>
+<p>
+  Unabhängig davon steht Ihnen ein Beschwerderecht bei einer Datenschutz‑Aufsichtsbehörde zu
+  (Art. 77 DSGVO). Für uns zuständig ist:
+</p>
+<div class="lt-box">
+  <p>
+    Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit<br>
+    Ludwig‑Erhard‑Str. 22, 20459 Hamburg<br>
+    <a href="https://datenschutz.hamburg.de" target="_blank" rel="noopener">datenschutz.hamburg.de</a>
+  </p>
+</div>
+
+<h2>11. Pflicht zur Bereitstellung</h2>
+<p>
+  Die Angabe einer E‑Mail‑Adresse und eines Passworts ist für die Einrichtung eines Kontos
+  erforderlich. Ohne diese Angaben können wir den Dienst nicht bereitstellen. Alle übrigen
+  Angaben sind freiwillig.
+</p>
+
+<h2>12. Automatisierte Entscheidungen</h2>
+<p>
+  Die Anwendung erstellt Auswertungen und Kennzahlen, die Sie bei Ihrer eigenen Entscheidung
+  unterstützen sollen. Eine automatisierte Entscheidung mit rechtlicher Wirkung oder ähnlich
+  erheblicher Beeinträchtigung im Sinne des Art. 22 DSGVO findet nicht statt.
+</p>
+
+<h2>13. Änderungen dieser Erklärung</h2>
+<p>
+  Wir passen diese Erklärung an, wenn sich die Anwendung oder die Rechtslage ändert. Maßgeblich
+  ist die jeweils hier veröffentlichte Fassung. Bei wesentlichen Änderungen informieren wir
+  angemeldete Nutzerinnen und Nutzer per E‑Mail.
+</p>
+
+</main>
+
+<footer class="lt-foot">
+  <a href="impressum.html">Impressum</a>
+  <a href="datenschutz.html">Datenschutz</a>
+  <a href="agb.html">AGB</a>
+  <a href="avv.html">Auftragsverarbeitung</a>
+  <a href="kontakt.html">Kontakt</a>
+</footer>
+
+</body>
+</html>

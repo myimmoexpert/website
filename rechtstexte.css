@@ -1,0 +1,49 @@
+/* rechtstexte.css – Darstellung der Rechtsseiten (Impressum, Datenschutz, AGB, AVV).
+   Bewusst unabhängig von app.css, damit die Seiten auch ohne die App-Shell
+   korrekt aussehen. Farben: Design "Onyx & Gold". */
+:root{
+  --lt-bg:#0f0f11; --lt-card:#18181b; --lt-soft:#222226;
+  --lt-text:#f1eee7; --lt-muted:#9b968c;
+  --lt-gold:#d3ac5f; --lt-gold-dark:#b8914a; --lt-on-gold:#17130a;
+  --lt-line:rgba(255,255,255,.10);
+}
+html{color-scheme:dark}
+body.lt{margin:0;background:var(--lt-bg);color:var(--lt-text);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+.lt-top{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:18px 24px;border-bottom:1px solid var(--lt-line);background:#0a0a0c}
+.lt-logo{font-size:19px;font-weight:600;letter-spacing:-.01em;text-decoration:none;color:var(--lt-text)}
+.lt-logo span{color:var(--lt-gold)}
+.lt-top a.lt-back{color:var(--lt-muted);text-decoration:none;font-size:14px}
+.lt-top a.lt-back:hover{color:var(--lt-gold)}
+.lt-wrap{max-width:820px;margin:0 auto;padding:48px 24px 80px}
+.lt-wrap h1{font-size:34px;line-height:1.2;margin:0 0 8px;font-weight:650;letter-spacing:-.02em}
+.lt-stand{color:var(--lt-muted);font-size:14px;margin:0 0 40px}
+.lt-wrap h2{font-size:21px;margin:44px 0 12px;font-weight:600;letter-spacing:-.01em;
+  padding-top:20px;border-top:1px solid var(--lt-line)}
+.lt-wrap h3{font-size:16px;margin:26px 0 8px;font-weight:600;color:var(--lt-gold)}
+.lt-wrap p{margin:0 0 14px}
+.lt-wrap ul{margin:0 0 16px;padding-left:22px}
+.lt-wrap li{margin-bottom:7px}
+.lt-wrap a{color:var(--lt-gold)}
+.lt-wrap a:hover{color:var(--lt-gold-dark)}
+.lt-box{background:var(--lt-card);border:1px solid var(--lt-line);border-radius:10px;
+  padding:18px 20px;margin:0 0 20px}
+.lt-box p:last-child{margin-bottom:0}
+table.lt-tab{width:100%;border-collapse:collapse;margin:0 0 22px;font-size:14.5px}
+table.lt-tab th,table.lt-tab td{text-align:left;vertical-align:top;
+  padding:10px 12px;border-bottom:1px solid var(--lt-line)}
+table.lt-tab th{color:var(--lt-muted);font-weight:600;white-space:nowrap}
+.lt-todo{background:rgba(211,172,95,.10);border-left:3px solid var(--lt-gold);
+  padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;font-size:14.5px}
+.lt-foot{border-top:1px solid var(--lt-line);padding:24px;text-align:center;
+  color:var(--lt-muted);font-size:14px}
+.lt-foot a{color:var(--lt-muted);text-decoration:none;margin:0 10px}
+.lt-foot a:hover{color:var(--lt-gold)}
+@media(max-width:640px){
+  .lt-wrap{padding:32px 18px 64px}
+  .lt-wrap h1{font-size:27px}
+  table.lt-tab{font-size:13.5px}
+  table.lt-tab th{white-space:normal}
+}

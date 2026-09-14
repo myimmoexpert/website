@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login – Immo.Expert</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="fonts/inter.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -114,19 +114,8 @@
     .btn-submit:hover { background: var(--gold2); transform: translateY(-1px); }
     .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-    .divider { display: flex; align-items: center; gap: 14px; margin: 24px 0; color: var(--muted); font-size: 0.82rem; }
-    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.068); }
 
-    .btn-google {
-      width: 100%; background: transparent; color: var(--white); border: 1px solid rgba(255,255,255,0.188);
-      padding: 13px; border-radius: 10px; font-size: 0.95rem; font-weight: 500; cursor: pointer;
-      font-family: inherit; display: flex; align-items: center; justify-content: center;
-      gap: 10px; transition: border-color 0.2s;
-    }
-    .btn-google:hover { border-color: rgba(255,255,255,0.4); }
 
-    .terms { font-size: 0.8rem; color: var(--muted); text-align: center; margin-top: 20px; line-height: 1.6; }
-    .terms a { color: var(--gold); text-decoration: none; }
 
     .alert {
       border-radius: 8px; padding: 12px 14px; font-size: 0.85rem;
@@ -192,11 +181,6 @@
           <div class="spinner-sm" id="login-spinner"></div>
           <span id="login-btn-text">Anmelden</span>
         </button>
-        <div class="divider">oder</div>
-        <button class="btn-google" onclick="handleGoogle()">
-          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-          Mit Google anmelden
-        </button>
       </div>
 
       <!-- REGISTER -->
@@ -219,18 +203,25 @@
           <label>Passwort</label>
           <input type="password" placeholder="Mindestens 8 Zeichen" id="reg-pw" />
         </div>
+        <div class="ie-zust">
+          <label class="ie-zust-zeile">
+            <input type="checkbox" id="agb-checkbox">
+            <span>
+              Ich habe die <a href="agb.html" target="_blank" rel="noopener">Allgemeinen
+              Geschäftsbedingungen</a> und den <a href="avv.html" target="_blank" rel="noopener">Vertrag
+              zur Auftragsverarbeitung</a> gelesen und stimme ihnen zu. Ich bin mindestens 18 Jahre alt.
+            </span>
+          </label>
+          <p class="ie-zust-hinweis">
+            Wie wir Ihre Daten verarbeiten, steht in der
+            <a href="datenschutz.html" target="_blank" rel="noopener">Datenschutzerklärung</a>.
+          </p>
+        </div>
+
         <button class="btn-submit" id="register-btn" onclick="handleRegister()">
           <div class="spinner-sm" id="register-spinner"></div>
           <span id="register-btn-text">Konto erstellen</span>
         </button>
-        <div class="divider">oder</div>
-        <button class="btn-google" onclick="handleGoogle()">
-          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-          Mit Google registrieren
-        </button>
-        <p class="terms">
-          Mit der Registrierung akzeptieren Sie unsere <a href="datenschutz.html">Datenschutzerklärung</a>.
-        </p>
       </div>
     </div>
   </main>
@@ -238,6 +229,8 @@
   <footer>
     <a href="impressum.html">Impressum</a>
     <a href="datenschutz.html">Datenschutz</a>
+    <a href="agb.html">AGB</a>
+    <a href="avv.html">Auftragsverarbeitung</a>
     <a href="index.html">Zurück zur Startseite</a>
   </footer>
 
@@ -247,6 +240,16 @@
     const SUPABASE_KEY = 'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
     const { createClient } = window.supabase
     const sb = createClient(SUPABASE_URL, SUPABASE_KEY)
+    window.sb = sb
+
+    // Fassung der Rechtstexte. Bei jeder Änderung von AGB oder AVV hochzählen.
+    const IE_AGB_VERSION = '1.0'
+    const IE_AVV_VERSION = '1.0'
+
+    function istZugestimmt() {
+      const box = document.getElementById('agb-checkbox')
+      return !!(box && box.checked)
+    }
 
     // Bereits eingeloggt? → weiterleiten
     sb.auth.getSession().then(({ data: { session } }) => {
@@ -309,12 +312,27 @@
       if (pw.length < 8) {
         showAlert('register-error', 'Passwort muss mindestens 8 Zeichen haben.'); return
       }
+      if (!istZugestimmt()) {
+        showAlert('register-error', 'Bitte stimmen Sie den AGB und dem Vertrag zur Auftragsverarbeitung zu.')
+        const box = document.getElementById('agb-checkbox')
+        if (box) box.focus()
+        return
+      }
+
+      const jetzt = new Date().toISOString()
 
       setLoading('register', true)
       const { error } = await sb.auth.signUp({
         email,
         password: pw,
-        options: { data: { first_name: firstname, last_name: lastname } }
+        options: { data: {
+          first_name: firstname,
+          last_name: lastname,
+          agb_version:       IE_AGB_VERSION,
+          agb_akzeptiert_am: jetzt,
+          avv_version:       IE_AVV_VERSION,
+          avv_akzeptiert_am: jetzt
+        } }
       })
 
       if (error) {
@@ -326,13 +344,6 @@
       }
     }
 
-    async function handleGoogle() {
-      const { error } = await sb.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: 'https://myimmoexpert.de/profil.html' }
-      })
-      if (error) showAlert('login-error', 'Google-Login fehlgeschlagen.')
-    }
 
     async function handleForgotPassword() {
       const email = document.getElementById('login-email').value.trim()
