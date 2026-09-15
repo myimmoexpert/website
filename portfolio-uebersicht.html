@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <script>if(sessionStorage.getItem('ie_gate')!=='1')document.documentElement.style.visibility='hidden'</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Portfolio-Übersicht – Immo.Expert</title>
+  <title>Portfoliokennzahlen – Immo.Expert</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="stylesheet" href="fonts/inter.css" />
   <style>
@@ -252,26 +252,75 @@
     .cf-table th { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted);
       font-weight: 600; background: #26262b; padding: 10px 14px; text-align: left; white-space: nowrap; }
     .cf-table td { padding: 11px 14px; border-top: 1px solid rgba(255,255,255,0.075); }
+    .cf-table th.ta-r, .cf-table td.ta-r { text-align: right; }
+    .cf-table tfoot td { border-top: 2px solid rgba(211,172,95,0.3); background: rgba(211,172,95,0.06); font-weight: 700; }
     .cf-row { cursor: pointer; transition: background .13s; }
     .cf-row:hover { background: rgba(211,172,95,0.05); }
-    .cf-row.neg td:first-child { box-shadow: inset 3px 0 0 var(--red); }
     .cf-name { font-weight: 600; }
     .cf-adr { color: var(--muted); font-size: 0.8rem; }
     .cf-table .red { color: var(--red); }
     .cf-table .green { color: var(--green); }
+
+    /* ── Liquiditätsplanung (aufklappbar) ── */
+    .liq-auf { margin-top: 18px; background: var(--navy2); border: 1px solid rgba(255,255,255,0.112); border-radius: 12px; }
+    .liq-auf > summary { list-style: none; display: flex; align-items: center; gap: 10px; padding: 14px 18px; cursor: pointer; user-select: none; }
+    .liq-auf > summary::-webkit-details-marker { display: none; }
+    .liq-auf-chev { color: var(--muted); font-size: 0.9rem; transition: transform .15s; display: inline-block; width: 12px; }
+    .liq-auf[open] .liq-auf-chev { transform: rotate(90deg); }
+    .liq-auf-titel { font-size: 0.95rem; font-weight: 700; }
+    .liq-auf-btn { margin-left: auto; background: transparent; border: 1px solid rgba(255,255,255,0.188); border-radius: 9px;
+      padding: 8px 14px; font: 500 0.82rem/1 'Inter', sans-serif; color: var(--white); cursor: pointer; white-space: nowrap; }
+    .liq-auf-btn:hover { border-color: rgba(211,172,95,0.5); color: var(--gold); }
+    .liq-auf .liq-scroll { border: none; border-top: 1px solid rgba(255,255,255,0.088); border-radius: 0 0 12px 12px; max-height: 620px; }
+    .liq-cell { color: var(--white); }
+    .liq-cell:not(.neg):not(.pos) { color: var(--muted); }
+    .liq-auf .liq-label { min-width: 230px; }
+
+    /* ── Buchungsstatus ── */
+    .bs-monat { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+    .bs-pfeil { width: 32px; height: 32px; border-radius: 8px; background: var(--navy2); border: 1px solid rgba(255,255,255,0.15);
+      color: var(--white); font-size: 1.1rem; line-height: 1; cursor: pointer; }
+    .bs-pfeil:hover { border-color: rgba(211,172,95,0.5); color: var(--gold); }
+    .bs-monat-name { min-width: 150px; text-align: center; font-weight: 600; font-size: 0.95rem; }
+    .bs-heute { background: none; border: none; color: var(--muted); font: 500 0.8rem/1 'Inter', sans-serif; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+    .bs-heute:hover { color: var(--gold); }
+    .bs-bar { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.08); overflow: hidden; margin-top: 4px; }
+    .bs-bar i { display: block; height: 100%; background: var(--gold); border-radius: 3px; }
+    .bs-wrap { margin-top: 14px; }
+    .bs-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+    .bs-table th { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); font-weight: 600;
+      background: #26262b; padding: 10px 14px; text-align: left; white-space: nowrap; }
+    .bs-table th.bs-c, .bs-table td.bs-c { text-align: center; width: 120px; }
+    .bs-table td { padding: 10px 14px; border-top: 1px solid rgba(255,255,255,0.075); }
+    .bs-dot { width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; padding: 0; vertical-align: middle;
+      transition: transform .12s, box-shadow .12s; }
+    .bs-dot:hover { transform: scale(1.12); }
+    .bs-dot.ja   { background: var(--green); box-shadow: 0 0 0 4px rgba(92,201,138,0.16); }
+    .bs-dot.nein { background: var(--red);   box-shadow: 0 0 0 4px rgba(239,107,107,0.16); }
+    .bs-dot.na   { background: transparent; border: 2px dashed rgba(255,255,255,0.22); }
+    .bs-legende { display: flex; gap: 18px; flex-wrap: wrap; font-size: 0.76rem; color: var(--muted); padding: 10px 14px;
+      border-top: 1px solid rgba(255,255,255,0.075); }
+    .bs-legende span { display: inline-flex; align-items: center; gap: 7px; }
+    .bs-legende i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 
     @media (max-width: 700px) {
       .bk-text { max-width: 140px; }
       .mw-value { font-size: 1.35rem; }
     }
 
-    /* ── Kennzahlen ── */
-    .kpi-group { margin-bottom: 4px; }
-    .kpi-group + .kpi-group { margin-top: 28px; padding-top: 24px;
-      border-top: 1px solid rgba(255,255,255,0.1); }
+    /* ── Seitenkopf wie auf portfolio.html ── */
+    .page-header { padding: 52px 60px 0; width: 100%; }
+    .page-header + .tab-pane .tab-content, .page-header ~ .tab-pane .tab-content { padding-top: 30px; }
+
+    /* ── Kennzahlen-Gruppen ── */
+    .kpi-group { margin-top: 34px; padding-top: 28px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .tab-content > .kpi-group:first-child, #kpiWrap > .kpi-group:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+    .kpi-group .pc-card { margin-top: 14px; }
+    .kpi-group-title .save-indicator { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 500; }
     .kpi-group-title { display: flex; align-items: center; gap: 9px;
       font-size: 0.76rem; font-weight: 700; text-transform: uppercase;
       letter-spacing: 0.7px; color: var(--white); margin-bottom: 13px; }
+    .kpi-group-title .ie-info { text-transform: none; }
     .kpi-group-title::before { content: ''; display: inline-block; width: 3px; height: 13px;
       border-radius: 2px; background: var(--gold); }
     .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
@@ -304,13 +353,8 @@
     <a href="login.html">Jetzt einloggen →</a>
   </div>
 
-  <div class="prop-header">
-    <a href="portfolio.html" class="back-link">← Zurück zum Portfolio</a>
-    <div class="prop-meta">
-      <span class="prop-icon" id="hdIcon">📊</span>
-      <span class="prop-badge">Gesamtportfolio</span>
-    </div>
-    <div class="prop-name" id="hdName">Liquidität</div>
+  <div class="page-header">
+    <h1 class="ie-page-title" id="hdName">Portfoliokennzahlen</h1>
   </div>
 
   <!-- ══ TAB: ÜBERSICHT ══ -->
@@ -340,76 +384,103 @@
   <div class="tab-pane active" id="pane-liquiditaet">
     <div class="tab-content">
 
-      <!-- ── Kennzahlen ── -->
-      <div class="section-head" style="margin-bottom:10px;">
-        <h3>Kennzahlen</h3>
-      </div>
+      <!-- Vermögen & Finanzierung · Monatliche Einnahmen und Ausgaben · Rendite -->
       <div id="kpiWrap"></div>
 
-      <!-- ── 2. Monatswechsel ── -->
-      <div class="section-head" style="margin:46px 0 10px;">
-        <h3>Monatswechsel</h3>
-        <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Reicht das Geld auf dem Konto für die Zahlungen dieses Monats?</span></span>
-        <div class="save-indicator" id="siKonto"></div>
-      </div>
-
-      <div class="mw-grid">
-        <div class="mw-card">
-          <div class="mw-step">1</div>
-          <div class="mw-label">Aktueller Kontostand</div>
-          <div class="mw-input-row">
-            <input type="text" id="mwKontostand" class="mw-input" placeholder="0,00" inputmode="decimal" />
-            <span class="mw-unit">€</span>
-          </div>
-          <div class="mw-sub" id="mwKontoDatum">noch nicht eingetragen</div>
+      <!-- Cashflow je Wohnung -->
+      <div class="kpi-group">
+        <div class="kpi-group-title">Cashflow je Wohnung
+          <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Monatlicher Überschuss beziehungsweise Unterdeckung im laufenden Monat. Zeile anklicken, um die Immobilie zu öffnen.</span></span>
         </div>
+        <div id="cfList"></div>
 
-        <div class="mw-card">
-          <div class="mw-step">2</div>
-          <div class="mw-label">Empfohlene Liquidität zum Monatswechsel</div>
-          <div class="mw-value gold" id="mwEmpfohlen">–</div>
-          <button class="mw-toggle" id="mwToggle" onclick="mwToggleDetail()">Zusammensetzung anzeigen</button>
-        </div>
-
-        <div class="mw-card" id="mwCardEin">
-          <div class="mw-step">3</div>
-          <div class="mw-label">Einzahlung notwendig</div>
-          <div class="mw-value" id="mwEinzahlung">–</div>
-          <div class="mw-sub" id="mwEinzahlungSub">–</div>
-        </div>
+        <details class="liq-auf" id="liqAuf">
+          <summary>
+            <span class="liq-auf-chev">▸</span>
+            <span class="liq-auf-titel">Liquiditätsplanung</span>
+            <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Summe der Liquiditätsplanungen aller Immobilien, Monat für Monat. Bearbeitet wird die Planung in der jeweiligen Immobilie.</span></span>
+            <button type="button" class="liq-auf-btn" id="liqXlsBtn">⤓ Als Excel herunterladen</button>
+          </summary>
+          <div class="liq-scroll" id="liqScroll"></div>
+        </details>
       </div>
-
-      <div class="mw-detail" id="mwDetail" style="display:none;"></div>
-
-      <!-- ── 3. Cashflow je Wohnung ── -->
-      <div class="section-head" style="margin:46px 0 10px;">
-        <h3>Cash<span>flow je Wohnung</span></h3>
-        <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Monatlicher Überschuss beziehungsweise Unterdeckung im laufenden Monat. Zeile anklicken, um die Immobilie zu öffnen.</span></span>
-      </div>
-      <div id="cfList"></div>
 
     </div>
   </div>
 
-  <!-- ══ TAB: BUCHUNGEN BANKKONTO ══ -->
+  <!-- ══ TAB: BANKKONTO ══ -->
   <div class="tab-pane" id="pane-bank">
     <div class="tab-content">
 
-      <div class="section-head" style="margin-bottom:10px;">
-        <h3>Konto<span>auszug einlesen</span></h3>
-        <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Screenshot aus dem Online-Banking hochladen. Die Buchungen werden ausgelesen und, soweit erkennbar, direkt der richtigen Immobilie und Zeile zugeordnet. Was unklar bleibt, wird darunter abgefragt. Das Bild wird nicht gespeichert.</span></span>
-        <div class="save-indicator" id="siImport"></div>
+      <!-- Buchungsstatus -->
+      <div class="kpi-group">
+        <div class="kpi-group-title">Buchungsstatus
+          <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Sind Miete, Hausgeld und Bankrate im gewählten Monat schon gebucht? Grün wird automatisch gesetzt, sobald die Buchung über einen Kontoauszug eingelesen wurde. Ein Klick auf den Kreis schaltet von Hand um.</span></span>
+          <span class="save-indicator" id="siStatus"></span>
+        </div>
+        <div class="bs-monat">
+          <button type="button" class="bs-pfeil" id="bsZurueck" aria-label="Vorheriger Monat">‹</button>
+          <span class="bs-monat-name" id="bsMonatName">–</span>
+          <button type="button" class="bs-pfeil" id="bsVor" aria-label="Nächster Monat">›</button>
+          <button type="button" class="bs-heute" id="bsHeute">Aktueller Monat</button>
+        </div>
+        <div class="kpi-row" id="bsSumme"></div>
+        <div class="ov-table-wrap bs-wrap" id="bsTabelle"></div>
       </div>
 
-      <div class="bk-drop" id="bkDrop">
-        <div class="bk-drop-icon">🧾</div>
-        <div class="bk-drop-title">Screenshot hierher ziehen oder klicken</div>
-        <div class="bk-drop-sub">PNG oder JPG · mehrere Bilder auf einmal möglich</div>
-      </div>
-      <input type="file" id="bkFile" accept="image/png,image/jpeg,image/webp" multiple style="display:none" />
+      <!-- Kontoauszug einlesen -->
+      <div class="kpi-group">
+        <div class="kpi-group-title">Kontoauszug einlesen
+          <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Screenshot aus dem Online-Banking hochladen. Die Buchungen werden ausgelesen und, soweit erkennbar, direkt der richtigen Immobilie und Zeile zugeordnet. Was unklar bleibt, wird darunter abgefragt. Das Bild wird nicht gespeichert.</span></span>
+          <span class="save-indicator" id="siImport"></span>
+        </div>
 
-      <div id="bkStatus" class="bk-status"></div>
-      <div id="bkResult"></div>
+        <div class="bk-drop" id="bkDrop">
+          <div class="bk-drop-icon">🧾</div>
+          <div class="bk-drop-title">Screenshot hierher ziehen oder klicken</div>
+          <div class="bk-drop-sub">PNG oder JPG · mehrere Bilder auf einmal möglich</div>
+        </div>
+        <input type="file" id="bkFile" accept="image/png,image/jpeg,image/webp" multiple style="display:none" />
+
+        <div id="bkStatus" class="bk-status"></div>
+        <div id="bkResult"></div>
+      </div>
+
+      <!-- Monatswechsel -->
+      <div class="kpi-group">
+        <div class="kpi-group-title">Monatswechsel
+          <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Reicht das Geld auf dem Konto für die Zahlungen dieses Monats?</span></span>
+          <span class="save-indicator" id="siKonto"></span>
+        </div>
+
+        <div class="mw-grid">
+          <div class="mw-card">
+            <div class="mw-step">1</div>
+            <div class="mw-label">Aktueller Kontostand</div>
+            <div class="mw-input-row">
+              <input type="text" id="mwKontostand" class="mw-input" placeholder="0,00" inputmode="decimal" />
+              <span class="mw-unit">€</span>
+            </div>
+            <div class="mw-sub" id="mwKontoDatum">noch nicht eingetragen</div>
+          </div>
+
+          <div class="mw-card">
+            <div class="mw-step">2</div>
+            <div class="mw-label">Empfohlene Liquidität zum Monatswechsel</div>
+            <div class="mw-value gold" id="mwEmpfohlen">–</div>
+            <button class="mw-toggle" id="mwToggle" onclick="mwToggleDetail()">Zusammensetzung anzeigen</button>
+          </div>
+
+          <div class="mw-card" id="mwCardEin">
+            <div class="mw-step">3</div>
+            <div class="mw-label">Einzahlung notwendig</div>
+            <div class="mw-value" id="mwEinzahlung">–</div>
+            <div class="mw-sub" id="mwEinzahlungSub">–</div>
+          </div>
+        </div>
+
+        <div class="mw-detail" id="mwDetail" style="display:none;"></div>
+      </div>
 
     </div>
   </div>
@@ -434,16 +505,17 @@
     <ul class="footer-links">
       <li><a href="impressum.html">Impressum</a></li>
       <li><a href="datenschutz.html">Datenschutz</a></li>
-      <li><a href="agb.html">AGB</a></li>
-      <li><a href="avv.html">Auftragsverarbeitung</a></li>
       <li><a href="kontakt.html">Kontakt</a></li>
     </ul>
     <span class="footer-copy">© 2026 Immo.Expert</span>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="notifications.js" defer></script>
   <script src="portfolio-calc.js"></script>
+  <script src="ie-charts.js"></script>
+  <script src="portfolio-charts.js"></script>
+  <script src="jszip.min.js"></script>
+  <script src="ie-xlsx.js"></script>
   <script>
     const SUPABASE_URL = 'https://awvnfocepqkkncgqgaka.supabase.co'
     const SUPABASE_KEY = 'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
@@ -457,21 +529,22 @@
 
     // Zeilen der Liquiditätsplanung – identisch zur Immobilien-Seite
     const LIQ_ROWS = [
-      { key: 'einzahlungEk',          label: 'Einzahlung Eigenkapital',  type: 'input' },
-      { key: 'einzahlungFk',          label: 'Valutierung Fremdkapital', type: 'input' },
-      { key: 'kaufpreis',             label: 'Zahlung Kaufpreis',        type: 'input' },
-      { key: 'ausgabe',               label: 'Zahlung Nebenkosten',      type: 'input' },
-      { key: 'weitereAusgaben',       label: 'Weitere Ausgaben',         type: 'input' },
-      { key: 'nebenkostenabrechnung', label: 'Nebenkostenabrechnung',    type: 'input' },
+      { key: 'einzahlungEk', label: 'Einzahlung Eigenkapital',  type: 'input' },
+      { key: 'einzahlungFk', label: 'Valutierung Fremdkapital', type: 'input' },
+      { key: 'kaufpreis',    label: 'Zahlung Kaufpreis',        type: 'input' },
+      { key: 'ausgabe',      label: 'Zahlung Nebenkosten',      type: 'input' },
       { key: 'miete',        label: 'Miete',                    type: 'calc',  sep: true },
       { key: 'nkm',          label: 'Nettokaltmiete',           type: 'input', sub: true },
-      { key: 'nk',           label: 'Nebenkostenvorauszahlung', type: 'input', sub: true },
+      { key: 'nk',           label: 'Nebenkostenvorauszahlungen', type: 'input', sub: true },
       { key: 'weitereMiete', label: 'Weitere Miete',     type: 'input' },
-      { key: 'grundsteuer',  label: 'Grundsteuer',       type: 'input' },
       { key: 'hausgeld',     label: 'Hausgeld',          type: 'input' },
-      { key: 'zins',         label: 'Zins',              type: 'input' },
-      { key: 'tilgung',      label: 'Tilgung',           type: 'input' },
+      { key: 'bankrate',     label: 'Bankrate',          type: 'calc' },
+      { key: 'zins',         label: 'Zins',              type: 'input', sub: true },
+      { key: 'tilgung',      label: 'Tilgung',           type: 'input', sub: true },
+      { key: 'grundsteuer',  label: 'Grundsteuer',       type: 'input' },
       { key: 'cf',           label: 'CF Wohnung',        type: 'calc',  strong: true, sep: true },
+      { key: 'weitereAusgaben',       label: 'Weitere Ausgaben',      type: 'input' },
+      { key: 'nebenkostenabrechnung', label: 'Nebenkostenabrechnung', type: 'input' },
       { key: 'guthaben',     label: 'Guthaben',          type: 'calc',  total: true, sep: true },
     ]
 
@@ -512,6 +585,8 @@
       initBankImport()
       initMonatswechsel()
       renderCashflowListe()
+      initLiqAufklapp()
+      initBuchungsstatus()
 
       // Deep-Link ?tab=…
       const tabParam = new URLSearchParams(window.location.search).get('tab')
@@ -683,7 +758,7 @@
 
     // Berechnung je Immobilie – Logik 1:1 wie auf der Immobilien-Seite
     function computeProp(lq) {
-      const months = liqMonthList(lq.startMonth, lq.monthCount)
+      const months = liqMonthList(lq.startMonth, lq.monthCount || 120)
       const cells = lq.cells || {}, overrides = lq.overrides || {}
       const inp = (k, m) => Number(cells[k]?.[m]) || 0
       const ov  = (k, m) => { const v = overrides[k]?.[m]; return (v === undefined || v === null || v === '') ? null : Number(v) }
@@ -692,13 +767,14 @@
       let guthaben = 0
       months.forEach(m => {
         LIQ_ROWS.forEach(r => { if (r.type === 'input') out[r.key][m] = inp(r.key, m) })
-        const miete = ov('miete', m) ?? out.nkm[m] + out.nk[m]
+        const miete    = ov('miete', m) ?? out.nkm[m] + out.nk[m]
+        const bankrate = ov('bankrate', m) ?? out.zins[m] + out.tilgung[m]
         const cf = ov('cf', m) ?? miete + out.weitereMiete[m] + out.grundsteuer[m]
-                                  + out.hausgeld[m] + out.zins[m] + out.tilgung[m]
+                                  + out.hausgeld[m] + bankrate
         guthaben = ov('guthaben', m) ?? guthaben + out.einzahlungEk[m] + out.einzahlungFk[m]
                                         + out.kaufpreis[m] + out.ausgabe[m] + out.weitereAusgaben[m]
                                         + out.nebenkostenabrechnung[m] + cf
-        out.miete[m] = miete; out.cf[m] = cf; out.guthaben[m] = guthaben
+        out.miete[m] = miete; out.bankrate[m] = bankrate; out.cf[m] = cf; out.guthaben[m] = guthaben
       })
       return { months, out }
     }
@@ -737,7 +813,9 @@
 
     function renderLiquiditaet() {
       const scroll = document.getElementById('liqScroll')
-      if (!scroll) return   // Bereich wurde durch Import/Monatswechsel/Cashflow ersetzt
+      if (!scroll) return
+      const det = document.getElementById('liqAuf')
+      if (det && !det.open) return   // erst beim Aufklappen zeichnen
       const { months, out } = aggregateLiq()
       if (!months.length) {
         scroll.innerHTML = '<div class="ov-empty">Noch keine Liquiditätsdaten in den Immobilien vorhanden.</div>'
@@ -924,17 +1002,18 @@
       const pane = document.getElementById('pane-' + name)
       if (pane) pane.classList.add('active')
       const HD = {
-        liquiditaet: ['💧', 'Liquiditätsübersicht'],
-        bank:        ['🧾', 'Buchungen <span>Bankkonto</span>'],
-        notizen:     ['📝', 'Notizen'],
-        uebersicht:  ['📊', 'Übersicht'],
-        kontakte:    ['👤', 'Kontakte'],
+        liquiditaet: 'Portfoliokennzahlen',
+        bank:        'Bankkonto',
+        notizen:     'Notizen',
+        uebersicht:  'Übersicht',
+        kontakte:    'Kontakte',
       }[name]
       if (HD) {
-        document.getElementById('hdIcon').textContent = HD[0]
-        document.getElementById('hdName').innerHTML   = HD[1]
+        document.getElementById('hdName').textContent = HD
+        document.title = HD + ' – Immo.Expert'
       }
-      if (name === 'liquiditaet') liqScrollToNow()
+      if (name === 'liquiditaet') { liqScrollToNow(); zeichneKennzahlenCharts() }
+      if (name === 'bank') renderBuchungsstatus()
     }
 
     window.ieSetView = switchTab
@@ -1210,6 +1289,9 @@
       renderUebersicht()
       renderMonatswechsel()
       renderCashflowListe()
+      renderKennzahlen()
+      renderLiquiditaet()
+      renderBuchungsstatus()
     }
 
     function sessionToken() {
@@ -1329,7 +1411,7 @@
       const zeilen = stats.map(x => {
         const neg = x.st.cf < -0.004
         return `
-          <tr class="cf-row ${neg ? 'neg' : ''}" onclick="location.href='immobilie.html?id=${x.p.id}&tab=liquiditaet'">
+          <tr class="cf-row" onclick="location.href='immobilie.html?id=${x.p.id}&tab=liquiditaet'">
             <td class="cf-name">${esc(x.p.bezeichnung || 'Immobilie')}</td>
             <td class="cf-adr">${esc(x.p.adresse || '')}</td>
             <td class="ta-r">${formatEurCent(x.st.miete)}</td>
@@ -1338,28 +1420,37 @@
           </tr>`
       }).join('')
 
+      const summeMiete = stats.reduce((s, x) => s + x.st.miete, 0)
+      const summeAus   = stats.reduce((s, x) => s - (Math.abs(x.st.hausgeld) + Math.abs(x.st.bankrate) + Math.abs(x.st.grundsteuer)), 0)
+
       el.innerHTML = `
-        <div class="cf-summary">
-          <div class="cf-stat">
-            <span class="cf-stat-label">Wohnungen mit negativem Cashflow</span>
-            <span class="cf-stat-value ${negativ.length ? 'red' : 'green'}">${negativ.length} von ${stats.length}</span>
+        <div class="kpi-row">
+          <div class="kpi-tile">
+            <span class="kpi-label">Wohnungen mit negativem Cashflow</span>
+            <span class="kpi-value ${negativ.length ? 'red' : 'green'}">${negativ.length} von ${stats.length}</span>
           </div>
-          <div class="cf-stat">
-            <span class="cf-stat-label">Summe der Unterdeckungen</span>
-            <span class="cf-stat-value ${summeNeg < -0.004 ? 'red' : 'green'}">${formatEurCent(summeNeg)}</span>
+          <div class="kpi-tile">
+            <span class="kpi-label">Summe der Unterdeckungen</span>
+            <span class="kpi-value ${summeNeg < -0.004 ? 'red' : ''}">${formatEurCent(summeNeg)}</span>
           </div>
-          <div class="cf-stat">
-            <span class="cf-stat-label">Cashflow gesamt</span>
-            <span class="cf-stat-value ${summe < -0.004 ? 'red' : 'green'}">${formatEurCent(summe)}</span>
+          <div class="kpi-tile">
+            <span class="kpi-label">Cashflow gesamt</span>
+            <span class="kpi-value ${summe < -0.004 ? 'red' : 'green'}">${formatEurCent(summe)}</span>
           </div>
         </div>
-        <div class="ov-table-wrap">
+        <div class="ov-table-wrap" style="margin-top:14px;">
           <table class="cf-table">
             <thead><tr>
               <th>Immobilie</th><th>Adresse</th><th class="ta-r">Miete</th>
               <th class="ta-r">Ausgaben</th><th class="ta-r">Cashflow</th>
             </tr></thead>
             <tbody>${zeilen}</tbody>
+            <tfoot><tr>
+              <td>Gesamt</td><td></td>
+              <td class="ta-r">${formatEurCent(summeMiete)}</td>
+              <td class="ta-r">${formatEurCent(summeAus)}</td>
+              <td class="ta-r ${summe < -0.004 ? 'red' : 'green'}">${formatEurCent(summe)}</td>
+            </tr></tfoot>
           </table>
         </div>`
     }
@@ -1409,7 +1500,7 @@
       const pct = v => v === null ? '–' : (v * 100).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' %'
       const fak = v => v === null ? '–' : v.toLocaleString('de-DE', { maximumFractionDigits: 1 })
 
-      const gruppe = (titel, kacheln) => `
+      const gruppe = (titel, kacheln, chartId) => `
         <div class="kpi-group">
           <div class="kpi-group-title">${esc(titel)}</div>
           <div class="kpi-row">
@@ -1422,6 +1513,7 @@
                 <span class="kpi-value ${k.c || ''}">${k.v}</span>
               </div>`).join('')}
           </div>
+          ${chartId ? `<div id="${chartId}"></div>` : ''}
         </div>`
 
       el.innerHTML =
@@ -1433,19 +1525,302 @@
           { l: 'Restschuld',    v: formatEur(fk),  s: 'Darlehen abzüglich Tilgung' },
           { l: 'Eigenkapital',  v: formatEur(ek),  c: 'green', s: 'Wert abzüglich Restschuld' },
           { l: 'Beleihungsauslauf', v: pct(ltv), s: 'Restschuld ÷ Portfoliowert' },
-        ]) +
-        gruppe('Laufende Ein- und Ausgaben (Monat)', [
+        ], 'kcVermoegen') +
+        gruppe('Monatliche Einnahmen und Ausgaben', [
           { l: 'Mieteinnahmen', v: formatEur(miete), c: 'green' },
           { l: 'Hausgeld',      v: formatEur(hausgeld) },
           { l: 'Bankrate',      v: formatEur(bankrate) },
           { l: 'Cashflow',      v: formatEur(cf), c: cf < -0.004 ? 'red' : 'green' },
-        ]) +
+        ], 'kcMonat') +
         gruppe('Rendite', [
           { l: 'Brutto-Mietrendite', v: pct(brutto), s: 'Jahreskaltmiete ÷ Kaufpreis' },
           { l: 'Eigenkapitalrendite', v: pct(ekRendite),
             s: ekEingesetzt > 0 ? 'Cashflow p. a. ÷ eingesetztes EK' : 'kein Eigenkapital erfasst' },
           { l: 'Kaufpreisfaktor', v: fak(faktor), s: 'Kaufpreis ÷ Jahreskaltmiete' },
-        ])
+        ], 'kcRendite')
+
+      zeichneKennzahlenCharts()
+    }
+
+    // ════════════════════════════════════════
+    // CHARTS ZU DEN KENNZAHLEN
+    // ════════════════════════════════════════
+    function zeichneKennzahlenCharts() {
+      if (!window.IEChart || !window.IECalc || !properties.length) return
+      const pane = document.getElementById('pane-liquiditaet')
+      if (!pane || !pane.classList.contains('active')) return
+      const K = window.IEChart, F = K.farben, C = window.IECalc
+      const m = C.jetztMonat()
+      const kurzName = p => p.bezeichnung || 'Immobilie'
+
+      // 1) Vermögen & Finanzierung: Eigenkapital und Restschuld je Immobilie
+      const hV = document.getElementById('kcVermoegen')
+      if (hV) {
+        const rows = properties.map(p => {
+          const w = C.aktuellerWert(p) || 0
+          const fk = Math.min(C.restschuld(p, m), w || Infinity)
+          return { name: kurzName(p), wert: w, fk: fk, ek: Math.max(0, w - fk) }
+        }).filter(r => r.wert > 0).sort((a, b) => b.wert - a.wert)
+        hV.innerHTML = K.karte({ titel: 'Wert je Immobilie',
+          info: 'Aktueller Wert jeder Immobilie, aufgeteilt in Eigenkapital und Restschuld. Rechts der Beleihungsauslauf.',
+          legende: [{ c: F.GOLD, t: 'Eigenkapital' }, { c: F.BLAU, t: 'Restschuld' }] })
+        K.balken(hV.querySelector('.pc-plot'), {
+          aria: 'Eigenkapital und Restschuld je Immobilie',
+          leerText: 'Noch keine Immobilie mit Wert erfasst.',
+          labels: rows.map(r => r.name), gestapelt: true,
+          serien: [{ name: 'Eigenkapital', farbe: F.GOLD, werte: rows.map(r => r.ek) },
+                   { name: 'Restschuld', farbe: F.BLAU, werte: rows.map(r => r.fk) }],
+          rechts: i => rows[i].wert ? Math.round(rows[i].fk / rows[i].wert * 100) + ' %' : '–',
+          tipExtra: i => [{ c: F.INK2, t: 'Wert', v: K.eur(rows[i].wert) },
+                          { c: F.INK2, t: 'Beleihungsauslauf', v: rows[i].wert ? Math.round(rows[i].fk / rows[i].wert * 100) + ' %' : '–' }],
+        })
+      }
+
+      // 2) Monatliche Einnahmen und Ausgaben: 12 Monate um heute
+      const hM = document.getElementById('kcMonat')
+      if (hM) {
+        const monate = []
+        for (let i = -5; i <= 6; i++) monate.push(C.monatPlus(m, i))
+        const daten = monate.map(mm => {
+          let ein = 0, aus = 0, cf = 0
+          properties.forEach(p => {
+            const t = C.cfTeile(p, mm)
+            ein += t.miete + t.weitereMiete
+            aus += Math.abs(t.hausgeld) + Math.abs(t.bankrate) + Math.abs(t.grundsteuer)
+            cf += t.cf
+          })
+          return { m: mm, ein, aus, cf }
+        })
+        const akt = monate.indexOf(m)
+        hM.innerHTML = K.karte({ titel: 'Einnahmen und Ausgaben je Monat',
+          info: 'Mieteinnahmen und laufende Ausgaben (Hausgeld, Bankrate, Grundsteuer) aller Immobilien, fünf Monate zurück bis sechs Monate voraus. Die Linie ist der Cashflow.',
+          legende: [{ c: F.GOLD, t: 'Einnahmen' }, { c: F.BLAU, t: 'Ausgaben' }, { c: F.INK, t: 'Cashflow', linie: true }] })
+        K.saeulen(hM.querySelector('.pc-plot'), {
+          aria: 'Einnahmen und Ausgaben je Monat',
+          labels: monate.map(mm => window.IECharts.monatName(mm)),
+          serien: [{ name: 'Einnahmen', farbe: F.GOLD, werte: daten.map(d => d.ein) },
+                   { name: 'Ausgaben', farbe: F.BLAU, werte: daten.map(d => d.aus) }],
+          linie: { name: 'Cashflow', farbe: F.INK, werte: daten.map(d => d.cf) },
+          aktuell: akt,
+          blass: i => i > akt,
+          tipTitel: i => window.IECharts.monatName(monate[i], true) + (i > akt ? ' · Planung' : i === akt ? ' · laufender Monat' : ''),
+        })
+      }
+
+      // 3) Rendite je Immobilie
+      const hR = document.getElementById('kcRendite')
+      if (hR) {
+        const rows = properties.map(p => {
+          const kp = C.kaufpreis(p)
+          const st = liqStats(p)
+          const t = C.cfTeile(p, m)
+          const ek = Math.abs(C.summeAlle(p, 'einzahlungEk'))
+          return { name: kurzName(p),
+                   brutto: kp > 0 ? (st.nkm || 0) * 12 / kp * 100 : 0,
+                   ekr: ek > 0 ? t.cf * 12 / ek * 100 : 0, hatEk: ek > 0, kp }
+        }).filter(r => r.kp > 0).sort((a, b) => b.brutto - a.brutto)
+        const pct = v => v.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %'
+        hR.innerHTML = K.karte({ titel: 'Rendite je Immobilie',
+          info: 'Brutto-Mietrendite (Jahreskaltmiete ÷ Kaufpreis) und Eigenkapitalrendite (Cashflow p. a. ÷ eingesetztes Eigenkapital) je Immobilie.',
+          legende: [{ c: F.GOLD, t: 'Brutto-Mietrendite' }, { c: F.BLAU, t: 'Eigenkapitalrendite' }] })
+        K.balken(hR.querySelector('.pc-plot'), {
+          aria: 'Rendite je Immobilie',
+          leerText: 'Noch keine Immobilie mit Kaufpreis erfasst.',
+          labels: rows.map(r => r.name),
+          serien: [{ name: 'Brutto-Mietrendite', farbe: F.GOLD, werte: rows.map(r => r.brutto) },
+                   { name: 'Eigenkapitalrendite', farbe: F.BLAU, werte: rows.map(r => r.ekr) }],
+          format: pct,
+          achse: v => v.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' %',
+          tipExtra: i => rows[i].hatEk ? [] : [{ c: F.INK2, t: 'Eigenkapital', v: 'nicht erfasst' }],
+        })
+      }
+    }
+
+    let kcResize = null
+    window.addEventListener('resize', () => { clearTimeout(kcResize); kcResize = setTimeout(zeichneKennzahlenCharts, 180) })
+
+    // ════════════════════════════════════════
+    // LIQUIDITÄTSPLANUNG (aufklappbar) + EXCEL
+    // ════════════════════════════════════════
+    function initLiqAufklapp() {
+      const det = document.getElementById('liqAuf')
+      if (!det) return
+      det.addEventListener('toggle', () => { if (det.open) { renderLiquiditaet() } })
+      const btn = document.getElementById('liqXlsBtn')
+      if (btn) btn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); liqExportExcel() })
+    }
+
+    function liqBlatt(titel, months, out) {
+      const nowM = new Date().toISOString().slice(0, 7)
+      const zeilen = []
+      zeilen.push([{ t: titel, s: 1 }])
+      zeilen.push([{ t: 'Stand ' + new Date().toLocaleDateString('de-DE') + ' · alle Werte in € · Zahlungsausgänge negativ · * = laufender Monat', s: 0 }])
+      zeilen.push([])
+      const kopf = [{ t: 'Position', s: 4 }]
+      months.forEach(m => {
+        const [y, mo] = m.split('-').map(Number)
+        const name = new Date(y, mo - 1, 1).toLocaleDateString('de-DE', { month: 'short' })
+        kopf.push({ t: name + ' ' + String(y).slice(2) + (m === nowM ? ' *' : ''), s: 4 })
+      })
+      zeilen.push(kopf)
+      LIQ_ROWS.forEach(r => {
+        const fett = r.strong || r.total || r.type === 'calc'
+        const z = [{ t: (r.sub ? '   ' : '') + r.label, s: fett ? 1 : 0 }]
+        months.forEach(m => {
+          const v = Number(out[r.key]?.[m]) || 0
+          z.push(v ? { n: v, s: fett ? 3 : 2 } : { s: fett ? 3 : 2 })
+        })
+        zeilen.push(z)
+      })
+      return zeilen
+    }
+
+    async function liqExportExcel() {
+      const btn = document.getElementById('liqXlsBtn')
+      const alt = btn ? btn.textContent : ''
+      const setBtn = t => { if (btn) btn.textContent = t }
+      try {
+        if (!window.IEXlsx) throw new Error('Excel-Baustein nicht geladen')
+        const gesamt = aggregateLiq()
+        if (!gesamt.months.length) { setBtn('Keine Daten'); setTimeout(() => setBtn(alt), 2500); return }
+        setBtn('… wird erstellt')
+        const blaetter = [{ name: 'Gesamtportfolio', zeilen: liqBlatt('Liquiditätsplanung – Gesamtportfolio', gesamt.months, gesamt.out), fixX: 1, fixY: 4 }]
+        properties
+          .filter(p => p.liquiditaet && p.liquiditaet.cells && p.liquiditaet.startMonth)
+          .forEach(p => {
+            const r = computeProp(p.liquiditaet)
+            blaetter.push({ name: p.bezeichnung || 'Immobilie', zeilen: liqBlatt('Liquiditätsplanung – ' + (p.bezeichnung || 'Immobilie'), r.months, r.out), fixX: 1, fixY: 4 })
+          })
+        await window.IEXlsx.herunterladen('Liquiditaetsplanung Portfolio ' + new Date().toISOString().slice(0, 10) + '.xlsx', blaetter)
+        setBtn('✓ heruntergeladen')
+      } catch (err) {
+        setBtn('Fehler: ' + err.message)
+      }
+      setTimeout(() => setBtn(alt), 2500)
+    }
+
+    // ════════════════════════════════════════
+    // BUCHUNGSSTATUS (Bankkonto)
+    // Grün, wenn eine Buchung über den Kontoauszug eingelesen wurde
+    // oder von Hand als gebucht markiert ist. Die Handmarkierung liegt
+    // in der Liquiditätsplanung der Immobilie unter „gebucht".
+    // ════════════════════════════════════════
+    const BS_ARTEN = [
+      { key: 'miete',    label: 'Miete',    zeilen: ['miete', 'nkm', 'nk', 'weitereMiete'] },
+      { key: 'hausgeld', label: 'Hausgeld', zeilen: ['hausgeld'] },
+      { key: 'bank',     label: 'Bankrate', zeilen: ['bankrate', 'zins', 'tilgung'] },
+    ]
+    let bsMonat = null
+    const bsTimer = {}
+
+    function initBuchungsstatus() {
+      if (!document.getElementById('bsTabelle')) return
+      bsMonat = window.IECalc ? window.IECalc.jetztMonat() : new Date().toISOString().slice(0, 7)
+      document.getElementById('bsZurueck').addEventListener('click', () => { bsMonat = window.IECalc.monatPlus(bsMonat, -1); renderBuchungsstatus() })
+      document.getElementById('bsVor').addEventListener('click', () => { bsMonat = window.IECalc.monatPlus(bsMonat, 1); renderBuchungsstatus() })
+      document.getElementById('bsHeute').addEventListener('click', () => { bsMonat = window.IECalc.jetztMonat(); renderBuchungsstatus() })
+      renderBuchungsstatus()
+    }
+
+    function bsStand(p, art, monat) {
+      const C = window.IECalc
+      const lq = p.liquiditaet || {}
+      const imBestand = C.uebernahme(p) <= monat
+      const t = C.cfTeile(p, monat)
+      const erwartet = imBestand && (
+        art.key === 'miete'    ? Math.abs(t.miete + t.weitereMiete) > 0.004 :
+        art.key === 'hausgeld' ? Math.abs(t.hausgeld) > 0.004 :
+                                 Math.abs(t.bankrate) > 0.004)
+      const ic = lq.importedCells || {}
+      const auto = art.zeilen.some(z => ic[z + '|' + monat])
+      const hand = lq.gebucht && lq.gebucht[monat] ? lq.gebucht[monat][art.key] : undefined
+      const gebucht = hand !== undefined ? !!hand : auto
+      return { erwartet, gebucht, auto, hand, zaehlt: erwartet || gebucht }
+    }
+
+    function renderBuchungsstatus() {
+      const tab = document.getElementById('bsTabelle')
+      if (!tab || !bsMonat || !window.IECalc) return
+      document.getElementById('bsMonatName').textContent = window.IECharts
+        ? window.IECharts.monatName(bsMonat, true) : bsMonat
+      const heute = bsMonat === window.IECalc.jetztMonat()
+      document.getElementById('bsHeute').style.visibility = heute ? 'hidden' : 'visible'
+
+      if (!properties.length) {
+        document.getElementById('bsSumme').innerHTML = ''
+        tab.innerHTML = '<div class="ov-empty">Noch keine Immobilien angelegt.</div>'
+        return
+      }
+
+      const zaehler = {}
+      BS_ARTEN.forEach(a => { zaehler[a.key] = { ja: 0, von: 0 } })
+      const zeilen = properties.map((p, pi) => {
+        const zellen = BS_ARTEN.map(a => {
+          const st = bsStand(p, a, bsMonat)
+          if (st.zaehlt) { zaehler[a.key].von++; if (st.gebucht) zaehler[a.key].ja++ }
+          const cls = st.gebucht ? 'ja' : (st.erwartet ? 'nein' : 'na')
+          const titel = st.gebucht
+            ? (st.hand !== undefined ? 'gebucht (von Hand markiert)' : 'gebucht (aus Kontoauszug)') + ' – klicken für „offen"'
+            : (st.erwartet ? 'noch nicht gebucht – klicken für „gebucht"' : 'in diesem Monat nicht geplant – klicken für „gebucht"')
+          return `<td class="bs-c"><button type="button" class="bs-dot ${cls}" title="${esc(titel)}" aria-label="${esc(a.label + ': ' + titel)}"
+                    onclick="bsUmschalten(${pi}, '${a.key}')"></button></td>`
+        }).join('')
+        return `<tr><td class="cf-name">${esc(p.bezeichnung || 'Immobilie')}</td>${zellen}</tr>`
+      }).join('')
+
+      document.getElementById('bsSumme').innerHTML = BS_ARTEN.map(a => {
+        const z = zaehler[a.key]
+        const voll = z.von > 0 && z.ja === z.von
+        const anteil = z.von ? Math.round(z.ja / z.von * 100) : 0
+        return `<div class="kpi-tile">
+            <span class="kpi-label">${a.label}</span>
+            <span class="kpi-value ${z.von ? (voll ? 'green' : '') : ''}">${z.von ? z.ja + ' / ' + z.von : '–'}</span>
+            <span class="bs-bar"><i style="width:${anteil}%"></i></span>
+          </div>`
+      }).join('')
+
+      tab.innerHTML = `
+        <table class="bs-table">
+          <thead><tr><th>Immobilie</th>${BS_ARTEN.map(a => `<th class="bs-c">${a.label}</th>`).join('')}</tr></thead>
+          <tbody>${zeilen}</tbody>
+        </table>
+        <div class="bs-legende">
+          <span><i style="background:var(--green)"></i>gebucht</span>
+          <span><i style="background:var(--red)"></i>offen</span>
+          <span><i style="border:2px dashed rgba(255,255,255,0.3);width:8px;height:8px"></i>nicht geplant</span>
+        </div>`
+    }
+
+    function bsUmschalten(pi, artKey) {
+      const p = properties[pi]
+      const art = BS_ARTEN.find(a => a.key === artKey)
+      if (!p || !art) return
+      const st = bsStand(p, art, bsMonat)
+      if (!p.liquiditaet) p.liquiditaet = { cells: {}, overrides: {}, notes: {} }
+      const lq = p.liquiditaet
+      if (!lq.gebucht) lq.gebucht = {}
+      if (!lq.gebucht[bsMonat]) lq.gebucht[bsMonat] = {}
+      const neu = !st.gebucht
+      // entspricht der neue Stand dem automatisch erkannten, Handmarkierung entfernen
+      if (neu === st.auto) delete lq.gebucht[bsMonat][artKey]
+      else lq.gebucht[bsMonat][artKey] = neu
+      if (!Object.keys(lq.gebucht[bsMonat]).length) delete lq.gebucht[bsMonat]
+      renderBuchungsstatus()
+
+      const ind = document.getElementById('siStatus')
+      if (ind) { ind.textContent = 'Speichern …'; ind.className = 'save-indicator saving' }
+      clearTimeout(bsTimer[p.id])
+      bsTimer[p.id] = setTimeout(async () => {
+        const { error } = await sb.from('portfolio').update({ liquiditaet: p.liquiditaet }).eq('id', p.id)
+        if (!ind) return
+        if (error) {
+          ind.textContent = '⚠ Fehler beim Speichern'; ind.className = 'save-indicator'; ind.style.color = 'var(--red)'
+          console.error('Buchungsstatus speichern fehlgeschlagen:', error)
+        } else {
+          ind.textContent = '✓ Gespeichert'; ind.className = 'save-indicator saved'; ind.style.color = ''
+          setTimeout(() => { ind.textContent = ''; ind.className = 'save-indicator' }, 2000)
+        }
+      }, 700)
     }
 
     // ── Helfer ──

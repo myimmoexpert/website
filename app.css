@@ -370,3 +370,43 @@ label.ie-zust-zeile a { color: var(--ie-accent, #d3ac5f); }
 }
 .ie-btn-gefahr:hover { background: #ef6b6b !important; color: #17130a !important; }
 #ie-konto-meldung { margin: 14px 0 0; font: 400 0.82rem/1.5 'Inter', sans-serif; }
+
+/* ══════════════════════════════════════════════════════════════
+   Charts (ie-charts.js) – auf allen App-Seiten gleich
+   ══════════════════════════════════════════════════════════════ */
+.pc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 18px; }
+.pc-card { background: #18181b; border: 1px solid rgba(255,255,255,0.112);
+  border-radius: 14px; padding: 18px 22px 16px; min-width: 0; position: relative; }
+.pc-head { display: flex; align-items: flex-start; gap: 12px; }
+.pc-title { font-size: 0.95rem; font-weight: 700; letter-spacing: -0.2px; color: #f1eee7;
+  display: inline-flex; align-items: center; gap: 8px; }
+.pc-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 12px 0 0; padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.075); }
+.pc-leg { display: inline-flex; align-items: center; gap: 6px; font-size: 0.76rem; color: #9b968c; }
+.pc-leg i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.pc-plot { position: relative; margin-top: 14px; }
+.pc-svg { display: block; overflow: hidden; }
+.pc-tip { position: absolute; top: 8px; background: #18181b; border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 9px; box-shadow: 0 10px 28px rgba(0,0,0,0.63); padding: 9px 12px;
+  font-size: 0.78rem; pointer-events: none; z-index: 5; white-space: nowrap; }
+.pc-tip b { display: block; margin-bottom: 5px; color: #f1eee7; font-size: 0.8rem; }
+.pc-tip-row { display: flex; align-items: center; gap: 7px; color: #9b968c; margin-top: 3px; }
+.pc-tip-row i { width: 9px; height: 9px; border-radius: 2px; flex: 0 0 9px; }
+.pc-tip-row b { display: inline; margin: 0 0 0 auto; padding-left: 14px; color: #f1eee7; font-size: 0.78rem; }
+.pc-hero { display: flex; align-items: baseline; gap: 9px; margin-top: 10px; }
+.pc-hero-val { font-size: 1.45rem; font-weight: 700; letter-spacing: -0.5px; color: #f1eee7; }
+.pc-hero-val.green { color: #5cc98a; } .pc-hero-val.red { color: #ef6b6b; }
+.pc-hero-lab { font-size: 0.76rem; color: #9b968c; }
+.pc-leer { color: #9b968c; font-size: 0.85rem; text-align: center; padding: 48px 0; }
+@media (max-width: 700px) { .pc-grid { grid-template-columns: 1fr; } }
+
+/* ── Einheitlicher Seitenkopf der Portfolio-Ansichten ─────── */
+.ie-page-title { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; color: #f1eee7; margin: 0; }
+
+/* ── Gruppenüberschrift mit goldenem Balken ───────────────── */
+.ie-gruppe-titel { display: flex; align-items: center; gap: 9px;
+  font-size: 0.76rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.7px; color: #f1eee7; margin-bottom: 13px; }
+.ie-gruppe-titel::before { content: ''; display: inline-block; width: 3px; height: 13px;
+  border-radius: 2px; background: #d3ac5f; }
+.ie-gruppe-titel .save-indicator { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 500; }

@@ -65,6 +65,7 @@
       border-radius: 12px; padding: 18px 24px;
       display: flex; flex-direction: column; justify-content: center;
     }
+    .summary-stat .s-label-row { display: flex; align-items: center; gap: 7px; }
     .summary-stat .s-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 6px; }
     .summary-stat .s-value { font-size: 1.35rem; font-weight: 700; }
     .summary-stat .s-value.gold { color: var(--gold); }
@@ -231,32 +232,7 @@
     }
 
     /* ── Graphen ── */
-    .charts-section {
-      width: 100%; padding: 30px 40px 0;
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(430px, 1fr)); gap: 20px;
-    }
-    .pc-card { background: var(--navy2); border: 1px solid rgba(255,255,255,0.112);
-      border-radius: var(--radius); padding: 20px 22px 16px; min-width: 0; }
-    .pc-head { display: flex; align-items: flex-start; gap: 12px; }
-    .pc-title { font-size: 1rem; font-weight: 700; letter-spacing: -0.2px; }
-    .pc-legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 14px 0 0; padding-top: 12px;
-      border-top: 1px solid rgba(255,255,255,0.075); }
-    .pc-leg { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); }
-    .pc-leg i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
-    .pc-plot { position: relative; margin-top: 18px; }
-    .pc-svg { display: block; overflow: visible; }
-    .pc-tip { position: absolute; top: 8px; background: #18181b; border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 9px; box-shadow: 0 10px 28px rgba(0,0,0,0.63); padding: 9px 12px;
-      font-size: 0.78rem; pointer-events: none; z-index: 5; white-space: nowrap; }
-    .pc-tip b { display: block; margin-bottom: 5px; color: var(--white); font-size: 0.8rem; }
-    .pc-tip-row { display: flex; align-items: center; gap: 7px; color: var(--muted); margin-top: 3px; }
-    .pc-tip-row i { width: 9px; height: 9px; border-radius: 2px; flex: 0 0 9px; }
-    .pc-tip-row b { display: inline; margin: 0 0 0 auto; padding-left: 14px; color: var(--white); font-size: 0.78rem; }
-    .pc-hero { display: flex; align-items: baseline; gap: 9px; margin-top: 14px; }
-    .pc-hero-val { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; color: var(--white); }
-    .pc-hero-lab { font-size: 0.76rem; color: var(--muted); }
-    .pc-leer { color: var(--muted); font-size: 0.85rem; text-align: center; padding: 48px 0; }
-    @media (max-width: 900px) { .charts-section { grid-template-columns: 1fr; } }
+    .charts-section { width: 100%; padding: 30px 40px 0; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important; }
     @media (max-width: 700px) { .charts-section { padding-left: 18px; padding-right: 18px; } }
   </style>
   <link rel="stylesheet" href="app.css" />
@@ -301,7 +277,7 @@
       <div class="s-value gold" id="sumAnzahl">0</div>
     </div>
     <div class="summary-stat">
-      <div class="s-label">Portfoliowert</div>
+      <div class="s-label s-label-row">Portfoliowert <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Setzt sich aus dem Wert der einzelnen Immobilien zusammen. Dieser Wert kann im Immobilienbereich angepasst werden.</span></span></div>
       <div class="s-value" id="sumKaufpreis">0 €</div>
     </div>
     <div class="summary-stat">
@@ -319,7 +295,7 @@
   </div>
 
   <!-- Graphen -->
-  <div class="charts-section" id="chartsSection"></div>
+  <div class="charts-section pc-grid" id="chartsSection"></div>
 
   <!-- Tile Grid -->
   <div class="tile-grid" id="tileGrid">
@@ -381,16 +357,14 @@
     <ul class="footer-links">
       <li><a href="impressum.html">Impressum</a></li>
       <li><a href="datenschutz.html">Datenschutz</a></li>
-      <li><a href="agb.html">AGB</a></li>
-      <li><a href="avv.html">Auftragsverarbeitung</a></li>
       <li><a href="kontakt.html">Kontakt</a></li>
     </ul>
     <span class="footer-copy">© 2026 Immo.Expert</span>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="notifications.js" defer></script>
   <script src="portfolio-calc.js"></script>
+  <script src="ie-charts.js"></script>
   <script src="portfolio-charts.js"></script>
   <script>
     const SUPABASE_URL = 'https://awvnfocepqkkncgqgaka.supabase.co'

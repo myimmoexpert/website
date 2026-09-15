@@ -119,16 +119,19 @@
   // Bestandteile des Cashflows in einem Monat
   function cfTeile (p, m) {
     var u = uebernahme(p)
-    if (m < u) return { miete: 0, weitereMiete: 0, hausgeld: 0, bankrate: 0, grundsteuer: 0, cf: 0, imBestand: false }
+    if (m < u) return { miete: 0, weitereMiete: 0, hausgeld: 0, bankrate: 0, zins: 0, tilgung: 0, bankrateFix: false, grundsteuer: 0, cf: 0, imBestand: false }
     var miete    = ov1(p, 'miete', m)    !== null ? ov1(p, 'miete', m)    : wert1(p, 'nkm', m) + wert1(p, 'nk', m)
-    var bankrate = ov1(p, 'bankrate', m) !== null ? ov1(p, 'bankrate', m) : wert1(p, 'zins', m) + wert1(p, 'tilgung', m)
+    var bankrateFix = ov1(p, 'bankrate', m) !== null
+    var zins = wert1(p, 'zins', m), tilgung = wert1(p, 'tilgung', m)
+    var bankrate = bankrateFix ? ov1(p, 'bankrate', m) : zins + tilgung
     var weitereMiete = wert1(p, 'weitereMiete', m)
     var hausgeld     = wert1(p, 'hausgeld', m)
     var grundsteuer  = wert1(p, 'grundsteuer', m)
     var cfOv = ov1(p, 'cf', m)
     var cf = cfOv !== null ? cfOv : miete + weitereMiete + grundsteuer + hausgeld + bankrate
     return { miete: miete, weitereMiete: weitereMiete, hausgeld: hausgeld,
-             bankrate: bankrate, grundsteuer: grundsteuer, cf: cf, imBestand: true }
+             bankrate: bankrate, zins: zins, tilgung: tilgung, bankrateFix: bankrateFix,
+             grundsteuer: grundsteuer, cf: cf, imBestand: true }
   }
 
   // Über alle Immobilien je Monat

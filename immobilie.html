@@ -282,7 +282,7 @@
 
     .kpi-bar {
       margin-top: 24px;
-      display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
     }
     .kpi-stat {
       background: var(--navy2); border: 1px solid rgba(255,255,255,0.088);
@@ -294,6 +294,25 @@
     .kpi-stat .k-value.green { color: var(--green); }
     .kpi-stat .k-value.red { color: var(--red); }
     .kpi-stat .k-note { font-size: 0.71rem; color: var(--muted); margin-top: 4px; }
+
+    /* Kopfzeile eines Bereichs ohne eigene Überschrift (nur Speicheranzeige) */
+    .kx-kopf { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .kx-titel { flex: 1; background: transparent; border: none; outline: none; color: var(--white);
+      font: 600 0.72rem/1.4 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 0.6px; padding: 0; }
+    .kx-titel::placeholder { color: rgba(155,150,140,0.55); }
+    .kx-del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.72rem; letter-spacing: 0.4px; }
+    .kx-del:hover { color: var(--red); }
+    .section-head.sh-leer { justify-content: flex-end; min-height: 18px; margin-bottom: 6px; }
+
+    /* ══ ÜBERSICHT ══ */
+    .ub-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+    @media (max-width: 1100px) { .ub-kpis { grid-template-columns: repeat(2, 1fr); } }
+    .ub-tile { background: #1f1f23; border: 1px solid rgba(255,255,255,0.09); border-radius: 12px; padding: 13px 16px; display: flex; flex-direction: column; gap: 5px; }
+    .ub-label { display: flex; align-items: center; gap: 7px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); }
+    .ub-value { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.2px; }
+    .ub-value.gold { color: var(--gold); } .ub-value.green { color: var(--green); } .ub-value.red { color: var(--red); }
+    .ie-sec .pc-card { background: #1f1f23; border-color: rgba(255,255,255,0.09); }
+    .ub-charts { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
 
     .sec-bar {
       margin-top: 18px; display: flex; align-items: center; justify-content: flex-end;
@@ -672,7 +691,6 @@
   </div>
 
   <div class="prop-header">
-    <a href="portfolio.html" class="back-link">← Zurück zum Portfolio</a>
     <div class="prop-top">
       <div class="prop-ident">
         <div class="prop-meta">
@@ -691,7 +709,6 @@
         <button class="kpi-gear" id="wertGear" type="button" aria-expanded="false" aria-label="Wie der aktuelle Wert bestimmt wird">⚙</button>
         <div class="k-label">Aktueller Wert</div>
         <div class="k-value gold" id="kWert">–</div>
-        <div class="k-note" id="kWertNote">–</div>
 
         <div class="wert-pop" id="wertPop">
           <h4>Aktueller Wert dieser Immobilie</h4>
@@ -730,24 +747,12 @@
         </div>
       </div>
       <div class="kpi-stat">
-        <div class="k-label">Fremdkapital</div>
-        <div class="k-value" id="kFk">–</div>
-        <div class="k-note" id="kFkNote">Restschuld heute</div>
-      </div>
-      <div class="kpi-stat">
-        <div class="k-label">Eigenkapital investiert</div>
-        <div class="k-value" id="kEk">–</div>
-        <div class="k-note" id="kEkNote">seit Übernahme</div>
-      </div>
-      <div class="kpi-stat">
         <div class="k-label">Im Portfolio seit</div>
         <div class="k-value" id="kSeit">–</div>
-        <div class="k-note" id="kSeitNote">–</div>
       </div>
       <div class="kpi-stat">
         <div class="k-label">Cashflow / Monat</div>
         <div class="k-value" id="kCf">–</div>
-        <div class="k-note">laufender Monat</div>
       </div>
     </div>
 
@@ -763,17 +768,28 @@
   <div class="sections" id="secHost"></div>
 
   <!-- ══════════════════════════════════════
+       ÜBERSICHT: Kennzahlen und Charts
+  ══════════════════════════════════════ -->
+  <div class="tab-pane" id="pane-uebersicht">
+    <div class="tab-content">
+      <div class="ub-kpis" id="ubKpis"></div>
+      <div class="pc-grid ub-charts" id="ubCharts"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
        TAB: KONTAKTE
   ══════════════════════════════════════ -->
   <div class="tab-pane" id="pane-kontakte">
     <div class="tab-content">
 
-      <div class="section-head" style="margin-bottom:16px;">
-        <h3>Kontakte</h3>
+      <div class="section-head sh-leer">
         <div class="save-indicator" id="siKontakte"></div>
       </div>
 
       <div class="cl-table" id="clTableKontakte"></div>
+      <div id="kontakteExtra"></div>
+      <button class="btn-add-row" type="button" onclick="addKontakt()">+ Kontakt hinzufügen</button>
 
     </div>
   </div>
@@ -784,8 +800,7 @@
   <div class="tab-pane" id="pane-checkliste">
     <div class="tab-content">
 
-      <div class="section-head" style="margin-bottom:20px;">
-        <h3>Checkliste <span style="color:var(--gold)">Kauf</span></h3>
+      <div class="section-head sh-leer">
         <div class="save-indicator" id="siCheckliste"></div>
       </div>
 
@@ -802,8 +817,7 @@
   <div class="tab-pane" id="pane-mietverhaeltnis">
     <div class="tab-content">
 
-      <div class="section-head" style="margin-bottom:16px;">
-        <h3>Mietverhältnis</h3>
+      <div class="section-head sh-leer">
         <div class="save-indicator" id="siMiet"></div>
       </div>
 
@@ -827,16 +841,12 @@
   <div class="tab-pane" id="pane-liquiditaet">
     <div class="tab-content" style="max-width:1400px;">
 
-      <div class="section-head" style="margin-bottom:16px;">
-        <h3>Liquiditätsplanung</h3>
-        <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Alle Werte in € · Zelle leeren = zurück zur Formel · Doppelklick = Notiz</span></span>
-        <div class="save-indicator" id="siLiq"></div>
-      </div>
-
       <div class="liq-controls">
+        <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Alle Werte in € · Zelle leeren = zurück zur Formel · Doppelklick = Notiz</span></span>
         <button class="liq-btn" onclick="liqOpenImport()">⤒ Tilgungsplan importieren</button>
         <button class="liq-btn" onclick="liqExportExcel()" id="liqXlsBtn">⤓ Als Excel herunterladen</button>
         <input type="file" id="liqPdfInput" accept="application/pdf" style="display:none" onchange="liqImportPdf(this.files[0])" />
+        <div class="save-indicator" id="siLiq" style="margin-left:auto;"></div>
       </div>
 
       <div class="liq-scroll" id="liqScroll"></div>
@@ -878,8 +888,7 @@
   <div class="tab-pane" id="pane-dateien">
     <div class="tab-content">
 
-      <div class="section-head" style="margin-bottom:16px;">
-        <h3>Dateien</h3>
+      <div class="section-head sh-leer">
         <div class="save-indicator" id="siDateien"></div>
       </div>
 
@@ -1084,16 +1093,15 @@
     <ul class="footer-links">
       <li><a href="impressum.html">Impressum</a></li>
       <li><a href="datenschutz.html">Datenschutz</a></li>
-      <li><a href="agb.html">AGB</a></li>
-      <li><a href="avv.html">Auftragsverarbeitung</a></li>
       <li><a href="kontakt.html">Kontakt</a></li>
     </ul>
     <span class="footer-copy">© 2026 Immo.Expert</span>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="notifications.js" defer></script>
   <script src="portfolio-calc.js"></script>
+  <script src="ie-charts.js"></script>
+  <script src="portfolio-charts.js"></script>
   <script>
     const SUPABASE_URL = 'https://awvnfocepqkkncgqgaka.supabase.co'
     const SUPABASE_KEY = 'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
@@ -1274,6 +1282,54 @@
           table.appendChild(row)
         })
       })
+      renderKontakteExtra()
+    }
+
+    // Weitere, frei benannte Kontakte (gespeichert in checkliste.kontakteExtra)
+    function renderKontakteExtra() {
+      const wrap = document.getElementById('kontakteExtra')
+      if (!wrap) return
+      if (!Array.isArray(uberblickData.kontakteExtra)) uberblickData.kontakteExtra = []
+      wrap.innerHTML = ''
+      uberblickData.kontakteExtra.forEach((k, idx) => {
+        const card = document.createElement('div')
+        card.className = 'cl-table'
+        card.style.marginTop = '12px'
+        card.innerHTML = `
+          <div class="cl-section-label kx-kopf">
+            <input class="kx-titel" type="text" placeholder="Bezeichnung, z. B. Steuerberater" value="${esc(k.bezeichnung || '')}" data-kx="${idx}" data-kxfield="bezeichnung" />
+            <button type="button" class="kx-del" title="Kontakt löschen" onclick="deleteKontakt(${idx})">Löschen ✕</button>
+          </div>` + KONTAKT_FIELDS.map(f => `
+          <div class="cl-row">
+            <div class="cl-fixed-label">${f.label}</div>
+            <input class="cl-value-input" type="text" placeholder="eintragen …"
+                   value="${esc(k[f.key] || '')}" data-kx="${idx}" data-kxfield="${f.key}" />
+            <div></div>
+          </div>`).join('')
+        card.querySelectorAll('input[data-kx]').forEach(inp => inp.addEventListener('input', () => scheduleSave('c')))
+        wrap.appendChild(card)
+      })
+    }
+
+    function addKontakt() {
+      collectUberblick()
+      if (!Array.isArray(uberblickData.kontakteExtra)) uberblickData.kontakteExtra = []
+      uberblickData.kontakteExtra.push({ bezeichnung: '', name: '', telefon: '', email: '' })
+      renderKontakteExtra()
+      const karten = document.querySelectorAll('#kontakteExtra .kx-titel')
+      if (karten.length) karten[karten.length - 1].focus()
+      scheduleSave('c')
+    }
+
+    function deleteKontakt(idx) {
+      collectUberblick()
+      const k = (uberblickData.kontakteExtra || [])[idx]
+      if (!k) return
+      const nm = (k.bezeichnung || k.name || '').trim()
+      if (!confirm('Kontakt' + (nm ? ' „' + nm + '“' : '') + ' löschen?')) return
+      uberblickData.kontakteExtra.splice(idx, 1)
+      renderKontakteExtra()
+      scheduleSave('c')
     }
 
     function renderUberblickCustom() {
@@ -1333,6 +1389,15 @@
         if (!uberblickData.kontakte[g]) uberblickData.kontakte[g] = {}
         uberblickData.kontakte[g][f] = inp.value
       })
+      if (document.getElementById('kontakteExtra')) {
+        const extra = []
+        document.querySelectorAll('#kontakteExtra input[data-kx]').forEach(inp => {
+          const i = Number(inp.dataset.kx)
+          if (!extra[i]) extra[i] = {}
+          extra[i][inp.dataset.kxfield] = inp.value
+        })
+        uberblickData.kontakteExtra = extra.filter(Boolean)
+      }
     }
 
     // ════════════════════════════════════════
@@ -3362,6 +3427,7 @@
     // diesen Browser und für alle Immobilien gleichermaßen.
     // ════════════════════════════════════════
     const SECTIONS = [
+      { key: 'uebersicht',      ico: '📊', titel: 'Übersicht',             panes: ['uebersicht'] },
       { key: 'mietverhaeltnis', ico: '🔑', titel: 'Mietverhältnis',        panes: ['mietverhaeltnis'] },
       { key: 'kontakte',        ico: '👤', titel: 'Kontakte',              panes: ['kontakte'] },
       { key: 'liquiditaet',     ico: '💧', titel: 'Liquiditätsplanung',     panes: ['liquiditaet'] },
@@ -3440,11 +3506,12 @@
         const klapp = () => {
           const jetztZu = sec.classList.toggle('zu')
           if (!jetztZu && def.key === 'liquiditaet' && typeof liqScrollToNow === 'function') liqScrollToNow()
+          if (!jetztZu && def.key === 'uebersicht') renderUebersicht()
         }
         sec.querySelector('.ie-sec-head').addEventListener('click', e => {
           if (!e.target.closest('.ie-sec-btn')) klapp()
         })
-        sec.querySelector('.chev').addEventListener('click', klapp)
+        sec.querySelector('.chev').addEventListener('click', e => { e.stopPropagation(); klapp() })
 
         const augBtn = sec.querySelector('.aug')
         const augTitel = () => {
@@ -3453,7 +3520,9 @@
           augBtn.title = ist ? 'Bereich wieder einblenden' : 'Bereich ausblenden'
         }
         augTitel()
-        augBtn.addEventListener('click', () => {
+        augBtn.addEventListener('click', e => {
+          // nicht an die Kopfzeile weiterreichen – sonst klappt der Bereich auf
+          e.stopPropagation()
           const jetztAus = sec.classList.toggle('aus')
           lsSchalte(LS_AUS, def.key, jetztAus)
           augTitel()
@@ -3478,7 +3547,7 @@
 
     // Menülinks der Seitenleiste springen zum passenden Bereich
     window.ieSetView = function (key) {
-      const ALIAS = { uberblick: 'mietverhaeltnis', uebersicht: 'mietverhaeltnis', notes: 'notizen', todos: 'notizen', weg: 'dateien', miet: 'mietverhaeltnis' }
+      const ALIAS = { uberblick: 'uebersicht', notes: 'notizen', todos: 'notizen', weg: 'dateien', miet: 'mietverhaeltnis' }
       const ziel = document.querySelector('.ie-sec[data-sec="' + (ALIAS[key] || key) + '"]')
       if (!ziel) { window.scrollTo({ top: 0 }); return }
       ziel.classList.remove('zu')
@@ -3595,24 +3664,107 @@
       const note = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text }
 
       setzen('kWert', wert ? formatEur(wert) : '–', 'gold')
-      note('kWertNote',
-        eins.modus === 'eigen'      ? 'eigener Wert'
-        : eins.modus === 'steigerung' ? 'Kaufpreis + ' +
-            new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 }).format(eins.steigerung) + ' % p. a.'
-        : 'Kaufpreis')
-
-      setzen('kFk', formatEur(fk), '')
-      note('kFkNote', wert > 0 ? 'Beleihung ' + Math.round(fk / wert * 100) + ' %' : 'Restschuld heute')
-
-      setzen('kEk', formatEur(ek), '')
-      note('kEkNote', ekEinzahlung ? 'aus der Liquiditätsplanung' : 'geschätzt: Kaufpreis − Darlehen')
-
       const mm = String(uebernahme).slice(5, 7), jj = String(uebernahme).slice(0, 4)
       setzen('kSeit', mm + '/' + jj, '')
-      note('kSeitNote', monatsDauer(uebernahme))
+      const seitEl = document.getElementById('kSeit')
+      if (seitEl) seitEl.title = monatsDauer(uebernahme)
 
       setzen('kCf', formatEur(cf), cf < -0.004 ? 'red' : 'green')
+
+      clearTimeout(ubTimer)
+      ubTimer = setTimeout(renderUebersicht, 250)
     }
+
+    // ════════════════════════════════════════
+    // ÜBERSICHT: KENNZAHLEN UND VIER CHARTS
+    // ════════════════════════════════════════
+    var ubTimer = null
+    function renderUebersicht() {
+      const kpiEl = document.getElementById('ubKpis')
+      const chEl  = document.getElementById('ubCharts')
+      if (!kpiEl || !chEl || !propData || !window.IECalc || !window.IEChart || !window.IECharts) return
+      const sec = kpiEl.closest('.ie-sec')
+      if (sec && sec.classList.contains('zu')) return   // erst zeichnen, wenn der Bereich offen ist
+
+      const C = window.IECalc, K = window.IEChart, F = K.farben, X = window.IECharts
+      const p = propFuerCalc()
+      const pw = Object.assign({}, propData, { liquiditaet: p.liquiditaet })
+      const m = C.jetztMonat()
+
+      const kaufpreis = C.kaufpreis(p)
+      const wert = C.aktuellerWert(pw)
+      const fk = C.restschuld(p, m)
+      const ekEinzahlung = Math.abs(C.summeBis(p, 'einzahlungEk', m))
+      const ek = ekEinzahlung || Math.max(0, kaufpreis - Math.abs(C.summeBis(p, 'einzahlungFk', m)))
+      const t = C.cfTeile(p, m)
+      const nkm = Math.abs((p.liquiditaet && p.liquiditaet.cells && Number((p.liquiditaet.cells.nkm || {})[m])) || 0)
+      const tilgBis = Math.abs(C.summeBis(p, 'tilgung', m))
+      const nebenkosten = Math.abs(C.summeAlle(p, 'ausgabe'))
+      const pctF = v => v === null ? '–' : v.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %'
+      const info = txt => `<span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">${esc(txt)}</span></span>`
+      const kachel = (l, v, c, i) => `<div class="ub-tile"><span class="ub-label">${esc(l)}${i ? ' ' + info(i) : ''}</span><span class="ub-value ${c || ''}">${v}</span></div>`
+
+      kpiEl.innerHTML =
+        kachel('Fremdkapital', formatEur(fk), '', 'Restschuld heute: valutiertes Darlehen abzüglich geleisteter Tilgung.' + (wert > 0 ? ' Beleihung ' + Math.round(fk / wert * 100) + ' %.' : '')) +
+        kachel('Eigenkapital', formatEur(ek), '', ekEinzahlung ? 'Investiertes Eigenkapital: eingezahlt laut Liquiditätsplanung.' : 'Geschätzt: Kaufpreis abzüglich Darlehen.') +
+        kachel('Kaufpreis', kaufpreis ? formatEur(kaufpreis) : '–', '', nebenkosten ? 'Zzgl. Kaufnebenkosten ' + formatEur(nebenkosten) + '.' : '') +
+        kachel('Beleihungsauslauf', wert > 0 ? pctF(fk / wert * 100) : '–', '', 'Restschuld ÷ aktueller Wert') +
+        kachel('Kaltmiete / Monat', nkm ? formatEur(nkm) : '–', 'green') +
+        kachel('Mietrendite', kaufpreis > 0 && nkm ? pctF(nkm * 12 / kaufpreis * 100) : '–', 'gold', 'Jahreskaltmiete ÷ Kaufpreis') +
+        kachel('Bankrate / Monat', formatEur(Math.abs(t.bankrate)), '', t.bankrateFix ? 'Übersteuerte Bankrate aus der Liquiditätsplanung.' : 'Zins ' + formatEur(Math.abs(t.zins)) + ' + Tilgung ' + formatEur(Math.abs(t.tilgung))) +
+        kachel('Getilgt bis heute', formatEur(tilgBis), '', 'Summe der Tilgung seit Übernahme – so viel Eigenkapital ist über die Bankrate entstanden.')
+
+      const jahre = X.zehnJahre([p])
+      const daten = X.jahresDaten([pw], jahre)
+      const akt = daten.findIndex(d => d.heute)
+      const cfr = X.cfSchritte([p], m)
+      const monate = []
+      for (let i = -5; i <= 6; i++) monate.push(C.monatPlus(m, i))
+      const cfMon = monate.map(mm => C.cfTeile(p, mm).cf)
+      const aktM = monate.indexOf(m)
+
+      chEl.innerHTML =
+        K.karte({ id: 'ubWert', titel: 'Wert und Finanzierung',
+          info: 'Wert der Immobilie zum Jahresende, aufgeteilt in Eigenkapital und Restschuld. Spätere Jahre sind eine Prognose aus der Werteinstellung.',
+          legende: [{ c: F.GOLD, t: 'Eigenkapital' }, { c: F.BLAU, t: 'Restschuld' }] }) +
+        K.karte({ id: 'ubCf', titel: 'Cashflow im ' + X.monatName(m, true),
+          info: 'Von der Miete zum Überschuss: jede Säule zieht eine Zahlung des laufenden Monats ab.',
+          hero: { wert: formatEur(cfr.cf), label: cfr.cf < -0.004 ? 'Unterdeckung pro Monat' : 'Überschuss pro Monat', klasse: cfr.cf < -0.004 ? 'red' : 'green' } }) +
+        K.karte({ id: 'ubCfMonate', titel: 'Cashflow je Monat',
+          info: 'Monatlicher Cashflow aus der Liquiditätsplanung, fünf Monate zurück bis sechs Monate voraus.',
+          legende: [{ c: F.GOLD, t: 'Überschuss' }, { c: F.TERRA, t: 'Unterdeckung' }] }) +
+        K.karte({ id: 'ubBank', titel: 'Zins und Tilgung je Jahr',
+          info: 'Wie sich die Bankrate über die Jahre von Zins zu Tilgung verschiebt. Tilgung baut Eigenkapital auf.',
+          legende: [{ c: F.TERRA, t: 'Zins' }, { c: F.TEAL, t: 'Tilgung' }] })
+
+      K.saeulen(chEl.querySelector('#ubWert .pc-plot'), {
+        aria: 'Wert und Finanzierung je Jahr', gestapelt: true,
+        labels: daten.map(d => String(d.jahr)),
+        serien: [{ name: 'Eigenkapital', farbe: F.GOLD, werte: daten.map(d => d.eigenkapital) },
+                 { name: 'Restschuld', farbe: F.BLAU, werte: daten.map(d => d.fremdkapital) }],
+        aktuell: akt, blass: i => daten[i].prognose,
+        tipTitel: i => daten[i].jahr + (daten[i].prognose ? ' · Prognose' : ''),
+        tipExtra: i => [{ c: F.INK2, t: 'Wert', v: formatEur(daten[i].wert) }],
+      })
+      K.wasserfall(chEl.querySelector('#ubCf .pc-plot'), { aria: 'Cashflow im laufenden Monat', schritte: cfr.schritte, leerText: 'Für diesen Monat ist nichts geplant.' })
+      K.saeulen(chEl.querySelector('#ubCfMonate .pc-plot'), {
+        aria: 'Cashflow je Monat',
+        labels: monate.map(mm => X.monatName(mm)),
+        serien: [{ name: 'Cashflow', farbe: F.GOLD, farbeNeg: F.TERRA, werte: cfMon }],
+        aktuell: aktM, blass: i => i > aktM,
+        tipTitel: i => X.monatName(monate[i], true) + (i > aktM ? ' · Planung' : ''),
+      })
+      K.saeulen(chEl.querySelector('#ubBank .pc-plot'), {
+        aria: 'Zins und Tilgung je Jahr', gestapelt: true,
+        labels: daten.map(d => String(d.jahr)),
+        serien: [{ name: 'Zins', farbe: F.TERRA, werte: daten.map(d => Math.abs(d.zins)) },
+                 { name: 'Tilgung', farbe: F.TEAL, werte: daten.map(d => Math.abs(d.tilgung)) }],
+        aktuell: akt, blass: i => daten[i].prognose,
+        tipTitel: i => daten[i].jahr + (daten[i].prognose ? ' · Planung' : ''),
+      })
+    }
+    let ubResize = null
+    window.addEventListener('resize', () => { clearTimeout(ubResize); ubResize = setTimeout(renderUebersicht, 180) })
 
 
     // ════════════════════════════════════════

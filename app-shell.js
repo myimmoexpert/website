@@ -158,8 +158,8 @@
     mp.setAttribute('data-key', 'mein-portfolio')
     nav.appendChild(mp)
 
-    ;[['liquiditaet', 'Liquiditätsübersicht'],
-      ['bank', 'Buchungen Bankkonto'],
+    ;[['liquiditaet', 'Portfoliokennzahlen'],
+      ['bank', 'Bankkonto'],
       ['notizen', 'Notizen']].forEach(function (v) {
       addSimple(nav, P.global, v[0], v[1])
     })
