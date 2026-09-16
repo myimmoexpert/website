@@ -139,9 +139,20 @@
         throw new Error(text);
       }
 
-      await k.auth.signOut();
+      // Abmelden. Nach dem Loeschen ist das Token serverseitig ungueltig, der
+      // Aufruf schlaegt dann fehl — die lokale Sitzung muss trotzdem weg,
+      // sonst wirkt die Anwendung weiter als waere man angemeldet.
+      try { await k.auth.signOut({ scope: "local" }); } catch (_) { /* egal */ }
+      try {
+        Object.keys(localStorage)
+          .filter(function (n) { return /^sb-.*-auth-token/.test(n) || n.indexOf("supabase.auth") === 0; })
+          .forEach(function (n) { localStorage.removeItem(n); });
+      } catch (_) { /* privater Modus */ }
+      try { sessionStorage.removeItem("ie_gate"); } catch (_) {}
+
       alert("Ihr Konto wurde geloescht. Vielen Dank, dass Sie Immo.Expert genutzt haben.");
-      window.location.href = "index.html";
+      // replace statt href: der Zurueck-Knopf soll nicht in die Anwendung fuehren
+      window.location.replace("index.html");
     } catch (e) {
       melde(
         "Das Konto konnte nicht geloescht werden: " + e.message,

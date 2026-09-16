@@ -322,15 +322,9 @@
         <label>Adresse</label>
         <input type="text" id="fAdresse" placeholder="Straße, PLZ Stadt" />
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Kaufpreis (€)</label>
-          <input type="number" id="fKaufpreis" placeholder="z.B. 349000" min="0" />
-        </div>
-        <div class="form-group">
-          <label>Übernahmedatum</label>
-          <input type="date" id="fKaufdatum" />
-        </div>
+      <div class="form-group">
+        <label>Kaufpreis (€)</label>
+        <input type="number" id="fKaufpreis" placeholder="z.B. 349000" min="0" />
       </div>
       <div class="form-group">
         <label>Festgelegter Wert (€) <span class="opt">optional</span></label>
@@ -340,7 +334,7 @@
 
       <p class="form-note">
         <strong>Miete, Hausgeld und Bankrate</strong> tragen Sie nicht hier ein, sondern im Bereich
-        <strong>Liquiditätsplanung</strong> der Immobilie – dort monatsgenau und jederzeit änderbar.
+        <strong>Liquiditätsplanung</strong> der Immobilie.
       </p>
 
       <div class="modal-actions">
@@ -529,11 +523,19 @@
       document.getElementById('fBezeichnung').focus()
     }
 
+    // Aus der Seitenleiste heraus: portfolio.html?add=1 öffnet den Dialog sofort
+    if (new URLSearchParams(location.search).get('add') === '1') {
+      window.addEventListener('DOMContentLoaded', () => {
+        history.replaceState(null, '', 'portfolio.html')
+        openModal()
+      })
+    }
+
     function closeModal() {
       document.getElementById('addModal').classList.remove('visible')
       document.body.style.overflow = ''
       // Felder zurücksetzen
-      ['fBezeichnung','fAdresse','fKaufpreis','fKaufdatum','fWert']
+      ['fBezeichnung','fAdresse','fKaufpreis','fWert']
         .forEach(id => { const el = document.getElementById(id); if(el) el.value = '' })
     }
 
@@ -546,7 +548,13 @@
       const objektart   = document.getElementById('fObjektart').value
       const adresse     = document.getElementById('fAdresse').value.trim()
       const kaufpreis   = parseFloat(document.getElementById('fKaufpreis').value) || null
-      const kaufdatum   = document.getElementById('fKaufdatum').value || null
+      // Übernahmedatum wird nicht mehr abgefragt: der Vortag der Eintragung.
+      // So liegt der Beginn garantiert nicht in der Zukunft — sonst rechnen
+      // Wert, Cashflow und Restschuld die Immobilie als „noch nicht im Bestand".
+      const gestern = new Date(Date.now() - 86400000)
+      const kaufdatum   = gestern.getFullYear() + '-' +
+                          String(gestern.getMonth() + 1).padStart(2, '0') + '-' +
+                          String(gestern.getDate()).padStart(2, '0')
       const wert        = parseFloat(document.getElementById('fWert').value) || null
 
       if (!bezeichnung) {

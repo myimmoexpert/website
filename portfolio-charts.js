@@ -175,7 +175,8 @@
 
     container.innerHTML =
       K.karte({ id: 'pcAum', titel: 'Entwicklung Portfoliowert',
-        hero: { wert: (zuwachs >= 0 ? '+' : '') + pct(zuwachs), label: 'Wertentwicklung ' + ersteJ.jahr + ' bis ' + heuteJ.jahr },
+        hero: { wert: K.eur(heuteJ.wert), label: 'Portfoliowert heute' +
+                  (zuwachs ? ' · ' + (zuwachs >= 0 ? '+' : '') + pct(zuwachs) + ' seit ' + ersteJ.jahr : '') },
         info: 'Wert aller Immobilien zum Jahresende, ' + jahre[0] + ' bis ' + jahre[9] +
               '. Das laufende Jahr ist hervorgehoben, spätere Jahre sind eine Prognose aus der Werteinstellung der einzelnen Immobilien.' }) +
       K.karte({ id: 'pcCf', titel: 'Cashflow im ' + monatName(monat, true),

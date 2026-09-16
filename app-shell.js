@@ -170,6 +170,12 @@
     holder.appendChild(el('div', 'ie-sb-empty', 'lädt …'))
     nav.appendChild(holder)
 
+    // Direkt aus dem Menü eine Immobilie anlegen, ohne Umweg über die Übersicht
+    var add = makeItem({ label: 'Immobilie hinzufügen', thumb: '+', href: P.portfolio + '?add=1' })
+    add.className += ' ie-sb-add'
+    add.setAttribute('data-key', 'immobilie-hinzufuegen')
+    nav.appendChild(add)
+
     loadProperties(holder)
   }
 

@@ -306,10 +306,32 @@
     }
     .set-btn:hover { background: var(--gold2); }
     .set-btn.slim { margin-top: 0; padding: 8px 16px; font-size: 0.82rem; }
+    /* [hidden] muss das display:flex schlagen, sonst bleibt der Kasten sichtbar */
+    [hidden] { display: none !important; }
+    .mail-warn {
+      display: flex; gap: 14px; align-items: flex-start; text-align: left;
+      background: rgba(211,172,95,0.10); border: 1px solid rgba(211,172,95,0.38);
+      border-radius: var(--radius); padding: 16px 18px; margin-bottom: 24px;
+    }
+    .mail-warn-ico {
+      flex: 0 0 22px; width: 22px; height: 22px; border-radius: 50%;
+      background: var(--gold); color: #17130a; font-weight: 700; font-size: 0.85rem;
+      display: flex; align-items: center; justify-content: center; margin-top: 1px;
+    }
+    .mail-warn strong { display: block; margin-bottom: 4px; font-size: 0.92rem; }
+    .mail-warn p { margin: 0; font-size: 0.83rem; line-height: 1.55; color: var(--muted); max-width: 62ch; }
+    .mail-warn-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+    .mail-warn .set-btn.slim { margin-top: 0; }
+    .val.ok  { color: var(--green, #4ea87a); }
+    .val.warn { color: var(--gold); }
+    .pw-actions { display: flex; align-items: center; gap: 10px; }
+    .pw-actions .set-btn.slim { margin-top: 14px; background: transparent; color: var(--muted); border: 1px solid rgba(255,255,255,0.16); }
+    .pw-actions .set-btn.slim:hover { color: var(--white); border-color: rgba(255,255,255,0.32); }
+    #setPwCode { letter-spacing: 3px; font-variant-numeric: tabular-nums; }
     .set-msg { margin-top: 10px; font-size: 0.84rem; min-height: 18px; }
     .set-msg.ok  { color: var(--green); }
     .set-msg.err { color: var(--red); }
-    .set-hint { font-size: 0.84rem; color: var(--muted); margin-top: 10px; line-height: 1.6; }
+    .set-hint { font-size: 0.84rem; color: var(--muted); margin-top: 10px; line-height: 1.6; max-width: 54ch; }
     .set-hint a { color: var(--gold); }
     .info-card { background: var(--navy2); }
     @media (max-width: 640px) {
@@ -340,6 +362,22 @@
   ════════════════════════════════════ -->
   <div class="tab-pane active" id="pane-profil">
     <div class="profil-wrap">
+      <div class="mail-warn" id="mailWarn" hidden>
+        <span class="mail-warn-ico" aria-hidden="true">!</span>
+        <div>
+          <strong>E-Mail-Adresse noch nicht bestätigt</strong>
+          <p>Wir haben Ihnen bei der Registrierung einen Bestätigungslink an
+             <span id="mailWarnAdr">Ihre Adresse</span> geschickt. Bitte klicken Sie ihn an —
+             ohne Bestätigung können wir Ihnen im Ernstfall kein neues Passwort zusenden.</p>
+          <div class="mail-warn-row">
+            <button class="set-btn slim" id="mailResendBtn" onclick="mailErneutSenden()">
+              Bestätigungsmail erneut senden
+            </button>
+            <span class="set-msg" id="msgMail"></span>
+          </div>
+        </div>
+      </div>
+
       <div class="profil-avatar" id="avatarInitials">?</div>
       <div class="profil-name" id="profilName">–</div>
       <div class="profil-email" id="profilEmail">–</div>
@@ -448,13 +486,26 @@
           <label>Wiederholen</label>
           <input type="password" id="setPw2" placeholder="neues Passwort wiederholen" autocomplete="new-password" />
         </div>
-        <button class="set-btn" onclick="savePassword()">Passwort ändern</button>
+        <div class="set-row pw-code-row" id="pwCodeRow" hidden>
+          <label>Code aus der E-Mail</label>
+          <input type="text" id="setPwCode" placeholder="6-stelliger Code"
+                 inputmode="numeric" autocomplete="one-time-code" maxlength="8" />
+        </div>
+        <p class="set-hint" id="pwHint" hidden>
+          Wir haben Ihnen einen Code an Ihre E-Mail-Adresse geschickt. Erst mit diesem
+          Code wird das neue Passwort gesetzt. Der Code ist einige Minuten gültig.
+        </p>
+        <div class="pw-actions">
+          <button class="set-btn" id="pwBtn" onclick="savePassword()">Passwort ändern</button>
+          <button class="set-btn slim" id="pwAbbruch" onclick="pwAbbrechen()" hidden>Abbrechen</button>
+        </div>
         <div class="set-msg" id="msgPw"></div>
       </div>
 
       <div class="info-card">
         <h3>E-Mail-Adresse <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Eine Änderung der E-Mail-Adresse ist derzeit nur über <a href="kontakt.html">hello@myimmoexpert.de</a> möglich.</span></span></h3>
         <div class="info-row"><span class="lbl">Aktuelle Adresse</span><span class="val" id="setEmail">–</span></div>
+        <div class="info-row"><span class="lbl">Status</span><span class="val" id="setEmailStatus">–</span></div>
       </div>
 
       <div class="info-card">
@@ -645,6 +696,8 @@
       document.getElementById('infoEmail').textContent      = user.email
       document.getElementById('infoSince').textContent      = since
 
+      mailStatusZeigen(user)
+
       const { count } = await sb.from('steckbriefe').select('*', { count: 'exact', head: true })
       document.getElementById('infoCount').textContent = count || 0
 
@@ -682,6 +735,7 @@
       if (n && !n.value) n.value = meta.last_name  || meta.family_name || ''
       const e = document.getElementById('setEmail')
       if (e) e.textContent = session.user.email || '–'
+      mailStatusZeigen(session.user)
     }
 
     function setMsg(id, text, ok) {
@@ -692,6 +746,50 @@
       if (ok) setTimeout(() => { el.textContent = ''; el.className = 'set-msg' }, 4000)
     }
 
+    // ── E-MAIL-BESTÄTIGUNG ──────────────────────────
+    // Supabase setzt email_confirmed_at, sobald der Link aus der
+    // Registrierungsmail aufgerufen wurde. Solange das fehlt, steht der
+    // Hinweis oben im Profil.
+
+    function mailBestaetigt(user) {
+      return !!(user && (user.email_confirmed_at || user.confirmed_at))
+    }
+
+    function mailStatusZeigen(user) {
+      const ok = mailBestaetigt(user)
+
+      const warn = document.getElementById('mailWarn')
+      if (warn) {
+        warn.hidden = ok
+        const adr = document.getElementById('mailWarnAdr')
+        if (adr && user && user.email) adr.textContent = user.email
+      }
+
+      const st = document.getElementById('setEmailStatus')
+      if (st) {
+        st.textContent = ok ? '✓ Bestätigt' : 'Noch nicht bestätigt'
+        st.className   = 'val ' + (ok ? 'ok' : 'warn')
+      }
+    }
+
+    async function mailErneutSenden() {
+      const btn = document.getElementById('mailResendBtn')
+      const adresse = session && session.user && session.user.email
+      if (!adresse) return
+      btn.disabled = true
+      setMsg('msgMail', 'Wird verschickt …', true)
+      const { error } = await sb.auth.resend({ type: 'signup', email: adresse })
+      btn.disabled = false
+      if (error) {
+        setMsg('msgMail', 'Konnte nicht verschickt werden: ' + error.message, false)
+        return
+      }
+      setMsg('msgMail', 'Verschickt. Die Zustellung kann einen Moment dauern.', true)
+    }
+
+    // Nach der Rückkehr vom Bestätigungslink ist der Hinweis sonst noch da
+    sb.auth.onAuthStateChange((_, s) => { if (s && s.user) mailStatusZeigen(s.user) })
+
     async function saveName() {
       const first = document.getElementById('setVorname').value.trim()
       const last  = document.getElementById('setNachname').value.trim()
@@ -701,15 +799,75 @@
       setMsg('msgName', 'Name gespeichert.', true)
     }
 
+    // ── PASSWORT ÄNDERN — in zwei Schritten ─────────
+    // Schritt 1: Supabase schickt einen Einmal-Code an die hinterlegte Adresse.
+    // Schritt 2: Erst mit diesem Code wird das neue Passwort gesetzt.
+    // Damit reicht ein offen gelassenes Fenster nicht mehr aus, um das
+    // Passwort zu übernehmen — man braucht auch Zugriff auf das Postfach.
+    let pwCodeAngefordert = false
+
+    function pwSchrittZeigen(zwei) {
+      pwCodeAngefordert = zwei
+      document.getElementById('pwCodeRow').hidden  = !zwei
+      document.getElementById('pwHint').hidden     = !zwei
+      document.getElementById('pwAbbruch').hidden  = !zwei
+      document.getElementById('pwBtn').textContent = zwei ? 'Passwort jetzt ändern' : 'Passwort ändern'
+      document.getElementById('setPw1').readOnly = zwei
+      document.getElementById('setPw2').readOnly = zwei
+      if (zwei) setTimeout(() => document.getElementById('setPwCode').focus(), 60)
+    }
+
+    function pwAbbrechen() {
+      document.getElementById('setPwCode').value = ''
+      pwSchrittZeigen(false)
+      setMsg('msgPw', '', true)
+      document.getElementById('msgPw').textContent = ''
+    }
+
+    function pwFelderLeeren() {
+      document.getElementById('setPw1').value = ''
+      document.getElementById('setPw2').value = ''
+      document.getElementById('setPwCode').value = ''
+      pwSchrittZeigen(false)
+    }
+
     async function savePassword() {
+      const btn = document.getElementById('pwBtn')
       const a = document.getElementById('setPw1').value
       const b = document.getElementById('setPw2').value
       if (a.length < 8)  { setMsg('msgPw', 'Das Passwort muss mindestens 8 Zeichen haben.', false); return }
       if (a !== b)       { setMsg('msgPw', 'Die beiden Passwörter stimmen nicht überein.', false); return }
-      const { error } = await sb.auth.updateUser({ password: a })
-      if (error) { setMsg('msgPw', 'Fehler: ' + error.message, false); return }
-      document.getElementById('setPw1').value = ''
-      document.getElementById('setPw2').value = ''
+
+      // ── Schritt 1: Code anfordern ──
+      if (!pwCodeAngefordert) {
+        btn.disabled = true
+        setMsg('msgPw', 'Code wird verschickt …', true)
+        const { error } = await sb.auth.reauthenticate()
+        btn.disabled = false
+        if (error) {
+          setMsg('msgPw', 'Der Code konnte nicht verschickt werden: ' + error.message, false)
+          return
+        }
+        pwSchrittZeigen(true)
+        setMsg('msgPw', 'Code verschickt. Bitte prüfen Sie Ihr Postfach.', true)
+        return
+      }
+
+      // ── Schritt 2: Code prüfen und Passwort setzen ──
+      const code = document.getElementById('setPwCode').value.trim()
+      if (!code) { setMsg('msgPw', 'Bitte den Code aus der E-Mail eingeben.', false); return }
+
+      btn.disabled = true
+      const { error } = await sb.auth.updateUser({ password: a, nonce: code })
+      btn.disabled = false
+      if (error) {
+        const txt = /nonce|token|otp|invalid|expired/i.test(error.message || '')
+          ? 'Der Code stimmt nicht oder ist abgelaufen. Bitte fordern Sie über „Abbrechen" einen neuen an.'
+          : 'Fehler: ' + error.message
+        setMsg('msgPw', txt, false)
+        return
+      }
+      pwFelderLeeren()
       setMsg('msgPw', 'Passwort geändert.', true)
     }
 

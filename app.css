@@ -189,6 +189,13 @@ body.ie-app .tab-pane { flex: 1; }
 .ie-sb-item.active .ie-dot { background: var(--ie-accent); }
 .ie-sb-item .ie-lbl { flex: 1; overflow: hidden; text-overflow: ellipsis; }
 
+/* Knopf „Immobilie hinzufügen" unter der Immobilienliste */
+.ie-sb-item.ie-sb-add { color: var(--ie-accent); margin-top: 2px; }
+.ie-sb-item.ie-sb-add:hover { background: var(--ie-accent-bg); }
+.ie-sb-item.ie-sb-add .ie-sb-thumb {
+  color: var(--ie-accent); font-weight: 600; font-size: 1rem; line-height: 1;
+}
+
 /* Roter Punkt: in dieser Immobilie ist etwas offen */
 .ie-sb-alert {
   flex: 0 0 8px; width: 8px; height: 8px; border-radius: 50%;

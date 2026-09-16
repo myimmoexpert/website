@@ -203,6 +203,21 @@
     .liq-modal-box h4 { font-size: 1.05rem; margin-bottom: 10px; }
     .liq-modal-box p { color: var(--muted); font-size: 0.84rem; line-height: 1.55; }
     .liq-drop { border: 2px dashed rgba(211,172,95,0.4); border-radius: var(--radius); padding: 44px 20px; margin: 20px 0; cursor: pointer; color: var(--muted); font-size: 0.9rem; transition: background 0.2s, border-color 0.2s; }
+    .liq-start-box { text-align: left; width: min(540px, 94vw); }
+    .liq-start-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; margin: 22px 0 16px; }
+    .liq-start-grid label { display: flex; flex-direction: column; gap: 6px; }
+    .liq-start-grid span { font-size: 0.76rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); }
+    .liq-start-grid input {
+      background: var(--navy3); border: 1px solid rgba(255,255,255,0.125);
+      border-radius: 9px; padding: 10px 12px; color: var(--white);
+      font: 400 0.92rem 'Inter', sans-serif; outline: none;
+    }
+    .liq-start-grid input:focus { border-color: var(--gold); }
+    .liq-start-hint { font-size: 0.8rem; line-height: 1.55; color: var(--muted); }
+    .liq-start-hint strong { color: var(--white); font-weight: 600; }
+    .liq-start-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+    .liq-btn-prim { background: var(--gold) !important; color: #17130a !important; border-color: var(--gold) !important; font-weight: 600; }
+    @media (max-width: 560px) { .liq-start-grid { grid-template-columns: 1fr; } }
     .liq-drop.over, .liq-drop:hover { background: rgba(211,172,95,0.07); border-color: var(--gold); color: var(--white); }
     .liq-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: var(--navy3); border: 1px solid rgba(211,172,95,0.4); border-radius: 12px; padding: 12px 18px; display: flex; gap: 14px; align-items: center; z-index: 300; font-size: 0.84rem; box-shadow: 0 8px 30px rgba(0,0,0,0.75); flex-wrap: wrap; max-width: 90vw; }
     .liq-btn-gold { border: 1px solid rgba(211,172,95,0.5); color: var(--gold); border-style: solid; }
@@ -851,6 +866,36 @@
 
       <div class="liq-scroll" id="liqScroll"></div>
 
+      <!-- Einstieg: die wiederkehrenden Beträge einmal erfassen -->
+      <div class="liq-modal" id="liqStartModal">
+        <div class="liq-modal-box liq-start-box">
+          <h4>Liquiditätsplanung einrichten</h4>
+          <p>Diese Beträge gelten ab Übernahme für jeden Monat der Tabelle. Einzelne
+             Monate lassen sich danach direkt in der Tabelle überschreiben. Alles, was
+             Sie hier leer lassen, bleibt leer.</p>
+
+          <div class="liq-start-grid">
+            <label><span>Nettokaltmiete</span><input type="number" id="lsNkm" placeholder="0" min="0" step="any" /></label>
+            <label><span>Nebenkostenvorauszahlungen</span><input type="number" id="lsNk" placeholder="0" min="0" step="any" /></label>
+            <label><span>Weitere Mieteinnahmen</span><input type="number" id="lsWm" placeholder="0" min="0" step="any" /></label>
+            <label><span>Hausgeld</span><input type="number" id="lsHg" placeholder="0" min="0" step="any" /></label>
+            <label><span>Zins</span><input type="number" id="lsZins" placeholder="0" min="0" step="any" /></label>
+            <label><span>Tilgung</span><input type="number" id="lsTilg" placeholder="0" min="0" step="any" /></label>
+          </div>
+
+          <p class="liq-start-hint">
+            Zins und Tilgung müssen Sie nicht schätzen: Über
+            <strong>⤒ Tilgungsplan importieren</strong> lesen wir beides monatsgenau
+            aus dem PDF Ihrer Bank aus.
+          </p>
+
+          <div class="liq-start-actions">
+            <button class="liq-btn" onclick="liqStartSkip()">Später</button>
+            <button class="liq-btn liq-btn-prim" onclick="liqStartSave()">Übernehmen</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Import-Modal -->
       <div class="liq-modal" id="liqImportModal" onclick="if(event.target===this)liqCloseImport()">
         <div class="liq-modal-box">
@@ -1068,13 +1113,9 @@
           <span class="set-lbl">Kaufpreis (€)</span>
           <input type="text" id="setKaufpreis" inputmode="decimal" placeholder="z. B. 349000" />
         </label>
-        <label class="set-row">
-          <span class="set-lbl">Übernahmedatum</span>
-          <input type="date" id="setKaufdatum" />
-        </label>
         <p class="set-note">
           <strong>Miete, Hausgeld und Bankrate</strong> tragen Sie nicht hier ein, sondern im Bereich
-          <strong>Liquiditätsplanung</strong> – dort monatsgenau und jederzeit änderbar.
+          <strong>Liquiditätsplanung</strong>.
         </p>
       </div>
 
@@ -1640,7 +1681,7 @@
       { key: 'miete',        label: 'Miete',             type: 'calc',  sep: true, gap: true, toggle: 'miete' },
       { key: 'nkm',          label: 'Nettokaltmiete',            type: 'input', sub: true, group: 'miete' },
       { key: 'nk',           label: 'Nebenkostenvorauszahlungen', type: 'input', sub: true, group: 'miete' },
-      { key: 'weitereMiete', label: 'Weitere Miete',     type: 'input' },
+      { key: 'weitereMiete', label: 'Weitere Mieteinnahmen', type: 'input' },
       { key: 'hausgeld',     label: 'Hausgeld',          type: 'input' },
       { key: 'bankrate',     label: 'Bankrate',          type: 'calc',  toggle: 'bankrate' },
       { key: 'zins',         label: 'Zins',              type: 'input', sub: true, group: 'bankrate' },
@@ -1809,13 +1850,88 @@
       const nk  = liqParse(cl.nebenkosten)
       const wm  = liqParse(cl.weitereMiete)
       const hg  = liqParse(cl.hausgeld) ?? data.hausgeld
-      liqMonthList(start, total).slice(offset + 1).forEach(m => {
+      // Wiederkehrendes ab dem Monat nach der Übernahme.
+      // (Früher standen hier die undefinierten Namen „total" und „offset" —
+      //  das warf einen ReferenceError, und die Tabelle blieb leer.)
+      const versatz = (function () {
+        const a = kaufMonat.split('-').map(Number), b = start.split('-').map(Number)
+        return (a[0] * 12 + a[1]) - (b[0] * 12 + b[1])
+      })()
+      liqMonthList(start, z.count).slice(versatz + 1).forEach(m => {
         if (nkm) set('nkm', m, Math.abs(nkm))
         if (nk)  set('nk', m, Math.abs(nk))
         if (wm)  set('weitereMiete', m, Math.abs(wm))
         if (hg)  set('hausgeld', m, -Math.abs(hg))
       })
       return d
+    }
+
+    // ── Einstieg: die wiederkehrenden Beträge einmal erfassen ──────────
+    // Erscheint nur beim ersten Öffnen und nur, solange nichts erfasst ist.
+    // Der Vermerk liegt in liqData, also je Immobilie und geräteübergreifend.
+
+    function liqStartNoetig() {
+      if (!liqData || liqData.startErledigt) return false
+      const zellen = liqData.cells || {}
+      const relevant = ['nkm', 'nk', 'weitereMiete', 'hausgeld', 'zins', 'tilgung']
+      const hatWerte = relevant.some(k => Object.keys(zellen[k] || {})
+        .some(m => Number(zellen[k][m])))
+      return !hatWerte
+    }
+
+    function liqStartAnbieten() {
+      if (!liqStartNoetig()) return
+      document.getElementById('liqStartModal').classList.add('open')
+      const erstes = document.getElementById('lsNkm')
+      if (erstes) setTimeout(() => erstes.focus(), 60)
+    }
+
+    function liqStartSchliessen() {
+      document.getElementById('liqStartModal').classList.remove('open')
+    }
+
+    // „Später": nicht erneut fragen, aber nichts eintragen
+    function liqStartSkip() {
+      liqData.startErledigt = true
+      liqStartSchliessen()
+      scheduleSave('l')
+    }
+
+    function liqStartSave() {
+      const zahl = id => {
+        const v = parseFloat(String((document.getElementById(id) || {}).value || '').replace(',', '.'))
+        return isNaN(v) ? 0 : Math.abs(v)
+      }
+      // Einnahmen positiv, Ausgaben negativ — so rechnet die Tabelle
+      const werte = {
+        nkm:          zahl('lsNkm'),
+        nk:           zahl('lsNk'),
+        weitereMiete: zahl('lsWm'),
+        hausgeld:     -zahl('lsHg'),
+        zins:         -zahl('lsZins'),
+        tilgung:      -zahl('lsTilg'),
+      }
+
+      // ab dem Monat nach der Übernahme bis zum Ende der Tabelle
+      const start   = liqData.startMonth
+      const kaufM   = (propData && propData.kaufdatum ? String(propData.kaufdatum) : new Date().toISOString()).slice(0, 7)
+      const a = kaufM.split('-').map(Number), b = start.split('-').map(Number)
+      const versatz = (a[0] * 12 + a[1]) - (b[0] * 12 + b[1])
+      // ab dem Übernahmemonat selbst — nicht erst ab dem Folgemonat:
+      // Wer heute eine vermietete Wohnung einträgt, hat schon diesen Monat Miete.
+      const monate  = liqMonthList(start, liqData.monthCount).slice(Math.max(0, versatz))
+
+      Object.keys(werte).forEach(key => {
+        if (!werte[key]) return
+        if (!liqData.cells[key]) liqData.cells[key] = {}
+        monate.forEach(m => { liqData.cells[key][m] = werte[key] })
+      })
+
+      liqData.startErledigt = true
+      liqStartSchliessen()
+      liqRender()
+      scheduleSave('l')
+      if (typeof updateKpis === 'function') updateKpis()
     }
 
     // Import-Modal (Drag & Drop)
@@ -3506,6 +3622,7 @@
         const klapp = () => {
           const jetztZu = sec.classList.toggle('zu')
           if (!jetztZu && def.key === 'liquiditaet' && typeof liqScrollToNow === 'function') liqScrollToNow()
+          if (!jetztZu && def.key === 'liquiditaet' && typeof liqStartAnbieten === 'function') liqStartAnbieten()
           if (!jetztZu && def.key === 'uebersicht') renderUebersicht()
         }
         sec.querySelector('.ie-sec-head').addEventListener('click', e => {
@@ -3718,10 +3835,6 @@
       const daten = X.jahresDaten([pw], jahre)
       const akt = daten.findIndex(d => d.heute)
       const cfr = X.cfSchritte([p], m)
-      const monate = []
-      for (let i = -5; i <= 6; i++) monate.push(C.monatPlus(m, i))
-      const cfMon = monate.map(mm => C.cfTeile(p, mm).cf)
-      const aktM = monate.indexOf(m)
 
       chEl.innerHTML =
         K.karte({ id: 'ubWert', titel: 'Wert und Finanzierung',
@@ -3729,13 +3842,7 @@
           legende: [{ c: F.GOLD, t: 'Eigenkapital' }, { c: F.BLAU, t: 'Restschuld' }] }) +
         K.karte({ id: 'ubCf', titel: 'Cashflow im ' + X.monatName(m, true),
           info: 'Von der Miete zum Überschuss: jede Säule zieht eine Zahlung des laufenden Monats ab.',
-          hero: { wert: formatEur(cfr.cf), label: cfr.cf < -0.004 ? 'Unterdeckung pro Monat' : 'Überschuss pro Monat', klasse: cfr.cf < -0.004 ? 'red' : 'green' } }) +
-        K.karte({ id: 'ubCfMonate', titel: 'Cashflow je Monat',
-          info: 'Monatlicher Cashflow aus der Liquiditätsplanung, fünf Monate zurück bis sechs Monate voraus.',
-          legende: [{ c: F.GOLD, t: 'Überschuss' }, { c: F.TERRA, t: 'Unterdeckung' }] }) +
-        K.karte({ id: 'ubBank', titel: 'Zins und Tilgung je Jahr',
-          info: 'Wie sich die Bankrate über die Jahre von Zins zu Tilgung verschiebt. Tilgung baut Eigenkapital auf.',
-          legende: [{ c: F.TERRA, t: 'Zins' }, { c: F.TEAL, t: 'Tilgung' }] })
+          hero: { wert: formatEur(cfr.cf), label: cfr.cf < -0.004 ? 'Unterdeckung pro Monat' : 'Überschuss pro Monat', klasse: cfr.cf < -0.004 ? 'red' : 'green' } })
 
       K.saeulen(chEl.querySelector('#ubWert .pc-plot'), {
         aria: 'Wert und Finanzierung je Jahr', gestapelt: true,
@@ -3747,21 +3854,6 @@
         tipExtra: i => [{ c: F.INK2, t: 'Wert', v: formatEur(daten[i].wert) }],
       })
       K.wasserfall(chEl.querySelector('#ubCf .pc-plot'), { aria: 'Cashflow im laufenden Monat', schritte: cfr.schritte, leerText: 'Für diesen Monat ist nichts geplant.' })
-      K.saeulen(chEl.querySelector('#ubCfMonate .pc-plot'), {
-        aria: 'Cashflow je Monat',
-        labels: monate.map(mm => X.monatName(mm)),
-        serien: [{ name: 'Cashflow', farbe: F.GOLD, farbeNeg: F.TERRA, werte: cfMon }],
-        aktuell: aktM, blass: i => i > aktM,
-        tipTitel: i => X.monatName(monate[i], true) + (i > aktM ? ' · Planung' : ''),
-      })
-      K.saeulen(chEl.querySelector('#ubBank .pc-plot'), {
-        aria: 'Zins und Tilgung je Jahr', gestapelt: true,
-        labels: daten.map(d => String(d.jahr)),
-        serien: [{ name: 'Zins', farbe: F.TERRA, werte: daten.map(d => Math.abs(d.zins)) },
-                 { name: 'Tilgung', farbe: F.TEAL, werte: daten.map(d => Math.abs(d.tilgung)) }],
-        aktuell: akt, blass: i => daten[i].prognose,
-        tipTitel: i => daten[i].jahr + (daten[i].prognose ? ' · Planung' : ''),
-      })
     }
     let ubResize = null
     window.addEventListener('resize', () => { clearTimeout(ubResize); ubResize = setTimeout(renderUebersicht, 180) })
@@ -3873,7 +3965,6 @@
       v('setObjektart',   propData.objektart || 'Eigentumswohnung')
       v('setAdresse',     propData.adresse || '')
       v('setKaufpreis',   propData.kaufpreis ? zahlEin(propData.kaufpreis) : '')
-      v('setKaufdatum',   propData.kaufdatum ? String(propData.kaufdatum).slice(0, 10) : '')
       document.getElementById('siSet').textContent = ''
       document.getElementById('setModal').classList.add('open')
     }
@@ -3894,7 +3985,6 @@
         objektart:   wert('setObjektart') || 'Eigentumswohnung',
         adresse:     wert('setAdresse').trim(),
         kaufpreis:   zahlAus(wert('setKaufpreis')),
-        kaufdatum:   wert('setKaufdatum') || null,
       }
       ind.style.color = ''
       ind.textContent = 'Speichert …'
