@@ -333,6 +333,41 @@
     .kpi-value.green { color: var(--green); }
     .kpi-value.red { color: var(--red); }
     .kpi-label-row { display: flex; align-items: center; gap: 7px; }
+
+    /* ── Liquiditätsplanung: breiter Inhalt + eine Planung je Immobilie ── */
+    .tab-content.tab-content-breit { max-width: 1400px; }
+    #pane-planung .kpi-group:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+    #pane-planung .liq-auf { margin-top: 0; }
+    .lp-prop { margin-bottom: 12px; }
+    .lp-prop .liq-auf-titel { display: inline-flex; align-items: baseline; gap: 10px; }
+    .lp-prop .lp-ico { font-size: 1rem; }
+    .lp-prop .lp-adr { color: var(--muted); font-size: 0.8rem; font-weight: 400; }
+    .lp-prop .lp-cf { margin-left: auto; font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
+    .lp-prop .lp-cf b { font-weight: 600; margin-left: 6px; }
+    .lp-prop .lp-cf b.neg { color: var(--red); } .lp-prop .lp-cf b.pos { color: var(--green); }
+    .lp-prop .lp-open { font-size: 0.78rem; color: var(--muted); text-decoration: none; margin-left: 14px; white-space: nowrap; }
+    .lp-prop .lp-open:hover { color: var(--gold); }
+    .lp-frame-wrap { border-top: 1px solid rgba(255,255,255,0.088); }
+    .lp-frame { display: block; width: 100%; height: 560px; border: 0; background: transparent; }
+    .lp-lade { padding: 30px; color: var(--muted); font-size: 0.85rem; text-align: center; }
+    @media (max-width: 700px) {
+      .lp-prop > summary { flex-wrap: wrap; }
+      .lp-prop .lp-adr, .lp-prop .lp-open { display: none; }
+      .lp-prop .lp-cf { margin-left: 22px; width: 100%; }
+    }
+    .lp-prop.lp-ziel { box-shadow: 0 0 0 2px rgba(211,172,95,0.45); }
+
+    /* ── In Entwicklung ── */
+    .dev-card { background: var(--navy2); border: 1px solid rgba(255,255,255,0.112); border-radius: 14px; padding: 34px 36px; max-width: 760px; }
+    .dev-badge { display: inline-block; background: rgba(211,172,95,0.12); color: var(--gold); border: 1px solid rgba(211,172,95,0.3);
+      border-radius: 50px; padding: 5px 14px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+    .dev-card h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 10px; }
+    .dev-card p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+    .dev-list { margin: 22px 0; display: grid; gap: 1px; background: rgba(255,255,255,0.07); border-radius: 10px; overflow: hidden; }
+    .dev-list div { background: #1d1d21; padding: 12px 16px; display: grid; grid-template-columns: 140px 1fr; gap: 14px; font-size: 0.86rem; }
+    .dev-list b { font-weight: 600; } .dev-list span { color: var(--muted); }
+    .dev-card .dev-hinweis { font-size: 0.78rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px; }
+    @media (max-width: 700px) { .dev-list div { grid-template-columns: 1fr; gap: 4px; } .dev-card { padding: 24px 20px; } }
   </style>
   <link rel="stylesheet" href="app.css" />
   <style>
@@ -393,18 +428,63 @@
           <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Monatlicher Überschuss beziehungsweise Unterdeckung im laufenden Monat. Zeile anklicken, um die Immobilie zu öffnen.</span></span>
         </div>
         <div id="cfList"></div>
+      </div>
 
-        <details class="liq-auf" id="liqAuf">
+    </div>
+  </div>
+
+  <!-- ══ LIQUIDITÄTSPLANUNG (Gesamtportfolio + je Immobilie) ══ -->
+  <div class="tab-pane" id="pane-planung">
+    <div class="tab-content tab-content-breit">
+
+      <div class="kpi-group">
+        <div class="kpi-group-title">Gesamtportfolio
+          <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Summe der Liquiditätsplanungen aller Immobilien, Monat für Monat. Nur Anzeige – bearbeitet wird unten in der jeweiligen Immobilie, die Summe rechnet nach jedem Speichern neu.</span></span>
+        </div>
+        <details class="liq-auf" id="liqAuf" open>
           <summary>
             <span class="liq-auf-chev">▸</span>
-            <span class="liq-auf-titel">Liquiditätsplanung</span>
-            <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Summe der Liquiditätsplanungen aller Immobilien, Monat für Monat. Bearbeitet wird die Planung in der jeweiligen Immobilie.</span></span>
+            <span class="liq-auf-titel">Liquiditätsplanung Gesamtportfolio</span>
             <button type="button" class="liq-auf-btn" id="liqXlsBtn">⤓ Als Excel herunterladen</button>
           </summary>
           <div class="liq-scroll" id="liqScroll"></div>
         </details>
       </div>
 
+      <div class="kpi-group">
+        <div class="kpi-group-title">Je Immobilie
+          <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Die vollständige, bearbeitbare Liquiditätsplanung jeder Immobilie: Zellen überschreiben, Tilgungsplan importieren, Excel herunterladen. Änderungen werden automatisch gespeichert.</span></span>
+        </div>
+        <div id="liqProps"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ SZENARIORECHNER ══ -->
+  <div class="tab-pane" id="pane-szenario">
+    <div class="tab-content tab-content-breit" id="szWrap"></div>
+  </div>
+
+  <!-- ══ JAHRESÜBERSICHT (in Entwicklung) ══ -->
+  <div class="tab-pane" id="pane-jahr">
+    <div class="tab-content">
+      <div class="dev-card">
+        <div class="dev-badge">Befindet sich in Entwicklung</div>
+        <h2>Jahresübersicht</h2>
+        <p>Hier sammeln wir künftig die steuerlich relevanten Informationen Ihres Portfolios für ein
+           Kalenderjahr – übersichtlich je Immobilie und als Summe, als Grundlage für die Unterlagen an
+           Ihre Steuerberatung.</p>
+        <div class="dev-list">
+          <div><b>Einnahmen</b><span>Kaltmieten, Nebenkostenvorauszahlungen, weitere Mieteinnahmen, Nachzahlungen aus der Nebenkostenabrechnung</span></div>
+          <div><b>Finanzierung</b><span>gezahlte Schuldzinsen je Darlehen, getrennt von der Tilgung</span></div>
+          <div><b>Laufende Kosten</b><span>Hausgeld, Grundsteuer, Versicherungen, weitere Ausgaben aus der Liquiditätsplanung</span></div>
+          <div><b>Anschaffung</b><span>Kaufpreis, Kaufnebenkosten und Übernahmedatum als Ausgangsdaten für die Abschreibung</span></div>
+          <div><b>Belege</b><span>Verknüpfung mit den Dateien der Immobilie und Export als Excel</span></div>
+        </div>
+        <p class="dev-hinweis">Die Jahresübersicht stellt Zahlen zusammen, die Sie bereits erfasst haben. Sie ist keine
+           Steuerberatung und ersetzt keine Prüfung durch eine Steuerberaterin oder einen Steuerberater.</p>
+      </div>
     </div>
   </div>
 
@@ -516,6 +596,7 @@
   <script src="portfolio-charts.js"></script>
   <script src="jszip.min.js"></script>
   <script src="ie-xlsx.js"></script>
+  <script src="szenario.js"></script>
   <script>
     const SUPABASE_URL = 'https://awvnfocepqkkncgqgaka.supabase.co'
     const SUPABASE_KEY = 'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
@@ -853,7 +934,7 @@
     function liqScrollToNow() {
       const scroll = document.getElementById('liqScroll')
       const th = scroll?.querySelector('th.liq-now')
-      if (!scroll || !th || !document.getElementById('pane-liquiditaet').classList.contains('active')) return
+      if (!scroll || !th || !document.getElementById('pane-planung').classList.contains('active')) return
       const labelW = scroll.querySelector('th.liq-label')?.offsetWidth || 0
       const visible = scroll.clientWidth - labelW
       scroll.scrollLeft = Math.max(0, th.offsetLeft - labelW - visible / 2 + th.offsetWidth / 2)
@@ -990,9 +1071,9 @@
     // ════════════════════════════════════════
     // TABS
     // ════════════════════════════════════════
-    const TAB_ORDER = ['uebersicht', 'kontakte', 'liquiditaet', 'bank', 'notizen']
+    const TAB_ORDER = ['uebersicht', 'kontakte', 'liquiditaet', 'planung', 'szenario', 'jahr', 'bank', 'notizen']
     // frühere Einzelbereiche auf die zusammengefassten Ansichten umlenken
-    const TAB_ALIAS = { todos: 'notizen', notes: 'notizen', aum: 'liquiditaet' }
+    const TAB_ALIAS = { todos: 'notizen', notes: 'notizen', aum: 'liquiditaet', liquiditaetsplanung: 'planung', szenarien: 'szenario', jahresuebersicht: 'jahr' }
     function switchTab(name) {
       name = TAB_ALIAS[name] || name
       document.querySelectorAll('.tab-btn').forEach((btn, i) => {
@@ -1003,6 +1084,9 @@
       if (pane) pane.classList.add('active')
       const HD = {
         liquiditaet: 'Portfoliokennzahlen',
+        planung:     'Liquiditätsplanung',
+        szenario:    'Szenariorechner',
+        jahr:        'Jahresübersicht',
         bank:        'Bankkonto',
         notizen:     'Notizen',
         uebersicht:  'Übersicht',
@@ -1012,7 +1096,9 @@
         document.getElementById('hdName').textContent = HD
         document.title = HD + ' – Immo.Expert'
       }
-      if (name === 'liquiditaet') { liqScrollToNow(); zeichneKennzahlenCharts() }
+      if (name === 'liquiditaet') zeichneKennzahlenCharts()
+      if (name === 'planung') { renderLiquiditaet(); renderLiqProps(); setTimeout(liqScrollToNow, 150) }
+      if (name === 'szenario' && window.IESzenario) window.IESzenario.zeigen(properties)
       if (name === 'bank') renderBuchungsstatus()
     }
 
@@ -1411,7 +1497,7 @@
       const zeilen = stats.map(x => {
         const neg = x.st.cf < -0.004
         return `
-          <tr class="cf-row" onclick="location.href='immobilie.html?id=${x.p.id}&tab=liquiditaet'">
+          <tr class="cf-row" onclick="location.href='portfolio-uebersicht.html?tab=planung&prop=${x.p.id}'">
             <td class="cf-name">${esc(x.p.bezeichnung || 'Immobilie')}</td>
             <td class="cf-adr">${esc(x.p.adresse || '')}</td>
             <td class="ta-r">${formatEurCent(x.st.miete)}</td>
@@ -1649,6 +1735,97 @@
       const btn = document.getElementById('liqXlsBtn')
       if (btn) btn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); liqExportExcel() })
     }
+
+    // ── Eine bearbeitbare Planung je Immobilie ──
+    // Die Tabelle ist die der Immobilienseite (immobilie.html?embed=liquiditaet),
+    // eingebettet – damit gibt es die Bearbeitungslogik nur einmal.
+    let liqPropsGebaut = false
+    function renderLiqProps() {
+      const host = document.getElementById('liqProps')
+      if (!host) return
+      if (!properties.length) {
+        host.innerHTML = '<div class="ov-empty">Noch keine Immobilien angelegt.</div>'
+        return
+      }
+      if (liqPropsGebaut) { liqPropsKopfzeilen(); return }
+      liqPropsGebaut = true
+      host.innerHTML = ''
+      properties.forEach(p => {
+        const det = document.createElement('details')
+        det.className = 'liq-auf lp-prop'
+        det.dataset.id = p.id
+        det.innerHTML = `
+          <summary>
+            <span class="liq-auf-chev">▸</span>
+            <span class="liq-auf-titel"><span class="lp-ico">${OBJEKTART_ICONS[p.objektart] || '🏗️'}</span>
+              <span class="lp-name">Liquiditätsplanung ${esc(p.bezeichnung || 'Immobilie')}</span>
+              ${p.adresse ? `<span class="lp-adr">${esc(p.adresse)}</span>` : ''}</span>
+            <span class="lp-cf"></span>
+            <a class="lp-open" href="immobilie.html?id=${p.id}" onclick="event.stopPropagation()">Immobilie öffnen →</a>
+          </summary>
+          <div class="lp-frame-wrap"></div>`
+        det.addEventListener('toggle', () => {
+          if (!det.open) return
+          const wrap = det.querySelector('.lp-frame-wrap')
+          if (wrap.querySelector('iframe')) return
+          wrap.innerHTML = '<div class="lp-lade">Planung wird geladen …</div>'
+          const f = document.createElement('iframe')
+          f.className = 'lp-frame'
+          f.title = 'Liquiditätsplanung ' + (p.bezeichnung || 'Immobilie')
+          f.src = 'immobilie.html?id=' + encodeURIComponent(p.id) + '&embed=liquiditaet'
+          f.style.visibility = 'hidden'
+          f.addEventListener('load', () => {
+            f.style.visibility = ''
+            const l = wrap.querySelector('.lp-lade'); if (l) l.remove()
+          })
+          wrap.appendChild(f)
+        })
+        host.appendChild(det)
+      })
+      liqPropsKopfzeilen()
+
+      // Deep-Link ?prop=… öffnet die Planung dieser Immobilie
+      const ziel = new URLSearchParams(location.search).get('prop')
+      const zielDet = ziel && host.querySelector('.lp-prop[data-id="' + CSS.escape(ziel) + '"]')
+      if (zielDet) {
+        zielDet.open = true
+        zielDet.classList.add('lp-ziel')
+        setTimeout(() => zielDet.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150)
+        setTimeout(() => zielDet.classList.remove('lp-ziel'), 2600)
+      }
+    }
+
+    // Cashflow des laufenden Monats in der Kopfzeile jeder Immobilie
+    function liqPropsKopfzeilen() {
+      document.querySelectorAll('#liqProps .lp-prop').forEach(det => {
+        const p = properties.find(x => x.id === det.dataset.id)
+        const el = det.querySelector('.lp-cf')
+        if (!p || !el) return
+        const cf = liqStats(p).cf
+        el.innerHTML = 'Cashflow aktueller Monat<b class="' + (cf < -0.004 ? 'neg' : 'pos') + '">' + formatEur(cf) + '</b>'
+      })
+    }
+
+    // Nachrichten aus den eingebetteten Planungen
+    window.addEventListener('message', e => {
+      if (e.origin !== location.origin || !e.data || typeof e.data !== 'object') return
+      const d = e.data
+      const det = d.id && document.querySelector('#liqProps .lp-prop[data-id="' + CSS.escape(d.id) + '"]')
+      if (d.typ === 'ie-liq-hoehe' && det) {
+        const f = det.querySelector('iframe')
+        if (f) f.style.height = Math.max(200, Number(d.hoehe) || 0) + 'px'
+      }
+      if (d.typ === 'ie-liq-gespeichert') {
+        const p = properties.find(x => x.id === d.id)
+        if (!p || !d.liquiditaet) return
+        p.liquiditaet = d.liquiditaet
+        renderLiquiditaet()
+        liqPropsKopfzeilen()
+        renderUebersicht()
+        renderKennzahlen()
+        renderCashflowListe()
+      }
+    })
 
     function liqBlatt(titel, months, out) {
       const nowM = new Date().toISOString().slice(0, 7)

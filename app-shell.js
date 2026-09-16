@@ -18,6 +18,13 @@
   var VIEW = PAGE.view || null
   var PROP = PAGE.propId || null
 
+  /* Eingebettete Ansicht (z. B. Liquiditätsplanung einer Immobilie im
+     Portfoliobereich): keine Leiste, kein Menü – nur der Inhalt. */
+  if (PAGE.embed) {
+    document.documentElement.classList.add('ie-embed')
+    return
+  }
+
   var P = {
     finder:    'finder.html',
     portfolio: 'portfolio.html',
@@ -159,6 +166,9 @@
     nav.appendChild(mp)
 
     ;[['liquiditaet', 'Portfoliokennzahlen'],
+      ['planung', 'Liquiditätsplanung'],
+      ['szenario', 'Szenariorechner'],
+      ['jahr', 'Jahresübersicht'],
       ['bank', 'Bankkonto'],
       ['notizen', 'Notizen']].forEach(function (v) {
       addSimple(nav, P.global, v[0], v[1])

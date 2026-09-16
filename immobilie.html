@@ -338,6 +338,9 @@
       background: none; border: none; padding: 0; font: inherit; color: var(--gold);
       cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
     }
+    .sec-liq-link { margin-right: auto; font-size: 0.82rem; color: var(--muted); text-decoration: none; white-space: nowrap; }
+    .sec-liq-link span { color: var(--gold); }
+    .sec-liq-link:hover { color: var(--gold); }
     .sec-toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--muted); cursor: pointer; white-space: nowrap; }
     .sec-toggle input { accent-color: var(--gold); }
 
@@ -693,7 +696,18 @@
     .detail-card, .cl-table, .checklist-card { box-shadow: 0 1px 2px rgba(0,0,0,0.18); }
 
   </style>
-  <script>window.IE_PAGE = { area: 'portfolio', propId: new URLSearchParams(location.search).get('id'), view: new URLSearchParams(location.search).get('tab') || 'uberblick' }</script>
+  <script>window.IE_PAGE = { area: 'portfolio', propId: new URLSearchParams(location.search).get('id'), view: new URLSearchParams(location.search).get('tab') || 'uberblick', embed: new URLSearchParams(location.search).get('embed') === 'liquiditaet' }</script>
+  <style>
+    /* ── Eingebettet: nur die Liquiditätsplanung (Portfolio → Liquiditätsplanung) ── */
+    html.ie-embed, html.ie-embed body { background: transparent; min-height: 0; }
+    html.ie-embed body { display: block; overflow: hidden; }
+    html.ie-embed .prop-header, html.ie-embed #secHost, html.ie-embed footer,
+    html.ie-embed .tab-pane:not(#pane-liquiditaet) { display: none !important; }
+    html.ie-embed #pane-liquiditaet { display: block !important; }
+    html.ie-embed #pane-liquiditaet > .tab-content { max-width: none !important; margin: 0; padding: 16px 18px 18px; }
+    html.ie-embed .ie-modal { display: none !important; }
+    html.ie-embed .ie-modal.open { display: flex !important; }
+  </style>
   <script src="hinweise.js"></script>
   <script src="app-shell.js"></script>
 </head>
@@ -772,6 +786,7 @@
     </div>
 
     <div class="sec-bar">
+      <a class="sec-liq-link" id="secLiqLink" href="portfolio-uebersicht.html?tab=planung">💧 Liquiditätsplanung dieser Immobilie <span>→</span></a>
       <label class="sec-toggle">
         <input type="checkbox" id="showHidden" />
         <span>Ausgeblendete Bereiche anzeigen</span>
@@ -1155,6 +1170,10 @@
     }
 
     const id = new URLSearchParams(window.location.search).get('id')
+    ;(function () {
+      const l = document.getElementById('secLiqLink')
+      if (l && id) l.href = 'portfolio-uebersicht.html?tab=planung&prop=' + encodeURIComponent(id)
+    })()
     if (!id) window.location.href = 'portfolio.html'
 
     let currentUserId = null
@@ -1196,6 +1215,28 @@
       initNk(data)
       if (typeof updateKpis === 'function') updateKpis()
       if (typeof hinweiseAktualisieren === 'function') hinweiseAktualisieren()
+      if (IE_EMBED) embedStart()
+    }
+
+    // ════════════════════════════════════════
+    // EINGEBETTET (Portfolio → Liquiditätsplanung)
+    // Meldet die benötigte Höhe an die Elternseite und öffnet beim
+    // ersten Mal den Einstiegsdialog wie beim Aufklappen des Bereichs.
+    // ════════════════════════════════════════
+    function embedStart() {
+      const pane = document.getElementById('pane-liquiditaet')
+      let letzte = 0
+      const melden = () => {
+        const offen = document.querySelector('.liq-modal.open')
+        const h = Math.max(Math.ceil(pane.getBoundingClientRect().height), offen ? 640 : 0)
+        if (Math.abs(h - letzte) < 2) return
+        letzte = h
+        try { window.parent.postMessage({ typ: 'ie-liq-hoehe', id: id, hoehe: h }, location.origin) } catch (e) {}
+      }
+      if (typeof ResizeObserver !== 'undefined') new ResizeObserver(melden).observe(pane)
+      new MutationObserver(melden).observe(pane, { subtree: true, attributes: true, attributeFilter: ['class'] })
+      melden()
+      setTimeout(() => { liqScrollToNow(); liqStartAnbieten(); melden() }, 60)
     }
 
     // ════════════════════════════════════════
@@ -2971,6 +3012,10 @@
 
       const ind = document.getElementById(SAVE_INDICATORS[type])
       const { error } = await sb.from('portfolio').update(updateObj).eq('id', id)
+      // eingebettet: dem Portfoliobereich Bescheid geben, damit die Summe neu rechnet
+      if (!error && type === 'l' && IE_EMBED && window.parent !== window) {
+        try { window.parent.postMessage({ typ: 'ie-liq-gespeichert', id: id, liquiditaet: liqData }, location.origin) } catch (e) {}
+      }
       if (!ind) return
       if (!error) {
         ind.textContent = '✓ Gespeichert'; ind.className = 'save-indicator saved'
@@ -3546,7 +3591,6 @@
       { key: 'uebersicht',      ico: '📊', titel: 'Übersicht',             panes: ['uebersicht'] },
       { key: 'mietverhaeltnis', ico: '🔑', titel: 'Mietverhältnis',        panes: ['mietverhaeltnis'] },
       { key: 'kontakte',        ico: '👤', titel: 'Kontakte',              panes: ['kontakte'] },
-      { key: 'liquiditaet',     ico: '💧', titel: 'Liquiditätsplanung',     panes: ['liquiditaet'] },
       { key: 'nebenkosten',     ico: '🧾', titel: 'Nebenkostenabrechnung', panes: ['nebenkosten'] },
       { key: 'checkliste',      ico: '✅', titel: 'Checkliste Kauf',       panes: ['checkliste'] },
       { key: 'notizen',         ico: '📝', titel: 'Notizen',               panes: ['notes'] },
@@ -3589,9 +3633,13 @@
       box.parentElement.style.display = n ? '' : 'none'
     }
 
+    const IE_EMBED = !!(window.IE_PAGE && window.IE_PAGE.embed)
+
     function buildSections() {
       const host = document.getElementById('secHost')
       if (!host) return
+      // Eingebettet zeigt die Seite nur die Liquiditätsplanung
+      if (IE_EMBED) { document.getElementById('pane-liquiditaet').classList.add('active'); return }
       // Bereiche starten bei jedem Seitenaufruf geschlossen
       const zu  = SECTIONS.map(d => d.key)
       const aus = lsListe(LS_AUS)
@@ -3664,6 +3712,11 @@
 
     // Menülinks der Seitenleiste springen zum passenden Bereich
     window.ieSetView = function (key) {
+      // Die Liquiditätsplanung liegt seit September 2026 im Portfoliobereich
+      if (key === 'liquiditaet' || key === 'liq') {
+        window.location.href = 'portfolio-uebersicht.html?tab=planung&prop=' + encodeURIComponent(id)
+        return
+      }
       const ALIAS = { uberblick: 'uebersicht', notes: 'notizen', todos: 'notizen', weg: 'dateien', miet: 'mietverhaeltnis' }
       const ziel = document.querySelector('.ie-sec[data-sec="' + (ALIAS[key] || key) + '"]')
       if (!ziel) { window.scrollTo({ top: 0 }); return }
