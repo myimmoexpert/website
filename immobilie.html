@@ -338,9 +338,6 @@
       background: none; border: none; padding: 0; font: inherit; color: var(--gold);
       cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
     }
-    .sec-liq-link { margin-right: auto; font-size: 0.82rem; color: var(--muted); text-decoration: none; white-space: nowrap; }
-    .sec-liq-link span { color: var(--gold); }
-    .sec-liq-link:hover { color: var(--gold); }
     .sec-toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--muted); cursor: pointer; white-space: nowrap; }
     .sec-toggle input { accent-color: var(--gold); }
 
@@ -422,6 +419,8 @@
       border-radius: 9px; padding: 10px 12px; color: var(--white);
       font: 500 0.9rem 'Inter', sans-serif;
     }
+    .set-row input[type="date"] { color-scheme: dark; }
+    .set-note.set-note-klein { margin: -4px 0 14px; font-size: 0.76rem; background: none; border: none; padding: 0; color: var(--muted); }
     .set-row input:focus { outline: none; border-color: rgba(211,172,95,0.5); }
 
     /* ── Wert-Einstellung an der Kachel ── */
@@ -786,7 +785,6 @@
     </div>
 
     <div class="sec-bar">
-      <a class="sec-liq-link" id="secLiqLink" href="portfolio-uebersicht.html?tab=planung">💧 Liquiditätsplanung dieser Immobilie <span>→</span></a>
       <label class="sec-toggle">
         <input type="checkbox" id="showHidden" />
         <span>Ausgeblendete Bereiche anzeigen</span>
@@ -874,9 +872,9 @@
       <div class="liq-controls">
         <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Alle Werte in € · Zelle leeren = zurück zur Formel · Doppelklick = Notiz</span></span>
         <button class="liq-btn" onclick="liqOpenImport()">⤒ Tilgungsplan importieren</button>
-        <button class="liq-btn" onclick="liqExportExcel()" id="liqXlsBtn">⤓ Als Excel herunterladen</button>
         <input type="file" id="liqPdfInput" accept="application/pdf" style="display:none" onchange="liqImportPdf(this.files[0])" />
         <div class="save-indicator" id="siLiq" style="margin-left:auto;"></div>
+        <button class="liq-btn" onclick="liqExportExcel()" id="liqXlsBtn">⤓ Als Excel herunterladen</button>
       </div>
 
       <div class="liq-scroll" id="liqScroll"></div>
@@ -1125,6 +1123,14 @@
           <input type="text" id="setAdresse" placeholder="Straße, PLZ Stadt" />
         </label>
         <label class="set-row">
+          <span class="set-lbl">Übernahmestichtag</span>
+          <input type="date" id="setStichtag" />
+        </label>
+        <p class="set-note set-note-klein">
+          Tag, an dem Nutzen und Lasten übergehen. Ab hier zählt die Zehnjahresfrist für einen
+          steuerfreien Verkauf. Werte und Liquiditätsplanung werden unabhängig davon sofort angezeigt.
+        </p>
+        <label class="set-row">
           <span class="set-lbl">Kaufpreis (€)</span>
           <input type="text" id="setKaufpreis" inputmode="decimal" placeholder="z. B. 349000" />
         </label>
@@ -1170,10 +1176,7 @@
     }
 
     const id = new URLSearchParams(window.location.search).get('id')
-    ;(function () {
-      const l = document.getElementById('secLiqLink')
-      if (l && id) l.href = 'portfolio-uebersicht.html?tab=planung&prop=' + encodeURIComponent(id)
-    })()
+
     if (!id) window.location.href = 'portfolio.html'
 
     let currentUserId = null
@@ -3835,9 +3838,16 @@
 
       setzen('kWert', wert ? formatEur(wert) : '–', 'gold')
       const mm = String(uebernahme).slice(5, 7), jj = String(uebernahme).slice(0, 4)
-      setzen('kSeit', mm + '/' + jj, '')
+      // „Im Portfolio seit" zeigt den gewählten Übernahmestichtag; ohne ihn wie bisher den Monat
+      const st = C.stichtag(propData)
       const seitEl = document.getElementById('kSeit')
-      if (seitEl) seitEl.title = monatsDauer(uebernahme)
+      if (st) {
+        setzen('kSeit', st.slice(8, 10) + '.' + st.slice(5, 7) + '.' + st.slice(0, 4), '')
+        if (seitEl) seitEl.title = monatsDauer(st.slice(0, 7))
+      } else {
+        setzen('kSeit', mm + '/' + jj, '')
+        if (seitEl) seitEl.title = monatsDauer(uebernahme) + ' · Übernahmestichtag in den Einstellungen eintragen'
+      }
 
       setzen('kCf', formatEur(cf), cf < -0.004 ? 'red' : 'green')
 
@@ -4018,6 +4028,7 @@
       v('setObjektart',   propData.objektart || 'Eigentumswohnung')
       v('setAdresse',     propData.adresse || '')
       v('setKaufpreis',   propData.kaufpreis ? zahlEin(propData.kaufpreis) : '')
+      v('setStichtag',    (window.IECalc && IECalc.stichtag(propData)) || '')
       document.getElementById('siSet').textContent = ''
       document.getElementById('setModal').classList.add('open')
     }
@@ -4039,6 +4050,14 @@
         adresse:     wert('setAdresse').trim(),
         kaufpreis:   zahlAus(wert('setKaufpreis')),
       }
+      const stichtag = wert('setStichtag')
+      if (stichtag && !/^\d{4}-\d{2}-\d{2}$/.test(stichtag)) {
+        ind.textContent = '⚠ Übernahmestichtag ungültig'
+        ind.style.color = 'var(--red)'
+        return
+      }
+      // im JSON „einstellungen" – dort liegen auch die Wert-Einstellungen, also zusammenführen
+      patch.einstellungen = Object.assign({}, propData.einstellungen || {}, { uebernahmestichtag: stichtag || null })
       ind.style.color = ''
       ind.textContent = 'Speichert …'
       const { error } = await sb.from('portfolio').update(patch).eq('id', id)

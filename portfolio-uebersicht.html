@@ -355,6 +355,32 @@
       .lp-prop .lp-adr, .lp-prop .lp-open { display: none; }
       .lp-prop .lp-cf { margin-left: 22px; width: 100%; }
     }
+    /* Gesamtportfolio: gleiche Tabelle wie in der Immobilie (immobilie.html) */
+    .lp-body { padding: 16px 18px 18px; }
+    #liqGesamt .liq-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+    .liq-btn { background: transparent; border: 1px dashed rgba(255,255,255,0.188); border-radius: 8px; color: var(--muted); font-family: inherit; font-size: 0.82rem; padding: 8px 14px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+    .liq-btn:hover { border-color: rgba(211,172,95,0.4); color: var(--gold); }
+    .liq-btn-xls { margin-left: auto; }
+    #liqGesamt .liq-scroll { overflow-x: auto; border: 1px solid rgba(255,255,255,0.088); border-radius: var(--radius); background: var(--navy2); max-height: none; }
+    #liqGesamt .liq-table td.liq-label, #liqGesamt .liq-table th.liq-label { padding: 9px 20px 9px 22px; min-width: 160px; }
+    #liqGesamt .liq-table thead th.liq-label { text-align: center; padding-left: 12px; padding-right: 12px; }
+    #liqGesamt .liq-row-sub .liq-label { padding-left: 30px; }
+    #liqGesamt .liq-row-header .liq-label { font-weight: 600; color: var(--white); background: #26262b; }
+    #liqGesamt .liq-row-header td { background: rgba(255,255,255,0.025); }
+    #liqGesamt .liq-spacer td { height: 14px; border-bottom: none; background: transparent; }
+    #liqGesamt .liq-spacer .liq-label { background: var(--navy2); }
+    #liqGesamt .liq-cell { width: 100px; font-size: 0.8rem; text-align: right; padding: 8px 12px; }
+    #liqGesamt .liq-cell.neg { color: var(--red); } #liqGesamt .liq-cell.pos { color: var(--green); }
+    #liqGesamt .liq-row-sub .liq-cell { font-size: 0.72rem; font-style: italic; }
+    .liq-toggle {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 17px; height: 17px; margin-right: 9px; vertical-align: -3px;
+      border: 1px solid rgba(255,255,255,0.225); border-radius: 5px;
+      background: var(--navy); color: var(--muted);
+      font: 600 0.82rem/1 'Inter', sans-serif; cursor: pointer; padding: 0;
+      transition: border-color .15s, color .15s, background .15s;
+    }
+    .liq-toggle:hover { border-color: var(--gold); color: var(--gold); background: rgba(211,172,95,0.08); }
     .lp-prop.lp-ziel { box-shadow: 0 0 0 2px rgba(211,172,95,0.45); }
 
     /* ── In Entwicklung ── */
@@ -441,13 +467,23 @@
         <div class="kpi-group-title">Gesamtportfolio
           <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Summe der Liquiditätsplanungen aller Immobilien, Monat für Monat. Nur Anzeige – bearbeitet wird unten in der jeweiligen Immobilie, die Summe rechnet nach jedem Speichern neu.</span></span>
         </div>
-        <details class="liq-auf" id="liqAuf" open>
+        <details class="liq-auf lp-prop" id="liqAuf" open>
           <summary>
             <span class="liq-auf-chev">▸</span>
-            <span class="liq-auf-titel">Liquiditätsplanung Gesamtportfolio</span>
-            <button type="button" class="liq-auf-btn" id="liqXlsBtn">⤓ Als Excel herunterladen</button>
+            <span class="liq-auf-titel"><span class="lp-ico">📊</span>
+              <span class="lp-name">Liquiditätsplanung Gesamtportfolio</span>
+              <span class="lp-adr" id="liqGesamtAnzahl"></span></span>
+            <span class="lp-cf" id="liqGesamtCf"></span>
           </summary>
-          <div class="liq-scroll" id="liqScroll"></div>
+          <div class="lp-frame-wrap">
+            <div class="lp-body" id="liqGesamt">
+              <div class="liq-controls">
+                <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Alle Werte in € · Summe aller Immobilien · nur Anzeige – bearbeitet wird in der jeweiligen Immobilie</span></span>
+                <button type="button" class="liq-btn liq-btn-xls" id="liqXlsBtn">⤓ Als Excel herunterladen</button>
+              </div>
+              <div class="liq-scroll" id="liqScroll"></div>
+            </div>
+          </div>
         </details>
       </div>
 
@@ -890,6 +926,40 @@
       return { months, out }
     }
 
+    // Anzeige der Gesamttabelle – gleiche Reihenfolge, Gruppen und Leerzeilen wie
+    // die Tabelle der Immobilie. Der Aufklapp-Zustand teilt sich den Schlüssel
+    // „ie_liq_groups" mit immobilie.html, gilt also überall gleich.
+    const LIQ_ANZEIGE = [
+      { key: '_ekKauf',      label: 'Eigenkapital & Bank',        type: 'header', toggle: 'ekkauf' },
+      { key: 'einzahlungEk', label: 'Einzahlung Eigenkapital',    type: 'input', sub: true, group: 'ekkauf' },
+      { key: 'einzahlungFk', label: 'Valutierung Fremdkapital',   type: 'input', sub: true, group: 'ekkauf' },
+      { key: 'kaufpreis',    label: 'Zahlung Kaufpreis',          type: 'input', sub: true, group: 'ekkauf' },
+      { key: 'ausgabe',      label: 'Zahlung Nebenkosten',        type: 'input', sub: true, group: 'ekkauf' },
+      { key: 'miete',        label: 'Miete',                      type: 'calc',  sep: true, gap: true, toggle: 'miete' },
+      { key: 'nkm',          label: 'Nettokaltmiete',             type: 'input', sub: true, group: 'miete' },
+      { key: 'nk',           label: 'Nebenkostenvorauszahlungen', type: 'input', sub: true, group: 'miete' },
+      { key: 'weitereMiete', label: 'Weitere Mieteinnahmen',      type: 'input' },
+      { key: 'hausgeld',     label: 'Hausgeld',                   type: 'input' },
+      { key: 'bankrate',     label: 'Bankrate',                   type: 'calc',  toggle: 'bankrate' },
+      { key: 'zins',         label: 'Zins',                       type: 'input', sub: true, group: 'bankrate' },
+      { key: 'tilgung',      label: 'Tilgung',                    type: 'input', sub: true, group: 'bankrate' },
+      { key: 'grundsteuer',  label: 'Grundsteuer',                type: 'input' },
+      { key: 'cf',           label: 'CF Wohnung',                 type: 'calc',  strong: true, sep: true },
+      { key: 'weitereAusgaben',       label: 'Weitere Ausgaben',      type: 'input', gap: true },
+      { key: 'nebenkostenabrechnung', label: 'Nebenkostenabrechnung', type: 'input' },
+      { key: 'guthaben',     label: 'Guthaben',                   type: 'calc',  total: true, sep: true, gap: true },
+    ]
+    let liqOffeneGruppen = (() => {
+      try { return new Set(JSON.parse(localStorage.getItem('ie_liq_groups') || '[]')) } catch (e) { return new Set() }
+    })()
+    function liqGruppeUmschalten(name) {
+      if (liqOffeneGruppen.has(name)) liqOffeneGruppen.delete(name); else liqOffeneGruppen.add(name)
+      try { localStorage.setItem('ie_liq_groups', JSON.stringify([...liqOffeneGruppen])) } catch (e) {}
+      const sc = document.getElementById('liqScroll'), links = sc ? sc.scrollLeft : 0
+      renderLiquiditaet()
+      if (sc) sc.scrollLeft = links
+    }
+
     const liqFmt = n => new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.round(n * 100) / 100)
 
     function renderLiquiditaet() {
@@ -909,18 +979,25 @@
         return `<th class="${mo === 1 ? 'liq-yr' : ''}${m === nowM ? ' liq-now' : ''}">${name} ${String(y).slice(2)}</th>`
       }).join('')
 
-      const rows = LIQ_ROWS.map(r => {
+      const spacer = `<tr class="liq-spacer"><td class="liq-label"></td>${months.map(() => '<td></td>').join('')}</tr>`
+      const rows = LIQ_ANZEIGE.filter(r => !r.group || liqOffeneGruppen.has(r.group)).map(r => {
         const cls = ['liq-row-' + r.type,
           r.sub ? 'liq-row-sub' : '', r.sep ? 'liq-sep' : '',
           r.strong ? 'liq-row-strong' : '', r.total ? 'liq-row-total' : ''].filter(Boolean).join(' ')
         const tds = months.map(m => {
           const [, mo] = m.split('-').map(Number)
+          const tcls = `${mo === 1 ? 'liq-yr' : ''}${m === nowM ? ' liq-now' : ''}`
+          if (r.type === 'header') return `<td class="${tcls}"></td>`
           const val = out[r.key][m] ?? 0
           const vcls = val < -0.004 ? 'neg' : (val > 0.004 ? 'pos' : '')
-          return `<td class="${mo === 1 ? 'liq-yr' : ''}${m === nowM ? ' liq-now' : ''}">
-            <div class="liq-cell ${vcls}">${liqFmt(val)}</div></td>`
+          return `<td class="${tcls}"><div class="liq-cell ${vcls}">${liqFmt(val)}</div></td>`
         }).join('')
-        return `<tr class="${cls}"><td class="liq-label">${r.label}</td>${tds}</tr>`
+        const offen = r.toggle && liqOffeneGruppen.has(r.toggle)
+        const label = r.toggle
+          ? `<button type="button" class="liq-toggle" onclick="liqGruppeUmschalten('${r.toggle}')"
+               title="${offen ? 'Details ausblenden' : 'Details einblenden'}" aria-expanded="${offen}">${offen ? '−' : '+'}</button><span>${r.label}</span>`
+          : r.label
+        return (r.gap ? spacer : '') + `<tr class="${cls}"><td class="liq-label">${label}</td>${tds}</tr>`
       }).join('')
 
       scroll.innerHTML = `
@@ -1797,6 +1874,13 @@
 
     // Cashflow des laufenden Monats in der Kopfzeile jeder Immobilie
     function liqPropsKopfzeilen() {
+      const gCf = document.getElementById('liqGesamtCf')
+      if (gCf) {
+        const summe = properties.reduce((x, p) => x + liqStats(p).cf, 0)
+        gCf.innerHTML = 'Cashflow aktueller Monat<b class="' + (summe < -0.004 ? 'neg' : 'pos') + '">' + formatEur(summe) + '</b>'
+      }
+      const gAnz = document.getElementById('liqGesamtAnzahl')
+      if (gAnz) gAnz.textContent = properties.length === 1 ? '1 Immobilie' : properties.length + ' Immobilien'
       document.querySelectorAll('#liqProps .lp-prop').forEach(det => {
         const p = properties.find(x => x.id === det.dataset.id)
         const el = det.querySelector('.lp-cf')

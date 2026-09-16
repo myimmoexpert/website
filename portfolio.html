@@ -323,6 +323,12 @@
         <input type="text" id="fAdresse" placeholder="Straße, PLZ Stadt" />
       </div>
       <div class="form-group">
+        <label>Übernahmestichtag</label>
+        <input type="date" id="fStichtag" />
+        <p class="form-hint">Tag, an dem Nutzen und Lasten auf Sie übergehen. Ab diesem Tag zählt die Zehnjahresfrist
+          für einen steuerfreien Verkauf. Die Werte der Immobilie werden trotzdem sofort angezeigt.</p>
+      </div>
+      <div class="form-group">
         <label>Kaufpreis (€)</label>
         <input type="number" id="fKaufpreis" placeholder="z.B. 349000" min="0" />
       </div>
@@ -517,7 +523,14 @@
     }
 
     // ── MODAL ───────────────────────────────────────
+    function heuteIso() {
+      const d = new Date()
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+    }
+
     function openModal() {
+      const st = document.getElementById('fStichtag')
+      if (st && !st.value) st.value = heuteIso()
       document.getElementById('addModal').classList.add('visible')
       document.body.style.overflow = 'hidden'
       document.getElementById('fBezeichnung').focus()
@@ -535,7 +548,7 @@
       document.getElementById('addModal').classList.remove('visible')
       document.body.style.overflow = ''
       // Felder zurücksetzen
-      ['fBezeichnung','fAdresse','fKaufpreis','fWert']
+      ['fBezeichnung','fAdresse','fKaufpreis','fWert','fStichtag']
         .forEach(id => { const el = document.getElementById(id); if(el) el.value = '' })
     }
 
@@ -556,10 +569,16 @@
                           String(gestern.getMonth() + 1).padStart(2, '0') + '-' +
                           String(gestern.getDate()).padStart(2, '0')
       const wert        = parseFloat(document.getElementById('fWert').value) || null
+      const stichtag    = (document.getElementById('fStichtag') || {}).value || ''
 
       if (!bezeichnung) {
         alert('Bitte eine Bezeichnung eingeben.')
         document.getElementById('fBezeichnung').focus()
+        return
+      }
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(stichtag)) {
+        alert('Bitte den Übernahmestichtag auswählen.')
+        document.getElementById('fStichtag').focus()
         return
       }
 
@@ -569,7 +588,8 @@
 
       const { error } = await sb.from('portfolio').insert({
         user_id:     session.user.id,
-        bezeichnung, objektart, adresse, kaufpreis, kaufdatum, wert
+        bezeichnung, objektart, adresse, kaufpreis, kaufdatum, wert,
+        einstellungen: { uebernahmestichtag: stichtag }
       })
 
       btn.disabled = false

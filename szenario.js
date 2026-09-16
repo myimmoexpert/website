@@ -151,16 +151,25 @@
     var verkaufskosten = wertExit * par.verkauf / 100
     var erloes = wertExit - verkaufskosten - RS
 
-    // Haltedauer beim Exit (für den Hinweis zur Spekulationsfrist)
+    // Zehnjahresfrist (§ 23 EStG) ab dem Übernahmestichtag, tagesgenau
     var exitMonat = calc.monatPlus(heute, N)
-    var halteMonate = calc.monatDiff(exitMonat, calc.uebernahme(p))
+    var st = calc.stichtag(p)
+    var jetzt = new Date()
+    var exitDatum = new Date(jetzt.getFullYear(), jetzt.getMonth() + N, jetzt.getDate())
+    var fristEnde = null, innerhalbFrist = null
+    if (st) {
+      var t3 = st.split('-').map(Number)
+      fristEnde = new Date(t3[0] + 10, t3[1] - 1, t3[2])
+      innerhalbFrist = exitDatum < fristEnde
+    }
 
     return {
       p: p, jahre: jahre, N: N,
       W0: W0, RS0: RS0, EK0: W0 - RS0,
       cf0: miete0 + kosten0 - rate,
       wertExit: wertExit, restschuldExit: RS, verkaufskosten: verkaufskosten,
-      erloes: erloes, kumCf: kumCf, exitMonat: exitMonat, halteMonate: halteMonate,
+      erloes: erloes, kumCf: kumCf, exitMonat: exitMonat,
+      stichtag: st, fristEnde: fristEnde, innerhalbFrist: innerhalbFrist,
       hinweise: hinweise
     }
   }
@@ -432,11 +441,18 @@
 
     // Hinweise: Spekulationsfrist und Datenlücken
     var hinweise = []
-    var frist = r.einzeln.filter(function (s) { return s.halteMonate < 120 && s.halteMonate >= 0 })
+    var datum = function (d) { return String(d.getDate()).padStart(2, '0') + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + d.getFullYear() }
+    var frist = r.einzeln.filter(function (s) { return s.innerhalbFrist === true })
     if (frist.length) {
-      hinweise.push('<b>Verkauf innerhalb von zehn Jahren nach Anschaffung</b>' +
-        (state.auswahl === 'portfolio' ? ' bei ' + frist.map(function (s) { return esc(s.p.bezeichnung || 'Immobilie') }).join(', ') : '') +
+      hinweise.push('<b>Verkauf innerhalb von zehn Jahren nach Übernahme</b> ' +
+        frist.map(function (s) { return (state.auswahl === 'portfolio' ? esc(s.p.bezeichnung || 'Immobilie') + ' ' : '') + '(Frist endet am ' + datum(s.fristEnde) + ')' }).join(', ') +
         ': Ein Veräußerungsgewinn ist bei vermieteten Immobilien in der Regel einkommensteuerpflichtig (§ 23 EStG). Der Rechner zieht keine Steuern ab.')
+    }
+    var ohneStichtag = r.einzeln.filter(function (s) { return !s.stichtag })
+    if (ohneStichtag.length) {
+      hinweise.push('<b>Übernahmestichtag fehlt</b>' +
+        (state.auswahl === 'portfolio' ? ' bei ' + ohneStichtag.map(function (s) { return esc(s.p.bezeichnung || 'Immobilie') }).join(', ') : '') +
+        ': Ohne ihn lässt sich die Zehnjahresfrist nicht prüfen. Eintragen in den Einstellungen der Immobilie (⚙).')
     }
     r.einzeln.forEach(function (s) {
       if (!s.hinweise.length) return

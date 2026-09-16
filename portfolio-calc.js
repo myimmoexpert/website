@@ -72,6 +72,15 @@
     return (p.liquiditaet && p.liquiditaet.startMonth) || jetztMonat()
   }
 
+  // Übernahmestichtag (TT = Übergang von Nutzen und Lasten), vom Nutzer gewählt.
+  // Bewusst getrennt von „kaufdatum“: das steht auf dem Vortag der Eintragung,
+  // damit Wert, Cashflow und Restschuld sofort angezeigt werden. Der Stichtag
+  // ist nur für Fristen und die Anzeige „Im Portfolio seit“ maßgeblich.
+  function stichtag (p) {
+    var d = p && p.einstellungen && p.einstellungen.uebernahmestichtag
+    return d && /^\d{4}-\d{2}-\d{2}/.test(String(d)) ? String(d).slice(0, 10) : null
+  }
+
   // Wie der aktuelle Wert einer Immobilie bestimmt wird, legt die
   // Immobilie selbst fest (Zahnrad an der Kachel „Aktueller Wert"):
   //   kaufpreis   – der gezahlte Kaufpreis
@@ -155,7 +164,7 @@
   window.IECalc = {
     WACHSTUM_PA: WACHSTUM_PA,
     jetztMonat: jetztMonat, monatPlus: monatPlus, monatDiff: monatDiff, fenster: fenster,
-    kaufpreis: kaufpreis, uebernahme: uebernahme,
+    kaufpreis: kaufpreis, uebernahme: uebernahme, stichtag: stichtag,
     wert: wert, aktuellerWert: aktuellerWert, wertEinstellung: wertEinstellung, restschuld: restschuld, cfTeile: cfTeile, reihe: reihe,
     summeAlle: summeAlle, summeBis: summeBis,
   }
