@@ -953,7 +953,6 @@
 
       <div class="nk-brief-zeile">
         <button class="liq-btn liq-btn-gold" type="button" onclick="nkSchreiben()">✉ Schreiben an den Mieter erstellen</button>
-        <button class="nk-dok-btn" type="button" onclick="nkBriefOeffnen()">Angaben zum Schreiben</button>
         <span class="nk-status" id="nkBriefStatus"></span>
       </div>
 
@@ -1047,36 +1046,6 @@
   </div>
 
   <!-- ══ EINSTELLUNGEN DER IMMOBILIE ══ -->
-  <div class="ie-modal" id="nkBriefModal">
-    <div class="ie-modal-box mh-box">
-      <div class="ie-modal-head">
-        <div>
-          <div class="ie-modal-title">Angaben für das Schreiben</div>
-          <div class="ie-modal-sub">Vorbelegt aus Mietverhältnis, Adresse und früheren Schreiben. Wird für das nächste Mal gespeichert.</div>
-        </div>
-        <button class="ie-modal-x" type="button" onclick="nkBriefSchliessen()" aria-label="Schließen">✕</button>
-      </div>
-      <div class="set-body">
-        <label class="set-row"><span class="set-lbl">Briefkopf</span><input type="text" id="nbBriefkopf" placeholder="Vorname Name, Straße, PLZ Ort" /></label>
-        <label class="set-row"><span class="set-lbl">Ort (Datumszeile)</span><input type="text" id="nbOrt" /></label>
-        <label class="set-row"><span class="set-lbl">Mieter (Anrede und Name)</span><input type="text" id="nbMieter" /></label>
-        <label class="set-row"><span class="set-lbl">Straße und Hausnummer</span><input type="text" id="nbStrasse" /></label>
-        <label class="set-row"><span class="set-lbl">PLZ und Ort</span><input type="text" id="nbPlzOrt" /></label>
-        <label class="set-row"><span class="set-lbl">Kontoempfänger</span><input type="text" id="nbKonto" /></label>
-        <label class="set-row"><span class="set-lbl">IBAN</span><input type="text" id="nbIban" /></label>
-        <label class="set-row"><span class="set-lbl">Absender – Name</span><input type="text" id="nbAbsName" /></label>
-        <label class="set-row"><span class="set-lbl">Absender – Firma</span><input type="text" id="nbAbsFirma" placeholder="optional" /></label>
-      </div>
-      <div class="set-actions">
-        <span></span>
-        <div class="set-actions-right">
-          <span class="nk-status" id="nbStatus"></span>
-          <button class="btn-save" type="button" onclick="nkBriefSpeichern(true)">Schreiben erstellen</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="ie-modal" id="setModal">
     <div class="ie-modal-box">
       <div class="ie-modal-head">
@@ -3453,32 +3422,6 @@
       }
     }
 
-    function nkBriefOeffnen() {
-      const d = nkBriefDaten()
-      const setz = (id, w) => { const el = document.getElementById(id); if (el) el.value = w || '' }
-      setz('nbBriefkopf', d.briefkopf); setz('nbOrt', d.ort)
-      setz('nbMieter', d.mieterName); setz('nbStrasse', d.mieterStrasse); setz('nbPlzOrt', d.mieterPlzOrt)
-      setz('nbKonto', d.kontoempfaenger); setz('nbIban', d.iban)
-      setz('nbAbsName', d.absenderName); setz('nbAbsFirma', d.absenderFirma)
-      const st = document.getElementById('nbStatus'); if (st) st.textContent = ''
-      document.getElementById('nkBriefModal').classList.add('open')
-    }
-    function nkBriefSchliessen() { document.getElementById('nkBriefModal').classList.remove('open') }
-
-    function nkBriefSpeichern(erstellen) {
-      const v = id => (document.getElementById(id) || {}).value.trim()
-      if (!nkData.brief) nkData.brief = {}
-      Object.assign(nkData.brief, {
-        briefkopf: v('nbBriefkopf'), ort: v('nbOrt'),
-        mieterName: v('nbMieter'), mieterStrasse: v('nbStrasse'), mieterPlzOrt: v('nbPlzOrt'),
-        kontoempfaenger: v('nbKonto'), iban: v('nbIban'),
-        absenderName: v('nbAbsName'), absenderFirma: v('nbAbsFirma'),
-      })
-      scheduleSave('x')
-      nkBriefSchliessen()
-      if (erstellen) nkSchreiben(true)
-    }
-
     // Zahlen des Schreibens – identisch zur Abrechnung mit dem Mieter
     function nkMieterWerte() {
       const j = nkJ()
@@ -3493,20 +3436,77 @@
       return { voraus, umlage, grund, weitere, gesamt, erg }
     }
 
-    async function nkSchreiben(ohneNachfrage) {
+    // Felder, die im Schreiben gelb hinterlegt werden, wenn die Angabe fehlt
+    const NK_PFLICHT = ['BRIEFKOPF', 'MIETER_NAME', 'MIETER_STRASSE', 'MIETER_PLZORT',
+                        'ORT', 'WOHNUNG', 'KONTOEMPFAENGER', 'IBAN', 'ABSENDER_NAME']
+    const NK_FELDNAMEN = {
+      BRIEFKOPF: 'Briefkopf', MIETER_NAME: 'Mieter', MIETER_STRASSE: 'Straße des Mieters',
+      MIETER_PLZORT: 'PLZ und Ort', ORT: 'Ort', WOHNUNG: 'Wohnung',
+      KONTOEMPFAENGER: 'Kontoempfänger', IBAN: 'IBAN', ABSENDER_NAME: 'Absender',
+    }
+
+    // Leere Angabe im Word-Dokument: Platzhalter durch Leerraum ersetzen und den
+    // Textabschnitt gelb hinterlegen. Der Textlauf wird dafür geteilt, damit nur
+    // die Lücke markiert ist und nicht die Beschriftung davor.
+    function nkGelb(xml, key) {
+      const platz = '{{' + key + '}}'
+      let pos = xml.indexOf(platz)
+      while (pos >= 0) {
+        const rStart = nkLaufStart(xml, pos)
+        const rEnde  = xml.indexOf('</w:r>', pos)
+        if (rStart < 0 || rEnde < 0) return xml
+        const lauf = xml.slice(rStart, rEnde + 6)
+        const tAnfang = lauf.indexOf('<w:t')
+        const tAuf = lauf.indexOf('>', tAnfang)
+        const tZu  = lauf.indexOf('</w:t>', tAuf)
+        if (tAnfang < 0 || tZu < 0) return xml
+        const kopf = lauf.slice(0, tAnfang)                   // <w:r …> inkl. <w:rPr>
+        const text = lauf.slice(tAuf + 1, tZu)
+        const teil = text.split(platz)
+        const vor = teil[0], nach = teil.slice(1).join(platz)
+        const rPr = (kopf.match(/<w:rPr>[\s\S]*?<\/w:rPr>/) || [''])[0]
+        const oeffner = kopf.slice(0, kopf.indexOf('>') + 1)
+        const lauf2 = (inhalt, rPrX) =>
+          oeffner + rPrX + '<w:t xml:space="preserve">' + inhalt + '</w:t></w:r>'
+        const neu =
+          (vor ? lauf2(vor, rPr) : '') +
+          lauf2('\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0', nkRPrGelb(rPr)) +
+          (nach ? lauf2(nach, rPr) : '')
+        xml = xml.slice(0, rStart) + neu + xml.slice(rEnde + 6)
+        pos = xml.indexOf(platz)
+      }
+      return xml
+    }
+
+    // Beginn des Textlaufs (<w:r>), nicht zu verwechseln mit <w:rPr>
+    function nkLaufStart(xml, pos) {
+      let i = pos
+      while (i > 0) {
+        i = xml.lastIndexOf('<w:r', i - 1)
+        if (i < 0) return -1
+        const c = xml.charAt(i + 4)
+        if (c === '>' || c === ' ' || c === '\n' || c === '\t' || c === '\r') return i
+      }
+      return -1
+    }
+
+    // <w:highlight> an der Stelle einfügen, die das Word-Schema verlangt
+    function nkRPrGelb(rPr) {
+      const marke = '<w:highlight w:val="yellow"/>'
+      if (!rPr) return '<w:rPr>' + marke + '</w:rPr>'
+      const danach = ['<w:u ', '<w:u/', '<w:effect', '<w:bdr', '<w:shd', '<w:fitText',
+                      '<w:vertAlign', '<w:rtl', '<w:cs', '<w:em', '<w:lang', '<w:eastAsianLayout']
+      let idx = -1
+      danach.forEach(t => { const i = rPr.indexOf(t); if (i >= 0 && (idx < 0 || i < idx)) idx = i })
+      if (idx < 0) idx = rPr.indexOf('</w:rPr>')
+      return rPr.slice(0, idx) + marke + rPr.slice(idx)
+    }
+
+
+    async function nkSchreiben() {
       if (typeof JSZip === 'undefined') { nkBriefStatus('Bibliothek nicht geladen – Seite neu laden.', 'err'); return }
       const z = nkMieterWerte()
       const d = nkBriefDaten()
-
-      // Fehlt etwas Wesentliches, einmal nachfragen – sonst direkt erstellen
-      const fehlt = !d.mieterName || !d.briefkopf || !d.ort
-        || (z.erg < 0 && (!d.iban || !d.kontoempfaenger))
-      if (fehlt && !ohneNachfrage) {
-        nkBriefOeffnen()
-        const st = document.getElementById('nbStatus')
-        if (st) { st.textContent = 'Bitte noch ergänzen'; st.className = 'nk-status err' }
-        return
-      }
 
       const geld = v => new Intl.NumberFormat('de-DE',
         { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v || 0) + ' €'
@@ -3551,6 +3551,17 @@
 
         // Nur der passende Schlussabsatz bleibt stehen
         xml = nkEntferneAbsaetze(xml, erstattung ? '{{IF_NACHZAHLUNG}}' : '{{IF_ERSTATTUNG}}')
+
+        // Fehlende Angaben: Platz frei lassen und gelb hinterlegen
+        const offen = []
+        NK_PFLICHT.forEach(k => {
+          // nur was leer ist und im Schreiben überhaupt vorkommt (der nicht
+          // passende Schlussabsatz ist oben bereits entfernt)
+          if (String(werte[k] || '').trim() || !xml.includes('{{' + k + '}}')) return
+          offen.push(k)
+          xml = nkGelb(xml, k)
+        })
+
         xml = xml.split('{{IF_ERSTATTUNG}}').join('').split('{{IF_NACHZAHLUNG}}').join('')
         Object.keys(werte).forEach(k => { xml = xml.split('{{' + k + '}}').join(nkXmlEsc(werte[k])) })
 
@@ -3565,17 +3576,9 @@
         a.download = name
         a.click()
         setTimeout(() => URL.revokeObjectURL(a.href), 4000)
-        nkBriefStatus('Fertig – die Datei liegt in Ihren Downloads.', 'ok')
-
-        // Angaben für das nächste Schreiben merken
-        if (!nkData.brief) nkData.brief = {}
-        Object.assign(nkData.brief, {
-          briefkopf: d.briefkopf, ort: d.ort, mieterName: d.mieterName,
-          mieterStrasse: d.mieterStrasse, mieterPlzOrt: d.mieterPlzOrt, wohnung: d.wohnung,
-          kontoempfaenger: d.kontoempfaenger, iban: d.iban,
-          absenderName: d.absenderName, absenderFirma: d.absenderFirma,
-        })
-        scheduleSave('x')
+        nkBriefStatus(offen.length
+          ? 'Fertig – gelb markiert im Schreiben: ' + offen.map(k => NK_FELDNAMEN[k] || k).join(', ')
+          : 'Fertig – die Datei liegt in Ihren Downloads.', offen.length ? '' : 'ok')
       } catch (err) {
         nkBriefStatus('Fehler: ' + err.message, 'err')
       }
