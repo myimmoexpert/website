@@ -176,6 +176,13 @@
       content: '✓'; position: absolute; top: 1px; right: 4px;
       font-size: 0.62rem; line-height: 1; font-weight: 700; color: var(--green); pointer-events: none;
     }
+    /* Rotes ! : gebucht, aber nicht wie geplant */
+    .liq-table td.liq-abw { background: #2a1719; }
+    .liq-table td.liq-abw.liq-now { background: #2a1719; }
+    .liq-table td.liq-abw::before {
+      content: '!'; position: absolute; top: 0; right: 5px;
+      font-size: 0.72rem; line-height: 1.2; font-weight: 800; color: var(--red); pointer-events: none;
+    }
     .liq-row-header .liq-label { font-weight: 600; color: var(--white); background: #26262b; }
     .liq-row-header td { background: rgba(255,255,255,0.025); }
     .liq-spacer td { height: 14px; border-bottom: none; background: transparent; }
@@ -2343,7 +2350,16 @@
         if (eff['bankrate|' + m]) { eff['zins|' + m] = true; eff['tilgung|' + m] = true }
         else if (eff['zins|' + m] && eff['tilgung|' + m]) eff['bankrate|' + m] = true
       })
-      return { ic: eff, abMonat }
+      return { ic: eff, abMonat, plan: liqData.planWerte || {} }
+    }
+
+    // Weicht eine gebuchte Zelle vom geplanten Wert ab? Toleranz 1 €.
+    function liqAbweichung(row, month, val, rec) {
+      if (!rec || !rec.ic[row + '|' + month]) return null
+      const plan = rec.plan[row + '|' + month]
+      if (plan === undefined || plan === null) return null
+      const diff = Math.round((val - plan) * 100) / 100
+      return Math.abs(diff) > 1 ? { plan, diff } : null
     }
 
     // Zustand einer Zelle: '' | 'ok' | 'warn'
@@ -2388,20 +2404,25 @@
         // Warndreieck = geplanter Wert, der seit zwei Monaten unbestätigt ist.
         const stand = liqStand(row, month, val, rec)
         const gebucht = !!(rec && rec.ic[row + '|' + month])
+        const abw = liqAbweichung(row, month, val, rec)
         const td = cell.parentElement
         // Eine echte Buchung bestätigt die Zelle immer – auch in Zeilen,
         // für die der laufende Abgleich (LIQ_TRACK_ROWS) nicht gilt.
-        td.classList.toggle('liq-ok', stand === 'ok' || gebucht)
+        td.classList.toggle('liq-ok', (stand === 'ok' || gebucht) && !abw)
         td.classList.toggle('liq-warn', stand === 'warn' && !gebucht)
-        td.classList.toggle('liq-gebucht', gebucht)
+        td.classList.toggle('liq-gebucht', gebucht && !abw)
+        td.classList.toggle('liq-abw', !!abw)
 
         const note = liqData.notes?.[row]?.[month]
-        const hinweis = stand === 'warn'
-          ? 'Geplanter Wert – seit zwei Monaten keine passende Buchung im Kontoauszug gefunden.'
-          : stand === 'ok'
-            ? (gebucht ? 'Mit einer Buchung aus dem Kontoauszug abgeglichen.'
-                       : 'Monat vorbei, keine Bewegung – bestätigt.')
-            : ''
+        const hinweis = abw
+          ? `Gebucht ${liqFmt(val)} €, geplant waren ${liqFmt(abw.plan)} € `
+            + `(${abw.diff > 0 ? '+' : ''}${liqFmt(abw.diff)} €).`
+          : stand === 'warn'
+            ? 'Geplanter Wert – seit zwei Monaten keine passende Buchung im Kontoauszug gefunden.'
+            : stand === 'ok'
+              ? (gebucht ? 'Mit einer Buchung aus dem Kontoauszug abgeglichen.'
+                         : 'Monat vorbei, keine Bewegung – bestätigt.')
+              : ''
         cell.title = [note, hinweis].filter(Boolean).join('\n')
         td.classList.toggle('has-note', !!note)
       })
@@ -2415,23 +2436,29 @@
       if (!rec) return
       const { out } = liqCompute()
       LIQ_ROWS.filter(r => r.toggle && r.type !== 'header').forEach(parent => {
-        if (liqOpenGroups.has(parent.toggle)) return
         const kinder = LIQ_ROWS.filter(r => r.group === parent.toggle)
         if (!kinder.length) return
+        const zu = !liqOpenGroups.has(parent.toggle)
         liqMonths().forEach(m => {
           const cell = document.querySelector(`.liq-cell[data-row="${parent.key}"][data-month="${m}"]`)
           if (!cell) return
-          const staende = kinder.map(k => liqStand(k.key, m, out[k.key]?.[m] ?? 0, rec))
           const td = cell.parentElement
-          if (staende.includes('warn')) { td.classList.add('liq-warn'); td.classList.remove('liq-ok', 'liq-gebucht') }
-          else if (staende.length && staende.every(x => x === 'ok')) {
-            td.classList.add('liq-ok')
-            // Haken, wenn jede Kindzeile mit Betrag eine Buchung hat
-            // (leere Zeilen, z. B. keine Nebenkostenvorauszahlung, blockieren nicht)
-            if (kinder.every(k => rec.ic[k.key + '|' + m] || Math.abs(out[k.key]?.[m] ?? 0) < 0.005)) {
-              td.classList.add('liq-gebucht')
-            }
+          const staende = kinder.map(k => liqStand(k.key, m, out[k.key]?.[m] ?? 0, rec))
+          // Summenzeile (z. B. Miete): gebucht, sobald eine Kindzeile gebucht ist;
+          // rotes ! , sobald eine gebuchte Kindzeile vom Plan abweicht.
+          const gebucht = kinder.some(k => rec.ic[k.key + '|' + m])
+          const abw = kinder.some(k => liqAbweichung(k.key, m, out[k.key]?.[m] ?? 0, rec))
+          if (zu && staende.includes('warn') && !gebucht) {
+            td.classList.add('liq-warn'); td.classList.remove('liq-ok', 'liq-gebucht', 'liq-abw')
+            return
           }
+          if (abw) {
+            td.classList.add('liq-abw'); td.classList.remove('liq-gebucht', 'liq-ok', 'liq-warn')
+            cell.title = 'Eine gebuchte Zeile weicht vom geplanten Wert ab – Gruppe aufklappen.'
+          } else if (gebucht) {
+            td.classList.add('liq-ok', 'liq-gebucht'); td.classList.remove('liq-warn')
+            cell.title = 'Mit einer Buchung aus dem Kontoauszug abgeglichen.'
+          } else if (zu && staende.length && staende.every(x => x === 'ok')) td.classList.add('liq-ok')
         })
       })
     }

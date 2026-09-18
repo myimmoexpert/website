@@ -1412,6 +1412,8 @@
         if (!lq.imported)  lq.imported = {}
         // Merkt sich, in welche Zelle schon einmal importiert wurde
         if (!lq.importedCells) lq.importedCells = {}
+        // Geplanter Wert der Zelle vor der ersten Buchung
+        if (!lq.planWerte) lq.planWerte = {}
 
         let geaendert = false
 
@@ -1438,6 +1440,11 @@
           // Jede weitere Buchung desselben Monats wird dazugerechnet.
           const zelle = b.zeile + '|' + monat
           const schonImportiert = !!lq.importedCells[zelle]
+          // Vor dem Überschreiben den geplanten Wert festhalten – daran wird
+          // die Buchung später in der Tabelle gemessen.
+          if (!schonImportiert && lq.planWerte[zelle] === undefined) {
+            lq.planWerte[zelle] = bkPlanWert(p, b.zeile, monat, lq)
+          }
           const alt = schonImportiert ? (Number(store[b.zeile][monat]) || 0) : 0
           if (!schonImportiert && (Number(store[b.zeile][monat]) || 0) !== 0) ersetzt++
           store[b.zeile][monat] = Math.round((alt + wert) * 100) / 100
@@ -1478,6 +1485,20 @@
       renderBuchungsstatus()
       liqPropsKopfzeilen()
       bkFramesNeuLaden(beruehrt)
+    }
+
+    // Der geplante Wert einer Zelle, bevor die erste echte Buchung hineinläuft.
+    // Eingabezeilen stehen direkt in cells; die Bankrate rechnet sich aus
+    // Zins und Tilgung, solange es keine Übersteuerung gibt.
+    function bkPlanWert(p, zeile, monat, lq) {
+      if (OVERRIDE_ROWS.includes(zeile)) {
+        const ov = lq.overrides && lq.overrides[zeile] && lq.overrides[zeile][monat]
+        if (ov !== undefined && ov !== null && ov !== '') return Number(ov) || 0
+        const t = window.IECalc ? window.IECalc.cfTeile(p, monat) : null
+        return t ? Math.round((t[zeile] || 0) * 100) / 100 : 0
+      }
+      const v = lq.cells && lq.cells[zeile] && lq.cells[zeile][monat]
+      return (v === undefined || v === null || v === '') ? 0 : Math.round((Number(v) || 0) * 100) / 100
     }
 
     // Offene Immobilien-Tabellen holen sich die neuen Werte samt Haken
