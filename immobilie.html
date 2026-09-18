@@ -572,6 +572,8 @@
     .nk-erg.neg { border-color: rgba(239,107,107,0.30); background: #241617; }
     .nk-erg.pos .nk-erg-v { color: var(--green); }
     .nk-erg.neg .nk-erg-v { color: var(--red); }
+    .nk-brief-zeile { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 4px; }
+    .nk-brief-zeile .nk-status { margin-bottom: 0; }
     @media (max-width: 620px) { .nk-zeile { grid-template-columns: 1fr 118px 30px; } }
 
     .miet-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
@@ -949,6 +951,12 @@
         <div id="nkMieter"></div>
       </div>
 
+      <div class="nk-brief-zeile">
+        <button class="liq-btn liq-btn-gold" type="button" onclick="nkSchreiben()">✉ Schreiben an den Mieter erstellen</button>
+        <button class="nk-dok-btn" type="button" onclick="nkBriefOeffnen()">Angaben zum Schreiben</button>
+        <span class="nk-status" id="nkBriefStatus"></span>
+      </div>
+
     </div>
   </div>
 
@@ -1039,6 +1047,36 @@
   </div>
 
   <!-- ══ EINSTELLUNGEN DER IMMOBILIE ══ -->
+  <div class="ie-modal" id="nkBriefModal">
+    <div class="ie-modal-box mh-box">
+      <div class="ie-modal-head">
+        <div>
+          <div class="ie-modal-title">Angaben für das Schreiben</div>
+          <div class="ie-modal-sub">Vorbelegt aus Mietverhältnis, Adresse und früheren Schreiben. Wird für das nächste Mal gespeichert.</div>
+        </div>
+        <button class="ie-modal-x" type="button" onclick="nkBriefSchliessen()" aria-label="Schließen">✕</button>
+      </div>
+      <div class="set-body">
+        <label class="set-row"><span class="set-lbl">Briefkopf</span><input type="text" id="nbBriefkopf" placeholder="Vorname Name, Straße, PLZ Ort" /></label>
+        <label class="set-row"><span class="set-lbl">Ort (Datumszeile)</span><input type="text" id="nbOrt" /></label>
+        <label class="set-row"><span class="set-lbl">Mieter (Anrede und Name)</span><input type="text" id="nbMieter" /></label>
+        <label class="set-row"><span class="set-lbl">Straße und Hausnummer</span><input type="text" id="nbStrasse" /></label>
+        <label class="set-row"><span class="set-lbl">PLZ und Ort</span><input type="text" id="nbPlzOrt" /></label>
+        <label class="set-row"><span class="set-lbl">Kontoempfänger</span><input type="text" id="nbKonto" /></label>
+        <label class="set-row"><span class="set-lbl">IBAN</span><input type="text" id="nbIban" /></label>
+        <label class="set-row"><span class="set-lbl">Absender – Name</span><input type="text" id="nbAbsName" /></label>
+        <label class="set-row"><span class="set-lbl">Absender – Firma</span><input type="text" id="nbAbsFirma" placeholder="optional" /></label>
+      </div>
+      <div class="set-actions">
+        <span></span>
+        <div class="set-actions-right">
+          <span class="nk-status" id="nbStatus"></span>
+          <button class="btn-save" type="button" onclick="nkBriefSpeichern(true)">Schreiben erstellen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="ie-modal" id="setModal">
     <div class="ie-modal-box">
       <div class="ie-modal-head">
@@ -1132,6 +1170,7 @@
       }
       currentUserId = data.session.user.id
       currentToken  = data.session.access_token
+      window.IE_NUTZER = data.session.user.user_metadata || {}
       loadImmobilie()
     })
 
@@ -3056,7 +3095,9 @@
     }
 
     function nkAuto(feld) {
-      if (feld === 'hausgeld')       return nkLiqJahr('hausgeld')
+      // Liegt eine Abrechnung vor, gilt deren Summe der Zahlungen (nach Umbuchungen
+      // und Korrekturen) – sie ist die Grundlage der Abrechnung, nicht der Kontoabfluss.
+      if (feld === 'hausgeld')       return nkDokSumme('hausgeld') ?? nkLiqJahr('hausgeld')
       if (feld === 'nkVoraus')       return nkLiqJahr('nk')
       if (feld === 'grundsteuer')    return nkLiqJahr('grundsteuer')
       if (feld === 'umlagefaehig')   return nkDokSumme('umlagefaehig')
@@ -3140,7 +3181,6 @@
           <span class="nk-dok-name">📄 ${esc(d.name || 'Abrechnung')}</span>
           ${d.pfad ? `<button type="button" class="nk-dok-btn" onclick="nkOeffneDatei(${i})">öffnen</button>` : ''}
           <button type="button" class="nk-dok-btn weg" onclick="nkEntferneDok(${i})">entfernen</button>
-          <span class="nk-dok-sub">${d.am ? 'ausgewertet am ' + new Date(d.am).toLocaleDateString('de-DE') : 'noch nicht ausgewertet'}${d.hinweis ? ' · ' + esc(d.hinweis) : ''}</span>
         </div>`).join('')
       if (dok.length < 2) {
         const zweit = dok.length === 1
@@ -3239,8 +3279,15 @@
           throw new Error((d.error || 'Status ' + res.status) + (d.detail ? ' (' + String(d.detail).slice(0, 160) + ')' : ''))
         }
 
-        const umlage = (d.umlagefaehigBetriebskosten != null || d.heizkosten != null)
-          ? Math.round(((d.umlagefaehigBetriebskosten || 0) + (d.heizkosten || 0)) * 100) / 100 : null
+        // Heizkosten stecken in vielen Abrechnungen bereits in den umlagefähigen
+        // Kosten. Die Auswertung sagt das über umlagefaehigGesamt bzw.
+        // heizkostenEnthalten; nur wenn sie getrennt ausgewiesen sind, wird addiert.
+        const umlage = d.umlagefaehigGesamt != null
+          ? d.umlagefaehigGesamt
+          : ((d.umlagefaehigBetriebskosten != null || d.heizkosten != null)
+              ? Math.round(((d.umlagefaehigBetriebskosten || 0)
+                  + (d.heizkostenEnthalten ? 0 : (d.heizkosten || 0))) * 100) / 100
+              : null)
         nkJ().dok.push({
           pfad: up.error ? null : pfad,
           name: f.name || ('Abrechnung ' + nkJahr),
@@ -3272,12 +3319,13 @@
       const nicht    = nkWert('hv', 'nichtUmlage')
       const einnahm  = nkWert('hv', 'einnahmen')
 
-      // Abgleich mit den hochgeladenen Abrechnungen
+      // Abgleich: Abrechnung gegen Liquiditätsplanung
       const dokHausgeld = nkDokSumme('hausgeld')
-      const abweichung = (dokHausgeld !== null && hausgeld.wert !== null
-        && Math.abs(dokHausgeld - hausgeld.wert) > 1)
+      const liqHausgeld = nkLiqJahr('hausgeld')
+      const abweichung = (dokHausgeld !== null && liqHausgeld
+        && Math.abs(dokHausgeld - liqHausgeld) > 1)
       const warn = abweichung
-        ? `<span class="nk-warn" title="Die hochgeladene Abrechnung weist ${nkEur(dokHausgeld)} als Vorauszahlung aus – das weicht vom Wert aus der Liquiditätsplanung ab.">!</span>`
+        ? `<span class="nk-warn" title="Abrechnung ${nkEur(dokHausgeld)} · Liquiditätsplanung ${nkEur(liqHausgeld)}. Maßgeblich ist die Summe der Zahlungen aus der Abrechnung; die Differenz kommt meist aus Umbuchungen in die Erhaltungsrücklage.">!</span>`
         : ''
 
       const bewirt = Math.round((-(umlage.wert || 0) - (nicht.wert || 0) + (einnahm.wert || 0)) * 100) / 100
@@ -3369,6 +3417,174 @@
       nkJ().mieter.weitere.splice(i, 1)
       scheduleSave('x')
       nkRender()
+    }
+
+
+    // ── Schreiben an den Mieter ─────────────────────────────────
+    // Nutzt die Vorlage nk-abrechnung-vorlage.docx. Die Angaben kommen
+    // automatisch aus Mietverhältnis, Adresse der Immobilie und den zuletzt
+    // benutzten Briefdaten (dieselben wie beim Mieterhöhungsschreiben).
+    const NK_VORLAGE = 'nk-abrechnung-vorlage.docx'
+
+    function nkBriefStatus(t, k) {
+      const st = document.getElementById('nkBriefStatus')
+      if (st) { st.textContent = t || ''; st.className = 'nk-status ' + (k || '') }
+    }
+
+    // Alles, was für das Schreiben gebraucht wird – so weit wie möglich automatisch
+    function nkBriefDaten() {
+      const b = (nkData && nkData.brief) || {}
+      const mv = (mietData && (mietData.aktuell || mietData)) || {}
+      const adr = (typeof mhAdresseTeile === 'function') ? mhAdresseTeile(propData?.adresse || '') : {}
+      const konto = (uberblickData && uberblickData.kontakte) || {}
+      const nutzer = (window.IE_NUTZER || {})
+      const name = [nutzer.first_name, nutzer.last_name].filter(Boolean).join(' ')
+      return {
+        briefkopf:    b.briefkopf || '',
+        ort:          b.ort || adr.ort || '',
+        mieterName:   b.mieterName || mv.mieter || '',
+        mieterStrasse: b.mieterStrasse || adr.strasse || '',
+        mieterPlzOrt: b.mieterPlzOrt || adr.plzOrt || '',
+        wohnung:      b.wohnung || propData?.adresse || propData?.bezeichnung || '',
+        kontoempfaenger: b.kontoempfaenger || name || '',
+        iban:         b.iban || '',
+        absenderName: b.absenderName || name || '',
+        absenderFirma: b.absenderFirma || '',
+      }
+    }
+
+    function nkBriefOeffnen() {
+      const d = nkBriefDaten()
+      const setz = (id, w) => { const el = document.getElementById(id); if (el) el.value = w || '' }
+      setz('nbBriefkopf', d.briefkopf); setz('nbOrt', d.ort)
+      setz('nbMieter', d.mieterName); setz('nbStrasse', d.mieterStrasse); setz('nbPlzOrt', d.mieterPlzOrt)
+      setz('nbKonto', d.kontoempfaenger); setz('nbIban', d.iban)
+      setz('nbAbsName', d.absenderName); setz('nbAbsFirma', d.absenderFirma)
+      const st = document.getElementById('nbStatus'); if (st) st.textContent = ''
+      document.getElementById('nkBriefModal').classList.add('open')
+    }
+    function nkBriefSchliessen() { document.getElementById('nkBriefModal').classList.remove('open') }
+
+    function nkBriefSpeichern(erstellen) {
+      const v = id => (document.getElementById(id) || {}).value.trim()
+      if (!nkData.brief) nkData.brief = {}
+      Object.assign(nkData.brief, {
+        briefkopf: v('nbBriefkopf'), ort: v('nbOrt'),
+        mieterName: v('nbMieter'), mieterStrasse: v('nbStrasse'), mieterPlzOrt: v('nbPlzOrt'),
+        kontoempfaenger: v('nbKonto'), iban: v('nbIban'),
+        absenderName: v('nbAbsName'), absenderFirma: v('nbAbsFirma'),
+      })
+      scheduleSave('x')
+      nkBriefSchliessen()
+      if (erstellen) nkSchreiben(true)
+    }
+
+    // Zahlen des Schreibens – identisch zur Abrechnung mit dem Mieter
+    function nkMieterWerte() {
+      const j = nkJ()
+      const voraus = nkWert('mieter', 'nkVoraus').wert || 0
+      const eigen = j.mieter.umlagefaehig
+      const umlage = (eigen !== null && eigen !== undefined && eigen !== '')
+        ? Number(eigen) : (nkWert('hv', 'umlagefaehig').wert || 0)
+      const grund = nkWert('mieter', 'grundsteuer').wert || 0
+      const weitere = (j.mieter.weitere || []).reduce((s, w) => s + (Number(w.betrag) || 0), 0)
+      const gesamt = Math.round((umlage + grund + weitere) * 100) / 100
+      const erg = Math.round((voraus - gesamt) * 100) / 100
+      return { voraus, umlage, grund, weitere, gesamt, erg }
+    }
+
+    async function nkSchreiben(ohneNachfrage) {
+      if (typeof JSZip === 'undefined') { nkBriefStatus('Bibliothek nicht geladen – Seite neu laden.', 'err'); return }
+      const z = nkMieterWerte()
+      const d = nkBriefDaten()
+
+      // Fehlt etwas Wesentliches, einmal nachfragen – sonst direkt erstellen
+      const fehlt = !d.mieterName || !d.briefkopf || !d.ort
+        || (z.erg < 0 && (!d.iban || !d.kontoempfaenger))
+      if (fehlt && !ohneNachfrage) {
+        nkBriefOeffnen()
+        const st = document.getElementById('nbStatus')
+        if (st) { st.textContent = 'Bitte noch ergänzen'; st.className = 'nk-status err' }
+        return
+      }
+
+      const geld = v => new Intl.NumberFormat('de-DE',
+        { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v || 0) + ' €'
+      const erstattung = z.erg >= 0     // Mieter hat zu viel gezahlt
+
+      const werte = {
+        BRIEFKOPF: d.briefkopf,
+        MIETER_NAME: d.mieterName,
+        MIETER_STRASSE: d.mieterStrasse,
+        MIETER_PLZORT: d.mieterPlzOrt,
+        ORT: d.ort,
+        DATUM: new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        JAHR: nkJahr,
+        WOHNUNG: d.wohnung,
+        BETRIEBSKOSTEN: geld(z.umlage),
+        HEIZKOSTEN: geld(z.grund + z.weitere),
+        GESAMTKOSTEN: geld(z.gesamt),
+        VORAUSZAHLUNG: geld(z.voraus),
+        ERGEBNIS: geld(Math.abs(z.erg)),
+        ERGEBNIS_ABS: new Intl.NumberFormat('de-DE',
+          { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(z.erg)),
+        ERGEBNIS_ART: erstattung ? 'Erstattung' : 'Nachzahlung',
+        KONTOEMPFAENGER: d.kontoempfaenger,
+        IBAN: d.iban,
+        VERWENDUNGSZWECK: `Nebenkostenabrechnung ${nkJahr}` + (propData?.bezeichnung ? ' ' + propData.bezeichnung : ''),
+        ABSENDER_NAME: d.absenderName,
+        ABSENDER_FIRMA: d.absenderFirma,
+      }
+
+      try {
+        nkBriefStatus('Schreiben wird erstellt …', 'busy')
+        const res = await fetch(NK_VORLAGE)
+        if (!res.ok) throw new Error('Vorlage nicht gefunden (' + NK_VORLAGE + ')')
+        const zip = await JSZip.loadAsync(await res.arrayBuffer())
+        let xml = await zip.file('word/document.xml').async('string')
+
+        // Die Vorlage führt Heizkosten als eigene Zeile. Heizkosten stecken hier
+        // in den umlagefähigen Kosten, deshalb trägt die Zeile jetzt Grundsteuer
+        // und weitere Umlagen.
+        xml = xml.replace('>Heizkosten<', '>Grundsteuer und weitere Umlagen<')
+        xml = xml.replace('>Bereits bezahlte Betriebs- &amp; Heizkosten<', '>Geleistete Vorauszahlungen<')
+
+        // Nur der passende Schlussabsatz bleibt stehen
+        xml = nkEntferneAbsaetze(xml, erstattung ? '{{IF_NACHZAHLUNG}}' : '{{IF_ERSTATTUNG}}')
+        xml = xml.split('{{IF_ERSTATTUNG}}').join('').split('{{IF_NACHZAHLUNG}}').join('')
+        Object.keys(werte).forEach(k => { xml = xml.split('{{' + k + '}}').join(nkXmlEsc(werte[k])) })
+
+        zip.file('word/document.xml', xml)
+        const blob = await zip.generateAsync({
+          type: 'blob',
+          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        })
+        const name = `Nebenkostenabrechnung ${nkJahr} – ${(propData?.bezeichnung || 'Wohnung')}.docx`
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(blob)
+        a.download = name
+        a.click()
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000)
+        nkBriefStatus('Fertig – die Datei liegt in Ihren Downloads.', 'ok')
+
+        // Angaben für das nächste Schreiben merken
+        if (!nkData.brief) nkData.brief = {}
+        Object.assign(nkData.brief, {
+          briefkopf: d.briefkopf, ort: d.ort, mieterName: d.mieterName,
+          mieterStrasse: d.mieterStrasse, mieterPlzOrt: d.mieterPlzOrt, wohnung: d.wohnung,
+          kontoempfaenger: d.kontoempfaenger, iban: d.iban,
+          absenderName: d.absenderName, absenderFirma: d.absenderFirma,
+        })
+        scheduleSave('x')
+      } catch (err) {
+        nkBriefStatus('Fehler: ' + err.message, 'err')
+      }
+    }
+
+    // Entfernt alle Absätze, die eine bestimmte Markierung enthalten
+    function nkEntferneAbsaetze(xml, marke) {
+      const teile = xml.split('</w:p>')
+      return teile.filter((t, i) => i === teile.length - 1 || !t.includes(marke)).join('</w:p>')
     }
 
     // XML-Text für die Word-Vorlagen (auch vom Mieterhöhungsschreiben genutzt)
