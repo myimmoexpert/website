@@ -192,6 +192,9 @@
     .bk-text { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .bk-sel { background: var(--navy); border: 1px solid rgba(255,255,255,0.175); border-radius: 7px;
       color: var(--white); font-family: inherit; font-size: 0.8rem; padding: 6px 8px; max-width: 210px; }
+    .bk-sel:disabled { opacity: 0.4; cursor: not-allowed; }
+    .bk-merk { font-size: 0.66rem; color: var(--gold); border: 1px solid rgba(211,172,95,0.4);
+      border-radius: 5px; padding: 1px 5px; margin-left: 6px; vertical-align: middle; }
     .bk-skipcol { text-align: center; }
     .bk-actions { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
     .bk-btn-primary { background: var(--gold); color: #17130a; border: none; border-radius: 9px;
@@ -1097,7 +1100,7 @@
       if (pane) pane.classList.add('active')
       const HD = {
         planung:     'Liquiditätsplanung',
-        szenario:    'Szenariorechner',
+        szenario:    'Szenarienrechner',
         jahr:        'Jahresübersicht',
         notizen:     'Notizen',
         uebersicht:  'Übersicht',
@@ -1184,11 +1187,17 @@
           const res = await fetch(BK_FN_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sessionToken() },
-            body: JSON.stringify({ image, mime: f.type, properties: ctx }),
+            body: JSON.stringify({ image, mime: f.type, properties: ctx, heute: new Date().toISOString().slice(0, 10) }),
           })
           const data = await res.json()
           if (!res.ok) throw new Error(data.error || ('Status ' + res.status))
-          ;(data.buchungen || []).forEach(b => neu.push(bkApplyRules(b)))
+          ;(data.buchungen || []).forEach(b => {
+            // Vorschlag für den Monat: aus dem Buchungsdatum, sonst laufender Monat
+            const m = (b.datum || '').slice(0, 7)
+            b.monat = /^\d{4}-\d{2}$/.test(m)
+              ? m : (window.IECalc ? window.IECalc.jetztMonat() : new Date().toISOString().slice(0, 7))
+            neu.push(bkApplyRules(b))
+          })
         } catch (e) {
           bkStatus('Fehler beim Auslesen: ' + e.message, 'err')
           return
@@ -1203,49 +1212,120 @@
       bkRender()
     }
 
+    // ── Wiedererkennen von Buchungen ──────────────────────────
+    // Verwendungszwecke enthalten wechselnde Teile (Datum, Belegnummer,
+    // Monatsname). Für den Vergleich bleiben nur Buchstabenwörter übrig.
+    function bkNorm(text) {
+      return String(text || '').toLowerCase()
+        .replace(/[^a-zäöüß]+/g, ' ')
+        .replace(/\b(januar|februar|maerz|märz|april|mai|juni|juli|august|september|oktober|november|dezember)\b/g, ' ')
+        .replace(/\s+/g, ' ').trim()
+    }
+
+    // Aus einem Verwendungszweck ein merkbares Muster ableiten:
+    // die drei längsten Wörter in ihrer ursprünglichen Reihenfolge
+    function bkMuster(text) {
+      const worte = bkNorm(text).split(' ').filter(w => w.length >= 4)
+      if (!worte.length) return null
+      const beste = worte.slice().sort((a, b) => b.length - a.length).slice(0, 3)
+      return worte.filter(w => beste.includes(w)).slice(0, 3).join(' ')
+    }
+
+    // Passt eine gespeicherte Regel auf diesen Verwendungszweck?
+    function bkPasst(muster, text) {
+      const m = bkNorm(muster), t = bkNorm(text)
+      if (!m || !t) return false
+      if (t.includes(m)) return true
+      // Alle Wörter des Musters kommen vor – deckt auch umgestellte Zwecke ab
+      const worte = m.split(' ').filter(Boolean)
+      return worte.length > 0 && worte.every(w => t.includes(w))
+    }
+
     // Gelernte Regeln schlagen den Vorschlag des Modells
     function bkApplyRules(b) {
-      const t = (b.text || '').toLowerCase()
-      const r = (overview.regeln || []).find(x => x.muster && t.includes(String(x.muster).toLowerCase()))
-      if (r) { b.propId = r.propId; b.zeile = r.zeile; b.sicherheit = 'hoch'; b.ausRegel = true }
+      const r = (overview.regeln || []).find(x => x.muster && bkPasst(x.muster, b.text))
+      if (!r) return b
+      if (r.ignorieren) { b.skip = true; b.propId = null; b.zeile = null }
+      else { b.propId = r.propId; b.zeile = r.zeile; b.skip = false }
+      b.sicherheit = 'hoch'; b.ausRegel = true
       return b
     }
 
-    // Aus einem Verwendungszweck ein merkbares Stichwort ableiten
-    function bkMuster(text) {
-      const worte = String(text || '')
-        .split(/[^A-Za-zÄÖÜäöüß]+/)
-        .filter(w => w.length >= 4)
-        .sort((a, b) => b.length - a.length)
-      return worte[0] || null
+    // Zuordnung (oder das bewusste Ignorieren) für das nächste Mal merken
+    function bkRegelMerken(b) {
+      const muster = bkMuster(b.text)
+      if (!muster) return
+      if (!overview.regeln) overview.regeln = []
+      const neu = b.skip
+        ? { muster, ignorieren: true }
+        : { muster, propId: b.propId, zeile: b.zeile }
+      const i = overview.regeln.findIndex(r => bkNorm(r.muster) === bkNorm(muster))
+      if (i >= 0) overview.regeln[i] = neu
+      else overview.regeln.push(neu)
+    }
+
+    // Monate, in die eine Buchung gelegt werden kann: genau der
+    // Planungszeitraum der gewählten Immobilie. Ohne Immobilie ein
+    // Fenster um heute, damit die Auswahl nie leer ist.
+    function bkMonate(propId) {
+      const C = window.IECalc
+      const jetzt = C ? C.jetztMonat() : new Date().toISOString().slice(0, 7)
+      const p = properties.find(x => x.id === propId)
+      const lq = (p && p.liquiditaet) || {}
+      let von, bis
+      if (lq.startMonth && lq.monthCount) {
+        von = lq.startMonth
+        bis = C.monatPlus(lq.startMonth, lq.monthCount - 1)
+      } else {
+        von = C.monatPlus(jetzt, -17); bis = C.monatPlus(jetzt, 12)
+      }
+      const out = []
+      for (let m = von; m <= bis && out.length < 360; m = C.monatPlus(m, 1)) out.push(m)
+      return out
+    }
+
+    // Der gemerkte Monat muss im Planungszeitraum der Immobilie liegen
+    function bkMonatKlemmen(b) {
+      const liste = bkMonate(b.propId)
+      if (!liste.length) return
+      if (liste.includes(b.monat)) return
+      b.monat = b.monat && b.monat < liste[0] ? liste[0] : liste[liste.length - 1]
     }
 
     function bkRender() {
       const wrap = document.getElementById('bkResult')
       if (!bkBuchungen.length) { wrap.innerHTML = ''; return }
+      bkBuchungen.forEach(bkMonatKlemmen)
 
       const propOpts = p => properties.map(x =>
         `<option value="${x.id}" ${x.id === p ? 'selected' : ''}>${esc(x.bezeichnung || 'Immobilie')}</option>`).join('')
       const rowOpts = z => Object.entries(ROW_LABELS).map(([k, v]) =>
         `<option value="${k}" ${k === z ? 'selected' : ''}>${esc(v)}</option>`).join('')
+      const monatOpts = b => bkMonate(b.propId).map(m =>
+        `<option value="${m}" ${m === b.monat ? 'selected' : ''}>${window.IECharts ? esc(window.IECharts.monatName(m, true)) : m}</option>`).join('')
 
       const zeilen = bkBuchungen.map((b, i) => {
-        const offen = !b.skip && (!b.propId || !b.zeile)
+        const offen = !b.skip && (!b.propId || !b.zeile || !b.monat)
         return `
           <tr class="${offen ? 'bk-open' : ''} ${b.skip ? 'bk-skip' : ''}">
             <td class="bk-date">${esc(b.datum || '–')}</td>
             <td class="bk-amount ${b.betrag < 0 ? 'neg' : 'pos'}">${formatEurCent(b.betrag)}</td>
-            <td class="bk-text" title="${esc(b.text)}">${esc(b.text)}</td>
+            <td class="bk-text" title="${esc(b.text)}">${esc(b.text)}${b.ausRegel ? ' <span class="bk-merk" title="Aus einer früher gemerkten Zuordnung">gemerkt</span>' : ''}</td>
             <td>
               <select class="bk-sel" onchange="bkSet(${i},'propId',this.value)">
                 <option value="">– Immobilie wählen –</option>
-                <option value="__ignorieren" ${b.skip ? 'selected' : ''}>– keine, ignorieren –</option>
+                <option value="__ignorieren" ${b.skip ? 'selected' : ''}>– nichts zuordnen –</option>
                 ${propOpts(b.propId)}
               </select>
             </td>
             <td>
-              <select class="bk-sel" onchange="bkSet(${i},'zeile',this.value)">
+              <select class="bk-sel" onchange="bkSet(${i},'zeile',this.value)" ${b.skip ? 'disabled' : ''}>
                 <option value="">– Zeile wählen –</option>${rowOpts(b.zeile)}
+              </select>
+            </td>
+            <td>
+              <select class="bk-sel" onchange="bkSet(${i},'monat',this.value)" ${b.skip ? 'disabled' : ''}>
+                ${monatOpts(b)}
               </select>
             </td>
             <td class="bk-skipcol">
@@ -1256,25 +1336,35 @@
           </tr>`
       }).join('')
 
-      const uebernehmbar = bkBuchungen.filter(b => b.propId && b.zeile && !b.skip).length
+      const uebernehmbar = bkBuchungen.filter(b => b.propId && b.zeile && b.monat && !b.skip).length
+      const ignoriert = bkBuchungen.filter(b => b.skip).length
 
       wrap.innerHTML = `
         <div class="bk-table-wrap">
           <table class="bk-table">
             <thead><tr>
               <th>Datum</th><th class="ta-r">Betrag</th><th>Verwendungszweck</th>
-              <th>Immobilie</th><th>Zeile</th><th title="Ignorieren">✕</th>
+              <th>Immobilie</th><th>Zeile</th><th>Monat</th><th title="Ignorieren">✕</th>
             </tr></thead>
             <tbody>${zeilen}</tbody>
           </table>
         </div>
         <div class="bk-actions">
-          <button class="bk-btn-primary" onclick="bkApply()" ${uebernehmbar ? '' : 'disabled'}>
+          <button class="bk-btn-primary" onclick="bkApply()" ${uebernehmbar || ignoriert ? '' : 'disabled'}>
             ${uebernehmbar} Buchung${uebernehmbar === 1 ? '' : 'en'} übernehmen
           </button>
           <button class="bk-btn" onclick="bkDiscard()">Verwerfen</button>
-          <span class="bk-note">Übernommene Zuordnungen werden gemerkt und beim nächsten Mal automatisch angewendet.</span>
+          <span class="bk-note">Zuordnungen werden gemerkt – auch „nichts zuordnen“. Gleiche Buchungen ordnen sich beim nächsten Mal von selbst zu.</span>
         </div>`
+
+      // Die Statuszeile mitführen, solange nichts läuft oder schiefging
+      const st = document.getElementById('bkStatus')
+      if (st && !/busy|err/.test(st.className)) {
+        const offen = bkBuchungen.length - uebernehmbar - ignoriert
+        st.textContent = `${bkBuchungen.length} Buchungen erkannt` +
+          (offen ? `, davon ${offen} noch zuzuordnen.` : ' und alle zugeordnet.')
+        st.className = 'bk-status' + (offen ? '' : ' ok')
+      }
     }
 
     function bkSet(i, feld, wert) {
@@ -1282,11 +1372,11 @@
       if (!b) return
       if (feld === 'propId' && wert === '__ignorieren') {
         // Buchung gehört zu keiner Immobilie – dauerhaft überspringen
-        b.skip = true; b.propId = null; b.zeile = null; b.manuell = true
+        b.skip = true; b.propId = null; b.zeile = null; b.manuell = true; b.ausRegel = false
         bkRender(); return
       }
-      if (feld === 'skip') { b.skip = !!wert }
-      else { b[feld] = wert || null; b.manuell = true; if (wert) b.skip = false }
+      if (feld === 'skip') { b.skip = !!wert; b.manuell = true; b.ausRegel = false }
+      else { b[feld] = wert || null; b.manuell = true; b.ausRegel = false; if (wert) b.skip = false }
       bkRender()
     }
 
@@ -1297,12 +1387,17 @@
     }
 
     async function bkApply() {
-      const nehmen = bkBuchungen.filter(b => b.propId && b.zeile && !b.skip)
-      if (!nehmen.length) return
+      const nehmen = bkBuchungen.filter(b => b.propId && b.zeile && b.monat && !b.skip)
+      const ignorierte = bkBuchungen.filter(b => b.skip)
+      if (!nehmen.length && !ignorierte.length) return
 
       bkStatus('Wird übernommen …', 'busy')
 
+      // Bewusst nicht zugeordnete Buchungen: nichts eintragen, nur merken
+      ignorierte.forEach(bkRegelMerken)
+
       const proBezeichnung = {}
+      const beruehrt = new Set()
       let uebernommen = 0, doppelt = 0, ausserhalb = 0, ersetzt = 0
 
       for (const p of properties) {
@@ -1321,8 +1416,9 @@
         let geaendert = false
 
         for (const b of meine) {
-          const monat = (b.datum || '').slice(0, 7)
-          if (!/^\d{4}-\d{2}$/.test(monat)) { ausserhalb++; continue }
+          // Der in der Tabelle gewählte Monat entscheidet, nicht das Buchungsdatum
+          const monat = b.monat
+          if (!/^\d{4}-\d{2}$/.test(monat || '')) { ausserhalb++; continue }
 
           const fp = `${b.datum}|${b.betrag}|${(b.text || '').slice(0, 30)}`
           if (lq.imported[fp]) { doppelt++; continue }
@@ -1352,18 +1448,13 @@
           uebernommen++
           proBezeichnung[p.bezeichnung || 'Immobilie'] = (proBezeichnung[p.bezeichnung || 'Immobilie'] || 0) + 1
 
-          // Zuordnung merken
-          const muster = bkMuster(b.text)
-          if (muster) {
-            if (!overview.regeln) overview.regeln = []
-            const vorhanden = overview.regeln.find(r => String(r.muster).toLowerCase() === muster.toLowerCase())
-            if (vorhanden) { vorhanden.propId = b.propId; vorhanden.zeile = b.zeile }
-            else overview.regeln.push({ muster, propId: b.propId, zeile: b.zeile })
-          }
+          // Zuordnung für das nächste Mal merken
+          bkRegelMerken(b)
         }
 
         if (geaendert) {
           p.liquiditaet = lq
+          beruehrt.add(p.id)
           const { error } = await sb.from('portfolio').update({ liquiditaet: lq }).eq('id', p.id)
           if (error) { bkStatus('Fehler beim Speichern: ' + error.message, 'err'); return }
         }
@@ -1374,9 +1465,10 @@
       const teile = Object.entries(proBezeichnung).map(([n, c]) => `${n}: ${c}`).join(' · ')
       let msg = `${uebernommen} Buchung${uebernommen === 1 ? '' : 'en'} übernommen.`
       if (teile) msg += ' ' + teile + '.'
-      if (ersetzt)    msg += ` ${ersetzt} geplante Werte wurden durch die tatsächliche Buchung ersetzt.`
-      if (doppelt)    msg += ` ${doppelt} bereits früher importiert und übersprungen.`
-      if (ausserhalb) msg += ` ${ausserhalb} lagen vor dem Planungsbeginn und wurden ausgelassen.`
+      if (ersetzt)     msg += ` ${ersetzt} geplante Werte wurden durch die tatsächliche Buchung ersetzt.`
+      if (doppelt)     msg += ` ${doppelt} bereits früher importiert und übersprungen.`
+      if (ausserhalb)  msg += ` ${ausserhalb} lagen vor dem Planungsbeginn und wurden ausgelassen.`
+      if (ignorierte.length) msg += ` ${ignorierte.length} bewusst nicht zugeordnet und gemerkt.`
       bkStatus(msg, 'ok')
 
       bkBuchungen = []
@@ -1384,6 +1476,17 @@
       renderUebersicht()
       renderLiquiditaet()
       renderBuchungsstatus()
+      liqPropsKopfzeilen()
+      bkFramesNeuLaden(beruehrt)
+    }
+
+    // Offene Immobilien-Tabellen holen sich die neuen Werte samt Haken
+    function bkFramesNeuLaden(ids) {
+      document.querySelectorAll('.lp-prop').forEach(det => {
+        if (!ids.has(det.dataset.id)) return
+        const f = det.querySelector('iframe')
+        if (f) f.src = f.src
+      })
     }
 
     function sessionToken() {

@@ -166,7 +166,7 @@
     nav.appendChild(mp)
 
     ;[['planung', 'Liquiditätsplanung'],
-      ['szenario', 'Szenariorechner'],
+      ['szenario', 'Szenarienrechner'],
       ['jahr', 'Jahresübersicht'],
       ['notizen', 'Notizen']].forEach(function (v) {
       addSimple(nav, P.global, v[0], v[1])

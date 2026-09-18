@@ -171,6 +171,11 @@
       content: '⚠'; position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
       font-size: 0.78rem; line-height: 1; color: #b45309; pointer-events: none;
     }
+    /* Haken oben rechts: dieser Wert stammt aus einer echten Buchung */
+    .liq-table td.liq-gebucht::before {
+      content: '✓'; position: absolute; top: 1px; right: 4px;
+      font-size: 0.62rem; line-height: 1; font-weight: 700; color: var(--green); pointer-events: none;
+    }
     .liq-row-header .liq-label { font-weight: 600; color: var(--white); background: #26262b; }
     .liq-row-header td { background: rgba(255,255,255,0.025); }
     .liq-spacer td { height: 14px; border-bottom: none; background: transparent; }
@@ -196,7 +201,8 @@
     .liq-cell::placeholder { color: rgba(155,150,140,0.25); }
     .liq-row-sub .liq-cell { font-size: 0.72rem; font-style: italic; }
     .liq-table td:not(.liq-label) { position: relative; }
-    .liq-table td.has-note::after { content: ''; position: absolute; top: 0; right: 0; border-top: 7px solid var(--gold); border-left: 7px solid transparent; pointer-events: none; }
+    /* Notizmarke unten rechts – oben rechts sitzt jetzt der Buchungshaken */
+    .liq-table td.has-note::after { content: ''; position: absolute; bottom: 0; right: 0; border-bottom: 7px solid var(--gold); border-left: 7px solid transparent; pointer-events: none; }
     .liq-modal { position: fixed; inset: 0; background: rgba(255,255,255,0.4); display: none; align-items: center; justify-content: center; z-index: 400; }
     .liq-modal.open { display: flex; }
     .liq-modal-box { background: var(--navy2); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius); padding: 30px; width: min(460px, 92vw); text-align: center; }
@@ -2381,16 +2387,20 @@
         // Grün = mit einer echten Buchung abgeglichen oder nachweislich ohne Bewegung.
         // Warndreieck = geplanter Wert, der seit zwei Monaten unbestätigt ist.
         const stand = liqStand(row, month, val, rec)
+        const gebucht = !!(rec && rec.ic[row + '|' + month])
         const td = cell.parentElement
-        td.classList.toggle('liq-ok', stand === 'ok')
-        td.classList.toggle('liq-warn', stand === 'warn')
+        // Eine echte Buchung bestätigt die Zelle immer – auch in Zeilen,
+        // für die der laufende Abgleich (LIQ_TRACK_ROWS) nicht gilt.
+        td.classList.toggle('liq-ok', stand === 'ok' || gebucht)
+        td.classList.toggle('liq-warn', stand === 'warn' && !gebucht)
+        td.classList.toggle('liq-gebucht', gebucht)
 
         const note = liqData.notes?.[row]?.[month]
         const hinweis = stand === 'warn'
           ? 'Geplanter Wert – seit zwei Monaten keine passende Buchung im Kontoauszug gefunden.'
           : stand === 'ok'
-            ? (rec.ic[row + '|' + month] ? 'Mit einer Buchung aus dem Kontoauszug abgeglichen.'
-                                         : 'Monat vorbei, keine Bewegung – bestätigt.')
+            ? (gebucht ? 'Mit einer Buchung aus dem Kontoauszug abgeglichen.'
+                       : 'Monat vorbei, keine Bewegung – bestätigt.')
             : ''
         cell.title = [note, hinweis].filter(Boolean).join('\n')
         td.classList.toggle('has-note', !!note)
@@ -2413,8 +2423,15 @@
           if (!cell) return
           const staende = kinder.map(k => liqStand(k.key, m, out[k.key]?.[m] ?? 0, rec))
           const td = cell.parentElement
-          if (staende.includes('warn')) { td.classList.add('liq-warn'); td.classList.remove('liq-ok') }
-          else if (staende.length && staende.every(x => x === 'ok')) { td.classList.add('liq-ok') }
+          if (staende.includes('warn')) { td.classList.add('liq-warn'); td.classList.remove('liq-ok', 'liq-gebucht') }
+          else if (staende.length && staende.every(x => x === 'ok')) {
+            td.classList.add('liq-ok')
+            // Haken, wenn jede Kindzeile mit Betrag eine Buchung hat
+            // (leere Zeilen, z. B. keine Nebenkostenvorauszahlung, blockieren nicht)
+            if (kinder.every(k => rec.ic[k.key + '|' + m] || Math.abs(out[k.key]?.[m] ?? 0) < 0.005)) {
+              td.classList.add('liq-gebucht')
+            }
+          }
         })
       })
     }
