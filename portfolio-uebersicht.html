@@ -1398,6 +1398,8 @@
 
       const proBezeichnung = {}
       const beruehrt = new Set()
+      // Zellen, die in genau diesem Durchlauf schon beschrieben wurden
+      const imLauf = new Set()
       let uebernommen = 0, doppelt = 0, ausserhalb = 0, ersetzt = 0
 
       for (const p of properties) {
@@ -1436,8 +1438,6 @@
           const wert = positiv ? Math.abs(b.betrag) : -Math.abs(b.betrag)
           const store = OVERRIDE_ROWS.includes(b.zeile) ? lq.overrides : lq.cells
           if (!store[b.zeile]) store[b.zeile] = {}
-          // Die erste echte Buchung ersetzt den Planwert dieser Zelle.
-          // Jede weitere Buchung desselben Monats wird dazugerechnet.
           const zelle = b.zeile + '|' + monat
           const schonImportiert = !!lq.importedCells[zelle]
           // Vor dem Überschreiben den geplanten Wert festhalten – daran wird
@@ -1445,9 +1445,13 @@
           if (!schonImportiert && lq.planWerte[zelle] === undefined) {
             lq.planWerte[zelle] = bkPlanWert(p, b.zeile, monat, lq)
           }
-          const alt = schonImportiert ? (Number(store[b.zeile][monat]) || 0) : 0
-          if (!schonImportiert && (Number(store[b.zeile][monat]) || 0) !== 0) ersetzt++
+          // Eine Buchung ersetzt den Wert der Zelle – auch eine frühere Buchung.
+          // Nur mehrere Buchungen aus demselben Durchlauf werden addiert.
+          const schonImLauf = imLauf.has(p.id + '|' + zelle)
+          const alt = schonImLauf ? (Number(store[b.zeile][monat]) || 0) : 0
+          if (!schonImLauf && (Number(store[b.zeile][monat]) || 0) !== 0) ersetzt++
           store[b.zeile][monat] = Math.round((alt + wert) * 100) / 100
+          imLauf.add(p.id + '|' + zelle)
           lq.importedCells[zelle] = true
 
           lq.imported[fp] = true
@@ -1472,10 +1476,11 @@
       const teile = Object.entries(proBezeichnung).map(([n, c]) => `${n}: ${c}`).join(' · ')
       let msg = `${uebernommen} Buchung${uebernommen === 1 ? '' : 'en'} übernommen.`
       if (teile) msg += ' ' + teile + '.'
-      if (ersetzt)     msg += ` ${ersetzt} geplante Werte wurden durch die tatsächliche Buchung ersetzt.`
+      if (ersetzt)     msg += ersetzt === 1
+        ? ' Ein bisheriger Wert wurde durch die Buchung ersetzt.'
+        : ` ${ersetzt} bisherige Werte wurden durch die Buchungen ersetzt.`
       if (doppelt)     msg += ` ${doppelt} bereits früher importiert und übersprungen.`
       if (ausserhalb)  msg += ` ${ausserhalb} lagen vor dem Planungsbeginn und wurden ausgelassen.`
-      if (ignorierte.length) msg += ` ${ignorierte.length} bewusst nicht zugeordnet und gemerkt.`
       bkStatus(msg, 'ok')
 
       bkBuchungen = []
