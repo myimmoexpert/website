@@ -402,7 +402,7 @@
     .checklist-card, .notes-area { background: var(--navy2); }
 
   </style>
-  <script>window.IE_PAGE = { area: 'portfolio', view: new URLSearchParams(location.search).get('tab') || 'liquiditaet' }</script>
+  <script>window.IE_PAGE = { area: 'portfolio', view: new URLSearchParams(location.search).get('tab') || 'planung' }</script>
   <script src="hinweise.js"></script>
   <script src="app-shell.js"></script>
 </head>
@@ -441,33 +441,47 @@
     </div>
   </div>
 
-  <!-- ══ TAB: LIQUIDITÄT ══ -->
-  <div class="tab-pane active" id="pane-liquiditaet">
-    <div class="tab-content">
-
-      <!-- Vermögen & Finanzierung · Monatliche Einnahmen und Ausgaben · Rendite -->
-      <div id="kpiWrap"></div>
-
-      <!-- Cashflow je Wohnung -->
-      <div class="kpi-group">
-        <div class="kpi-group-title">Cashflow je Wohnung
-          <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Monatlicher Überschuss beziehungsweise Unterdeckung im laufenden Monat. Zeile anklicken, um die Immobilie zu öffnen.</span></span>
-        </div>
-        <div id="cfList"></div>
-      </div>
-
-    </div>
-  </div>
-
   <!-- ══ LIQUIDITÄTSPLANUNG (Gesamtportfolio + je Immobilie) ══ -->
   <div class="tab-pane" id="pane-planung">
     <div class="tab-content tab-content-breit">
 
+      <!-- Kontoauszug einlesen -->
       <div class="kpi-group">
-        <div class="kpi-group-title">Gesamtportfolio
-          <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Summe der Liquiditätsplanungen aller Immobilien, Monat für Monat. Nur Anzeige – bearbeitet wird unten in der jeweiligen Immobilie, die Summe rechnet nach jedem Speichern neu.</span></span>
+        <div class="kpi-group-title">Kontoauszug einlesen
+          <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Screenshot aus dem Online-Banking hochladen. Die Buchungen werden ausgelesen und, soweit erkennbar, direkt der richtigen Immobilie und Zeile zugeordnet. Was unklar bleibt, wird darunter abgefragt. Das Bild wird nicht gespeichert.</span></span>
+          <span class="save-indicator" id="siImport"></span>
         </div>
-        <details class="liq-auf lp-prop" id="liqAuf" open>
+
+        <div class="bk-drop" id="bkDrop">
+          <div class="bk-drop-icon">🧾</div>
+          <div class="bk-drop-title">Screenshot hierher ziehen oder klicken</div>
+          <div class="bk-drop-sub">PNG oder JPG · mehrere Bilder auf einmal möglich</div>
+        </div>
+        <input type="file" id="bkFile" accept="image/png,image/jpeg,image/webp" multiple style="display:none" />
+
+        <div id="bkStatus" class="bk-status"></div>
+        <div id="bkResult"></div>
+      </div>
+
+      <!-- Buchungsstatus -->
+      <div class="kpi-group">
+        <div class="kpi-group-title">Buchungsstatus
+          <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Sind Miete, Hausgeld und Bankrate im gewählten Monat schon gebucht? Grün wird automatisch gesetzt, sobald die Buchung über einen Kontoauszug eingelesen wurde. Ein Klick auf den Kreis schaltet von Hand um.</span></span>
+          <span class="save-indicator" id="siStatus"></span>
+        </div>
+        <div class="bs-monat">
+          <button type="button" class="bs-pfeil" id="bsZurueck" aria-label="Vorheriger Monat">‹</button>
+          <span class="bs-monat-name" id="bsMonatName">–</span>
+          <button type="button" class="bs-pfeil" id="bsVor" aria-label="Nächster Monat">›</button>
+          <button type="button" class="bs-heute" id="bsHeute">Aktueller Monat</button>
+        </div>
+        <div class="kpi-row" id="bsSumme"></div>
+        <div class="ov-table-wrap bs-wrap" id="bsTabelle"></div>
+      </div>
+
+      <div class="kpi-group">
+        <div class="kpi-group-title">Gesamtportfolio</div>
+        <details class="liq-auf lp-prop" id="liqAuf">
           <summary>
             <span class="liq-auf-chev">▸</span>
             <span class="liq-auf-titel"><span class="lp-ico">📊</span>
@@ -523,84 +537,6 @@
       </div>
     </div>
   </div>
-
-  <!-- ══ TAB: BANKKONTO ══ -->
-  <div class="tab-pane" id="pane-bank">
-    <div class="tab-content">
-
-      <!-- Buchungsstatus -->
-      <div class="kpi-group">
-        <div class="kpi-group-title">Buchungsstatus
-          <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Sind Miete, Hausgeld und Bankrate im gewählten Monat schon gebucht? Grün wird automatisch gesetzt, sobald die Buchung über einen Kontoauszug eingelesen wurde. Ein Klick auf den Kreis schaltet von Hand um.</span></span>
-          <span class="save-indicator" id="siStatus"></span>
-        </div>
-        <div class="bs-monat">
-          <button type="button" class="bs-pfeil" id="bsZurueck" aria-label="Vorheriger Monat">‹</button>
-          <span class="bs-monat-name" id="bsMonatName">–</span>
-          <button type="button" class="bs-pfeil" id="bsVor" aria-label="Nächster Monat">›</button>
-          <button type="button" class="bs-heute" id="bsHeute">Aktueller Monat</button>
-        </div>
-        <div class="kpi-row" id="bsSumme"></div>
-        <div class="ov-table-wrap bs-wrap" id="bsTabelle"></div>
-      </div>
-
-      <!-- Kontoauszug einlesen -->
-      <div class="kpi-group">
-        <div class="kpi-group-title">Kontoauszug einlesen
-          <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Screenshot aus dem Online-Banking hochladen. Die Buchungen werden ausgelesen und, soweit erkennbar, direkt der richtigen Immobilie und Zeile zugeordnet. Was unklar bleibt, wird darunter abgefragt. Das Bild wird nicht gespeichert.</span></span>
-          <span class="save-indicator" id="siImport"></span>
-        </div>
-
-        <div class="bk-drop" id="bkDrop">
-          <div class="bk-drop-icon">🧾</div>
-          <div class="bk-drop-title">Screenshot hierher ziehen oder klicken</div>
-          <div class="bk-drop-sub">PNG oder JPG · mehrere Bilder auf einmal möglich</div>
-        </div>
-        <input type="file" id="bkFile" accept="image/png,image/jpeg,image/webp" multiple style="display:none" />
-
-        <div id="bkStatus" class="bk-status"></div>
-        <div id="bkResult"></div>
-      </div>
-
-      <!-- Monatswechsel -->
-      <div class="kpi-group">
-        <div class="kpi-group-title">Monatswechsel
-          <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Reicht das Geld auf dem Konto für die Zahlungen dieses Monats?</span></span>
-          <span class="save-indicator" id="siKonto"></span>
-        </div>
-
-        <div class="mw-grid">
-          <div class="mw-card">
-            <div class="mw-step">1</div>
-            <div class="mw-label">Aktueller Kontostand</div>
-            <div class="mw-input-row">
-              <input type="text" id="mwKontostand" class="mw-input" placeholder="0,00" inputmode="decimal" />
-              <span class="mw-unit">€</span>
-            </div>
-            <div class="mw-sub" id="mwKontoDatum">noch nicht eingetragen</div>
-          </div>
-
-          <div class="mw-card">
-            <div class="mw-step">2</div>
-            <div class="mw-label">Empfohlene Liquidität zum Monatswechsel</div>
-            <div class="mw-value gold" id="mwEmpfohlen">–</div>
-            <button class="mw-toggle" id="mwToggle" onclick="mwToggleDetail()">Zusammensetzung anzeigen</button>
-          </div>
-
-          <div class="mw-card" id="mwCardEin">
-            <div class="mw-step">3</div>
-            <div class="mw-label">Einzahlung notwendig</div>
-            <div class="mw-value" id="mwEinzahlung">–</div>
-            <div class="mw-sub" id="mwEinzahlungSub">–</div>
-          </div>
-        </div>
-
-        <div class="mw-detail" id="mwDetail" style="display:none;"></div>
-      </div>
-
-    </div>
-  </div>
-
 
   <!-- ══ ANSICHT: AUM ENTWICKLUNG ══ -->
   <!-- ══ TAB: NOTIZEN ══ -->
@@ -698,17 +634,14 @@
       renderLiquiditaet()
       initTodos()
       initNotes()
-      renderKennzahlen()
       initBankImport()
-      initMonatswechsel()
-      renderCashflowListe()
       initLiqAufklapp()
       initBuchungsstatus()
 
       // Deep-Link ?tab=…
       const tabParam = new URLSearchParams(window.location.search).get('tab')
       const tabZiel  = TAB_ALIAS[tabParam] || tabParam
-      switchTab(TAB_ORDER.includes(tabZiel) ? tabZiel : 'liquiditaet')
+      switchTab(TAB_ORDER.includes(tabZiel) ? tabZiel : 'planung')
     }
 
     // ════════════════════════════════════════
@@ -1148,9 +1081,12 @@
     // ════════════════════════════════════════
     // TABS
     // ════════════════════════════════════════
-    const TAB_ORDER = ['uebersicht', 'kontakte', 'liquiditaet', 'planung', 'szenario', 'jahr', 'bank', 'notizen']
+    const TAB_ORDER = ['uebersicht', 'kontakte', 'planung', 'szenario', 'jahr', 'notizen']
     // frühere Einzelbereiche auf die zusammengefassten Ansichten umlenken
-    const TAB_ALIAS = { todos: 'notizen', notes: 'notizen', aum: 'liquiditaet', liquiditaetsplanung: 'planung', szenarien: 'szenario', jahresuebersicht: 'jahr' }
+    // frühere Menüpunkte „Portfoliokennzahlen" und „Bankkonto" gibt es nicht mehr:
+    // die Kennzahlen stehen auf portfolio.html, Kontoauszug und Buchungsstatus in der Planung
+    const TAB_ALIAS = { todos: 'notizen', notes: 'notizen', aum: 'planung', liquiditaet: 'planung',
+                        bank: 'planung', liquiditaetsplanung: 'planung', szenarien: 'szenario', jahresuebersicht: 'jahr' }
     function switchTab(name) {
       name = TAB_ALIAS[name] || name
       document.querySelectorAll('.tab-btn').forEach((btn, i) => {
@@ -1160,11 +1096,9 @@
       const pane = document.getElementById('pane-' + name)
       if (pane) pane.classList.add('active')
       const HD = {
-        liquiditaet: 'Portfoliokennzahlen',
         planung:     'Liquiditätsplanung',
         szenario:    'Szenariorechner',
         jahr:        'Jahresübersicht',
-        bank:        'Bankkonto',
         notizen:     'Notizen',
         uebersicht:  'Übersicht',
         kontakte:    'Kontakte',
@@ -1173,10 +1107,8 @@
         document.getElementById('hdName').textContent = HD
         document.title = HD + ' – Immo.Expert'
       }
-      if (name === 'liquiditaet') zeichneKennzahlenCharts()
-      if (name === 'planung') { renderLiquiditaet(); renderLiqProps(); setTimeout(liqScrollToNow, 150) }
+      if (name === 'planung') { renderLiquiditaet(); renderLiqProps(); setTimeout(liqScrollToNow, 150); renderBuchungsstatus() }
       if (name === 'szenario' && window.IESzenario) window.IESzenario.zeigen(properties)
-      if (name === 'bank') renderBuchungsstatus()
     }
 
     window.ieSetView = switchTab
@@ -1450,9 +1382,6 @@
       bkBuchungen = []
       document.getElementById('bkResult').innerHTML = ''
       renderUebersicht()
-      renderMonatswechsel()
-      renderCashflowListe()
-      renderKennzahlen()
       renderLiquiditaet()
       renderBuchungsstatus()
     }
@@ -1460,347 +1389,6 @@
     function sessionToken() {
       return (window.__ieToken || '')
     }
-
-    // ════════════════════════════════════════
-    // MONATSWECHSEL
-    // ════════════════════════════════════════
-    let mwDetailOffen = false
-
-    function initMonatswechsel() {
-      const inp = document.getElementById('mwKontostand')
-      if (!inp) return
-      if (overview.kontostand !== undefined && overview.kontostand !== null) {
-        inp.value = formatEurCent(Number(overview.kontostand)).replace(/\s*€/, '')
-      }
-      inp.addEventListener('input', () => {
-        const n = parseDe(inp.value)
-        overview.kontostand = (n === null) ? null : n
-        overview.kontostandDatum = new Date().toISOString().slice(0, 10)
-        renderMonatswechsel()
-        scheduleSave('k')
-      })
-      inp.addEventListener('blur', () => {
-        if (overview.kontostand !== null && overview.kontostand !== undefined) {
-          inp.value = formatEurCent(Number(overview.kontostand)).replace(/\s*€/, '')
-        }
-      })
-      renderMonatswechsel()
-    }
-
-    function mwToggleDetail() {
-      mwDetailOffen = !mwDetailOffen
-      document.getElementById('mwDetail').style.display = mwDetailOffen ? '' : 'none'
-      document.getElementById('mwToggle').textContent =
-        mwDetailOffen ? 'Zusammensetzung ausblenden' : 'Zusammensetzung anzeigen'
-    }
-
-    function renderMonatswechsel() {
-      const stats = properties.map(p => ({ p, st: liqStats(p) }))
-      const empfohlen = stats.reduce((s, x) => s + x.st.liq, 0)
-      const kontostand = (overview.kontostand === undefined || overview.kontostand === null)
-        ? null : Number(overview.kontostand)
-      const einzahlung = (kontostand === null) ? null : Math.max(0, empfohlen - kontostand)
-
-      document.getElementById('mwEmpfohlen').textContent = formatEurCent(empfohlen)
-
-      const dEl = document.getElementById('mwKontoDatum')
-      dEl.textContent = overview.kontostandDatum
-        ? 'Stand vom ' + new Date(overview.kontostandDatum).toLocaleDateString('de-DE')
-        : 'noch nicht eingetragen'
-
-      const eEl = document.getElementById('mwEinzahlung')
-      const sEl = document.getElementById('mwEinzahlungSub')
-      const card = document.getElementById('mwCardEin')
-      card.classList.remove('ok', 'warn')
-
-      if (kontostand === null) {
-        eEl.textContent = '–'
-        eEl.className = 'mw-value'
-        sEl.textContent = 'Kontostand oben eintragen'
-      } else if (einzahlung <= 0.004) {
-        eEl.textContent = formatEurCent(0)
-        eEl.className = 'mw-value green'
-        sEl.textContent = `Der Kontostand deckt die Zahlungen. Überschuss ${formatEurCent(kontostand - empfohlen)}.`
-        card.classList.add('ok')
-      } else {
-        eEl.textContent = formatEurCent(einzahlung)
-        eEl.className = 'mw-value red'
-        sEl.textContent = `Es fehlen ${formatEurCent(einzahlung)} bis zur empfohlenen Liquidität.`
-        card.classList.add('warn')
-      }
-
-      const zeilen = stats.filter(x => Math.abs(x.st.liq) > 0.004).map(x => `
-        <tr>
-          <td>${esc(x.p.bezeichnung || 'Immobilie')}</td>
-          <td class="ta-r">${formatEurCent(Math.abs(x.st.hausgeld))}</td>
-          <td class="ta-r">${formatEurCent(Math.abs(x.st.bankrate))}</td>
-          <td class="ta-r strong">${formatEurCent(x.st.liq)}</td>
-        </tr>`).join('')
-
-      document.getElementById('mwDetail').innerHTML = `
-        <table class="mw-table">
-          <thead><tr>
-            <th>Immobilie</th><th class="ta-r">Hausgeld</th>
-            <th class="ta-r">Bankrate</th><th class="ta-r">Summe</th>
-          </tr></thead>
-          <tbody>${zeilen || '<tr><td colspan="4" class="ov-empty">Keine Zahlungen im laufenden Monat hinterlegt.</td></tr>'}</tbody>
-          <tfoot><tr>
-            <td>Gesamt</td><td></td><td></td><td class="ta-r strong">${formatEurCent(empfohlen)}</td>
-          </tr></tfoot>
-        </table>
-        <p class="mw-formel">
-          Empfohlene Liquidität = Hausgeld + Bankrate (Zins + Tilgung) des laufenden Monats,
-          über alle Immobilien. Mieteingänge werden bewusst nicht gegengerechnet.
-        </p>`
-    }
-
-    // ════════════════════════════════════════
-    // CASHFLOW JE WOHNUNG
-    // ════════════════════════════════════════
-    function renderCashflowListe() {
-      const el = document.getElementById('cfList')
-      if (!el) return
-      if (!properties.length) {
-        el.innerHTML = '<div class="ov-empty">Noch keine Immobilien angelegt.</div>'
-        return
-      }
-
-      const stats = properties.map(p => ({ p, st: liqStats(p) }))
-                              .sort((a, b) => a.st.cf - b.st.cf)
-      const negativ = stats.filter(x => x.st.cf < -0.004)
-      const summe   = stats.reduce((s, x) => s + x.st.cf, 0)
-      const summeNeg = negativ.reduce((s, x) => s + x.st.cf, 0)
-
-      const zeilen = stats.map(x => {
-        const neg = x.st.cf < -0.004
-        return `
-          <tr class="cf-row" onclick="location.href='portfolio-uebersicht.html?tab=planung&prop=${x.p.id}'">
-            <td class="cf-name">${esc(x.p.bezeichnung || 'Immobilie')}</td>
-            <td class="cf-adr">${esc(x.p.adresse || '')}</td>
-            <td class="ta-r">${formatEurCent(x.st.miete)}</td>
-            <td class="ta-r">${formatEurCent(-(Math.abs(x.st.hausgeld) + Math.abs(x.st.bankrate) + Math.abs(x.st.grundsteuer)))}</td>
-            <td class="ta-r strong ${neg ? 'red' : 'green'}">${formatEurCent(x.st.cf)}</td>
-          </tr>`
-      }).join('')
-
-      const summeMiete = stats.reduce((s, x) => s + x.st.miete, 0)
-      const summeAus   = stats.reduce((s, x) => s - (Math.abs(x.st.hausgeld) + Math.abs(x.st.bankrate) + Math.abs(x.st.grundsteuer)), 0)
-
-      el.innerHTML = `
-        <div class="kpi-row">
-          <div class="kpi-tile">
-            <span class="kpi-label">Wohnungen mit negativem Cashflow</span>
-            <span class="kpi-value ${negativ.length ? 'red' : 'green'}">${negativ.length} von ${stats.length}</span>
-          </div>
-          <div class="kpi-tile">
-            <span class="kpi-label">Summe der Unterdeckungen</span>
-            <span class="kpi-value ${summeNeg < -0.004 ? 'red' : ''}">${formatEurCent(summeNeg)}</span>
-          </div>
-          <div class="kpi-tile">
-            <span class="kpi-label">Cashflow gesamt</span>
-            <span class="kpi-value ${summe < -0.004 ? 'red' : 'green'}">${formatEurCent(summe)}</span>
-          </div>
-        </div>
-        <div class="ov-table-wrap" style="margin-top:14px;">
-          <table class="cf-table">
-            <thead><tr>
-              <th>Immobilie</th><th>Adresse</th><th class="ta-r">Miete</th>
-              <th class="ta-r">Ausgaben</th><th class="ta-r">Cashflow</th>
-            </tr></thead>
-            <tbody>${zeilen}</tbody>
-            <tfoot><tr>
-              <td>Gesamt</td><td></td>
-              <td class="ta-r">${formatEurCent(summeMiete)}</td>
-              <td class="ta-r">${formatEurCent(summeAus)}</td>
-              <td class="ta-r ${summe < -0.004 ? 'red' : 'green'}">${formatEurCent(summe)}</td>
-            </tr></tfoot>
-          </table>
-        </div>`
-    }
-
-
-    // ════════════════════════════════════════
-    // KENNZAHLEN
-    // ════════════════════════════════════════
-    function renderKennzahlen() {
-      const el = document.getElementById('kpiWrap')
-      if (!el) return
-      if (!window.IECalc) { el.innerHTML = '<div class="ov-empty">Berechnung nicht geladen.</div>'; return }
-      if (!properties.length) {
-        el.innerHTML = '<div class="ov-empty">Noch keine Immobilien angelegt.</div>'
-        return
-      }
-
-      const m = window.IECalc.jetztMonat()
-      let aum = 0, fk = 0, kaufpreis = 0, ekEingesetzt = 0
-      let miete = 0, hausgeld = 0, bankrate = 0, cf = 0, nkmJahr = 0
-
-      // Der Wert je Immobilie kommt aus deren eigener Einstellung
-      const zaehler = { kaufpreis: 0, steigerung: 0, eigen: 0 }
-
-      properties.forEach(p => {
-        aum += window.IECalc.aktuellerWert(p) || 0
-        const modus = (window.IECalc.wertEinstellung(p) || {}).modus || 'kaufpreis'
-        zaehler[modus] = (zaehler[modus] || 0) + 1
-        fk  += window.IECalc.restschuld(p, m)
-        kaufpreis += window.IECalc.kaufpreis(p)
-        ekEingesetzt += Math.abs(window.IECalc.summeAlle(p, 'einzahlungEk'))
-        const t = window.IECalc.cfTeile(p, m)
-        miete += t.miete + t.weitereMiete
-        hausgeld += t.hausgeld
-        bankrate += t.bankrate
-        cf += t.cf
-        const st = liqStats(p)
-        nkmJahr += (st.nkm || 0) * 12
-      })
-
-      const ek  = Math.max(0, aum - fk)
-      const ltv = aum > 0 ? fk / aum : null
-      const brutto = kaufpreis > 0 && nkmJahr > 0 ? nkmJahr / kaufpreis : null
-      const ekRendite = ekEingesetzt > 0 ? (cf * 12) / ekEingesetzt : null
-      const faktor = nkmJahr > 0 ? kaufpreis / nkmJahr : null
-
-      const pct = v => v === null ? '–' : (v * 100).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' %'
-      const fak = v => v === null ? '–' : v.toLocaleString('de-DE', { maximumFractionDigits: 1 })
-
-      const gruppe = (titel, kacheln, chartId) => `
-        <div class="kpi-group">
-          <div class="kpi-group-title">${esc(titel)}</div>
-          <div class="kpi-row">
-            ${kacheln.map(k => `
-              <div class="kpi-tile">
-                <span class="kpi-label-row">
-                  <span class="kpi-label">${esc(k.l)}</span>
-                  ${k.s ? `<span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">${esc(k.s)}</span></span>` : ''}
-                </span>
-                <span class="kpi-value ${k.c || ''}">${k.v}</span>
-              </div>`).join('')}
-          </div>
-          ${chartId ? `<div id="${chartId}"></div>` : ''}
-        </div>`
-
-      el.innerHTML =
-        gruppe('Vermögen & Finanzierung', [
-          { l: 'Portfoliowert', v: formatEur(aum), c: 'gold',
-            s: [zaehler.kaufpreis ? zaehler.kaufpreis + '× Kaufpreis' : '',
-                zaehler.steigerung ? zaehler.steigerung + '× mit Wertsteigerung' : '',
-                zaehler.eigen ? zaehler.eigen + '× eigener Wert' : ''].filter(Boolean).join(' · ') },
-          { l: 'Restschuld',    v: formatEur(fk),  s: 'Darlehen abzüglich Tilgung' },
-          { l: 'Eigenkapital',  v: formatEur(ek),  c: 'green', s: 'Wert abzüglich Restschuld' },
-          { l: 'Beleihungsauslauf', v: pct(ltv), s: 'Restschuld ÷ Portfoliowert' },
-        ], 'kcVermoegen') +
-        gruppe('Monatliche Einnahmen und Ausgaben', [
-          { l: 'Mieteinnahmen', v: formatEur(miete), c: 'green' },
-          { l: 'Hausgeld',      v: formatEur(hausgeld) },
-          { l: 'Bankrate',      v: formatEur(bankrate) },
-          { l: 'Cashflow',      v: formatEur(cf), c: cf < -0.004 ? 'red' : 'green' },
-        ], 'kcMonat') +
-        gruppe('Rendite', [
-          { l: 'Brutto-Mietrendite', v: pct(brutto), s: 'Jahreskaltmiete ÷ Kaufpreis' },
-          { l: 'Eigenkapitalrendite', v: pct(ekRendite),
-            s: ekEingesetzt > 0 ? 'Cashflow p. a. ÷ eingesetztes EK' : 'kein Eigenkapital erfasst' },
-          { l: 'Kaufpreisfaktor', v: fak(faktor), s: 'Kaufpreis ÷ Jahreskaltmiete' },
-        ], 'kcRendite')
-
-      zeichneKennzahlenCharts()
-    }
-
-    // ════════════════════════════════════════
-    // CHARTS ZU DEN KENNZAHLEN
-    // ════════════════════════════════════════
-    function zeichneKennzahlenCharts() {
-      if (!window.IEChart || !window.IECalc || !properties.length) return
-      const pane = document.getElementById('pane-liquiditaet')
-      if (!pane || !pane.classList.contains('active')) return
-      const K = window.IEChart, F = K.farben, C = window.IECalc
-      const m = C.jetztMonat()
-      const kurzName = p => p.bezeichnung || 'Immobilie'
-
-      // 1) Vermögen & Finanzierung: Eigenkapital und Restschuld je Immobilie
-      const hV = document.getElementById('kcVermoegen')
-      if (hV) {
-        const rows = properties.map(p => {
-          const w = C.aktuellerWert(p) || 0
-          const fk = Math.min(C.restschuld(p, m), w || Infinity)
-          return { name: kurzName(p), wert: w, fk: fk, ek: Math.max(0, w - fk) }
-        }).filter(r => r.wert > 0).sort((a, b) => b.wert - a.wert)
-        hV.innerHTML = K.karte({ titel: 'Wert je Immobilie',
-          info: 'Aktueller Wert jeder Immobilie, aufgeteilt in Eigenkapital und Restschuld. Rechts der Beleihungsauslauf.',
-          legende: [{ c: F.GOLD, t: 'Eigenkapital' }, { c: F.BLAU, t: 'Restschuld' }] })
-        K.balken(hV.querySelector('.pc-plot'), {
-          aria: 'Eigenkapital und Restschuld je Immobilie',
-          leerText: 'Noch keine Immobilie mit Wert erfasst.',
-          labels: rows.map(r => r.name), gestapelt: true,
-          serien: [{ name: 'Eigenkapital', farbe: F.GOLD, werte: rows.map(r => r.ek) },
-                   { name: 'Restschuld', farbe: F.BLAU, werte: rows.map(r => r.fk) }],
-          rechts: i => rows[i].wert ? Math.round(rows[i].fk / rows[i].wert * 100) + ' %' : '–',
-          tipExtra: i => [{ c: F.INK2, t: 'Wert', v: K.eur(rows[i].wert) },
-                          { c: F.INK2, t: 'Beleihungsauslauf', v: rows[i].wert ? Math.round(rows[i].fk / rows[i].wert * 100) + ' %' : '–' }],
-        })
-      }
-
-      // 2) Monatliche Einnahmen und Ausgaben: 12 Monate um heute
-      const hM = document.getElementById('kcMonat')
-      if (hM) {
-        const monate = []
-        for (let i = -5; i <= 6; i++) monate.push(C.monatPlus(m, i))
-        const daten = monate.map(mm => {
-          let ein = 0, aus = 0, cf = 0
-          properties.forEach(p => {
-            const t = C.cfTeile(p, mm)
-            ein += t.miete + t.weitereMiete
-            aus += Math.abs(t.hausgeld) + Math.abs(t.bankrate) + Math.abs(t.grundsteuer)
-            cf += t.cf
-          })
-          return { m: mm, ein, aus, cf }
-        })
-        const akt = monate.indexOf(m)
-        hM.innerHTML = K.karte({ titel: 'Einnahmen und Ausgaben je Monat',
-          info: 'Mieteinnahmen und laufende Ausgaben (Hausgeld, Bankrate, Grundsteuer) aller Immobilien, fünf Monate zurück bis sechs Monate voraus. Die Linie ist der Cashflow.',
-          legende: [{ c: F.GOLD, t: 'Einnahmen' }, { c: F.BLAU, t: 'Ausgaben' }, { c: F.INK, t: 'Cashflow', linie: true }] })
-        K.saeulen(hM.querySelector('.pc-plot'), {
-          aria: 'Einnahmen und Ausgaben je Monat',
-          labels: monate.map(mm => window.IECharts.monatName(mm)),
-          serien: [{ name: 'Einnahmen', farbe: F.GOLD, werte: daten.map(d => d.ein) },
-                   { name: 'Ausgaben', farbe: F.BLAU, werte: daten.map(d => d.aus) }],
-          linie: { name: 'Cashflow', farbe: F.INK, werte: daten.map(d => d.cf) },
-          aktuell: akt,
-          blass: i => i > akt,
-          tipTitel: i => window.IECharts.monatName(monate[i], true) + (i > akt ? ' · Planung' : i === akt ? ' · laufender Monat' : ''),
-        })
-      }
-
-      // 3) Rendite je Immobilie
-      const hR = document.getElementById('kcRendite')
-      if (hR) {
-        const rows = properties.map(p => {
-          const kp = C.kaufpreis(p)
-          const st = liqStats(p)
-          const t = C.cfTeile(p, m)
-          const ek = Math.abs(C.summeAlle(p, 'einzahlungEk'))
-          return { name: kurzName(p),
-                   brutto: kp > 0 ? (st.nkm || 0) * 12 / kp * 100 : 0,
-                   ekr: ek > 0 ? t.cf * 12 / ek * 100 : 0, hatEk: ek > 0, kp }
-        }).filter(r => r.kp > 0).sort((a, b) => b.brutto - a.brutto)
-        const pct = v => v.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %'
-        hR.innerHTML = K.karte({ titel: 'Rendite je Immobilie',
-          info: 'Brutto-Mietrendite (Jahreskaltmiete ÷ Kaufpreis) und Eigenkapitalrendite (Cashflow p. a. ÷ eingesetztes Eigenkapital) je Immobilie.',
-          legende: [{ c: F.GOLD, t: 'Brutto-Mietrendite' }, { c: F.BLAU, t: 'Eigenkapitalrendite' }] })
-        K.balken(hR.querySelector('.pc-plot'), {
-          aria: 'Rendite je Immobilie',
-          leerText: 'Noch keine Immobilie mit Kaufpreis erfasst.',
-          labels: rows.map(r => r.name),
-          serien: [{ name: 'Brutto-Mietrendite', farbe: F.GOLD, werte: rows.map(r => r.brutto) },
-                   { name: 'Eigenkapitalrendite', farbe: F.BLAU, werte: rows.map(r => r.ekr) }],
-          format: pct,
-          achse: v => v.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' %',
-          tipExtra: i => rows[i].hatEk ? [] : [{ c: F.INK2, t: 'Eigenkapital', v: 'nicht erfasst' }],
-        })
-      }
-    }
-
-    let kcResize = null
-    window.addEventListener('resize', () => { clearTimeout(kcResize); kcResize = setTimeout(zeichneKennzahlenCharts, 180) })
 
     // ════════════════════════════════════════
     // LIQUIDITÄTSPLANUNG (aufklappbar) + EXCEL
@@ -1906,8 +1494,6 @@
         renderLiquiditaet()
         liqPropsKopfzeilen()
         renderUebersicht()
-        renderKennzahlen()
-        renderCashflowListe()
       }
     })
 

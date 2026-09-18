@@ -234,6 +234,46 @@
     /* ── Graphen ── */
     .charts-section { width: 100%; padding: 30px 40px 0; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important; }
     @media (max-width: 700px) { .charts-section { padding-left: 18px; padding-right: 18px; } }
+
+    /* ── Kennzahlen-Gruppen ── */
+    .kpi-group { margin-top: 34px; padding-top: 28px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .tab-content > .kpi-group:first-child, #kpiWrap > .kpi-group:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+    .kpi-group .pc-card { margin-top: 14px; }
+    .kpi-group-title .save-indicator { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 500; }
+    .kpi-group-title { display: flex; align-items: center; gap: 9px;
+      font-size: 0.76rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.7px; color: var(--white); margin-bottom: 13px; }
+    .kpi-group-title .ie-info { text-transform: none; }
+    .kpi-group-title::before { content: ''; display: inline-block; width: 3px; height: 13px;
+      border-radius: 2px; background: var(--gold); }
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+    .kpi-tile { background: var(--navy2); border: 1px solid rgba(255,255,255,0.112); border-radius: 12px;
+      padding: 15px 18px; display: flex; flex-direction: column; gap: 5px; }
+    .kpi-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.4px; color: var(--muted); }
+    .kpi-value { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.3px; }
+    .kpi-value.gold { color: var(--gold); }
+    .kpi-value.green { color: var(--green); }
+    .kpi-value.red { color: var(--red); }
+    .kpi-label-row { display: flex; align-items: center; gap: 7px; }
+    .ov-empty { padding: 30px 20px; color: var(--muted); font-size: 0.9rem; text-align: center; }
+
+    /* ── Einklappbare Bereiche (wie auf der Immobilienseite) ── */
+    .sections { width: 100%; padding: 30px 40px 80px; display: grid; gap: 14px; }
+    @media (max-width: 700px) { .sections { padding: 24px 18px 60px; } }
+    .ie-sec { background: var(--navy2); border: 1px solid rgba(255,255,255,0.112); border-radius: var(--radius); }
+    .ie-sec > summary { list-style: none; display: flex; align-items: center; gap: 12px;
+      padding: 16px 22px; cursor: pointer; user-select: none; }
+    .ie-sec > summary::-webkit-details-marker { display: none; }
+    .ie-sec-ico { font-size: 1.05rem; }
+    .ie-sec-titel { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.2px; flex: 1; }
+    .ie-sec-anzahl { font-size: 0.8rem; color: var(--muted); }
+    .ie-sec-chev { color: var(--muted); font-size: 0.9rem; transition: transform .18s; }
+    .ie-sec[open] .ie-sec-chev { transform: rotate(90deg); }
+    .ie-sec-body { padding: 4px 22px 22px; }
+    .ie-sec .tile-grid { padding: 0; max-width: none; }
+    .ie-sec .kpi-group:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+    @media (max-width: 700px) { .ie-sec-body { padding: 4px 14px 18px; } }
   </style>
   <link rel="stylesheet" href="app.css" />
   <style>
@@ -297,9 +337,28 @@
   <!-- Graphen -->
   <div class="charts-section pc-grid" id="chartsSection"></div>
 
-  <!-- Tile Grid -->
-  <div class="tile-grid" id="tileGrid">
-    <!-- Wird per JS befüllt -->
+  <!-- Einklappbare Bereiche -->
+  <div class="sections">
+    <details class="ie-sec" id="secKennzahlen">
+      <summary>
+        <span class="ie-sec-ico">📊</span>
+        <span class="ie-sec-titel">Weitere Portfoliokennzahlen</span>
+        <span class="ie-sec-chev">▸</span>
+      </summary>
+      <div class="ie-sec-body"><div id="kpiWrap"></div></div>
+    </details>
+
+    <details class="ie-sec" id="secImmobilien">
+      <summary>
+        <span class="ie-sec-ico">🏢</span>
+        <span class="ie-sec-titel">Meine Immobilien</span>
+        <span class="ie-sec-anzahl" id="secImmoAnzahl"></span>
+        <span class="ie-sec-chev">▸</span>
+      </summary>
+      <div class="ie-sec-body">
+        <div class="tile-grid" id="tileGrid"><!-- Wird per JS befüllt --></div>
+      </div>
+    </details>
   </div>
 
   <!-- Immobilie hinzufügen Modal -->
@@ -448,7 +507,13 @@
 
         // Kacheln rendern
         data.forEach((p, i) => grid.appendChild(buildTile(p, stats[i])))
+      } else {
+        PW_DATA = { rows: data || [], stats: [] }
       }
+
+      const anz = document.getElementById('secImmoAnzahl')
+      if (anz) anz.textContent = (data || []).length === 1 ? '1 Immobilie' : (data || []).length + ' Immobilien'
+      renderKennzahlen()
 
       // Graphen mit denselben Daten zeichnen
       if (window.IECharts) {
@@ -458,6 +523,191 @@
       // "Hinzufügen"-Kachel immer am Ende
       grid.appendChild(buildAddTile())
     }
+
+    function renderKennzahlen() {
+      const el = document.getElementById('kpiWrap')
+      if (!el) return
+      if (!window.IECalc) { el.innerHTML = '<div class="ov-empty">Berechnung nicht geladen.</div>'; return }
+      if (!PW_DATA.rows.length) {
+        el.innerHTML = '<div class="ov-empty">Noch keine Immobilien angelegt.</div>'
+        return
+      }
+
+      const m = window.IECalc.jetztMonat()
+      let aum = 0, fk = 0, kaufpreis = 0, ekEingesetzt = 0
+      let miete = 0, hausgeld = 0, bankrate = 0, cf = 0, nkmJahr = 0
+
+      // Der Wert je Immobilie kommt aus deren eigener Einstellung
+      const zaehler = { kaufpreis: 0, steigerung: 0, eigen: 0 }
+
+      PW_DATA.rows.forEach(p => {
+        aum += window.IECalc.aktuellerWert(p) || 0
+        const modus = (window.IECalc.wertEinstellung(p) || {}).modus || 'kaufpreis'
+        zaehler[modus] = (zaehler[modus] || 0) + 1
+        fk  += window.IECalc.restschuld(p, m)
+        kaufpreis += window.IECalc.kaufpreis(p)
+        ekEingesetzt += Math.abs(window.IECalc.summeAlle(p, 'einzahlungEk'))
+        const t = window.IECalc.cfTeile(p, m)
+        miete += t.miete + t.weitereMiete
+        hausgeld += t.hausgeld
+        bankrate += t.bankrate
+        cf += t.cf
+        const st = liqStats(p)
+        nkmJahr += (st.nkm || 0) * 12
+      })
+
+      const ek  = Math.max(0, aum - fk)
+      const ltv = aum > 0 ? fk / aum : null
+      const brutto = kaufpreis > 0 && nkmJahr > 0 ? nkmJahr / kaufpreis : null
+      const ekRendite = ekEingesetzt > 0 ? (cf * 12) / ekEingesetzt : null
+      const faktor = nkmJahr > 0 ? kaufpreis / nkmJahr : null
+
+      const pct = v => v === null ? '–' : (v * 100).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' %'
+      const fak = v => v === null ? '–' : v.toLocaleString('de-DE', { maximumFractionDigits: 1 })
+
+      const gruppe = (titel, kacheln, chartId) => `
+        <div class="kpi-group">
+          <div class="kpi-group-title">${esc(titel)}</div>
+          <div class="kpi-row">
+            ${kacheln.map(k => `
+              <div class="kpi-tile">
+                <span class="kpi-label-row">
+                  <span class="kpi-label">${esc(k.l)}</span>
+                  ${k.s ? `<span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">${esc(k.s)}</span></span>` : ''}
+                </span>
+                <span class="kpi-value ${k.c || ''}">${k.v}</span>
+              </div>`).join('')}
+          </div>
+          ${chartId ? `<div id="${chartId}"></div>` : ''}
+        </div>`
+
+      el.innerHTML =
+        gruppe('Vermögen & Finanzierung', [
+          { l: 'Portfoliowert', v: formatEur(aum), c: 'gold',
+            s: [zaehler.kaufpreis ? zaehler.kaufpreis + '× Kaufpreis' : '',
+                zaehler.steigerung ? zaehler.steigerung + '× mit Wertsteigerung' : '',
+                zaehler.eigen ? zaehler.eigen + '× eigener Wert' : ''].filter(Boolean).join(' · ') },
+          { l: 'Restschuld',    v: formatEur(fk),  s: 'Darlehen abzüglich Tilgung' },
+          { l: 'Eigenkapital',  v: formatEur(ek),  c: 'green', s: 'Wert abzüglich Restschuld' },
+          { l: 'Beleihungsauslauf', v: pct(ltv), s: 'Restschuld ÷ Portfoliowert' },
+        ], 'kcVermoegen') +
+        gruppe('Monatliche Einnahmen und Ausgaben', [
+          { l: 'Mieteinnahmen', v: formatEur(miete), c: 'green' },
+          { l: 'Hausgeld',      v: formatEur(hausgeld) },
+          { l: 'Bankrate',      v: formatEur(bankrate) },
+          { l: 'Cashflow',      v: formatEur(cf), c: cf < -0.004 ? 'red' : 'green' },
+        ], 'kcMonat') +
+        gruppe('Rendite', [
+          { l: 'Brutto-Mietrendite', v: pct(brutto), s: 'Jahreskaltmiete ÷ Kaufpreis' },
+          { l: 'Eigenkapitalrendite', v: pct(ekRendite),
+            s: ekEingesetzt > 0 ? 'Cashflow p. a. ÷ eingesetztes EK' : 'kein Eigenkapital erfasst' },
+          { l: 'Kaufpreisfaktor', v: fak(faktor), s: 'Kaufpreis ÷ Jahreskaltmiete' },
+        ], 'kcRendite')
+
+      zeichneKennzahlenCharts()
+    }
+
+    // ════════════════════════════════════════
+    // CHARTS ZU DEN KENNZAHLEN
+    // ════════════════════════════════════════
+    function zeichneKennzahlenCharts() {
+      if (!window.IEChart || !window.IECalc || !PW_DATA.rows.length) return
+      const sec = document.getElementById('secKennzahlen')
+      if (!sec || !sec.open) return
+      const K = window.IEChart, F = K.farben, C = window.IECalc
+      const m = C.jetztMonat()
+      const kurzName = p => p.bezeichnung || 'Immobilie'
+
+      // 1) Vermögen & Finanzierung: Eigenkapital und Restschuld je Immobilie
+      const hV = document.getElementById('kcVermoegen')
+      if (hV) {
+        const rows = PW_DATA.rows.map(p => {
+          const w = C.aktuellerWert(p) || 0
+          const fk = Math.min(C.restschuld(p, m), w || Infinity)
+          return { name: kurzName(p), wert: w, fk: fk, ek: Math.max(0, w - fk) }
+        }).filter(r => r.wert > 0).sort((a, b) => b.wert - a.wert)
+        hV.innerHTML = K.karte({ titel: 'Wert je Immobilie',
+          info: 'Aktueller Wert jeder Immobilie, aufgeteilt in Eigenkapital und Restschuld. Rechts der Beleihungsauslauf.',
+          legende: [{ c: F.GOLD, t: 'Eigenkapital' }, { c: F.BLAU, t: 'Restschuld' }] })
+        K.balken(hV.querySelector('.pc-plot'), {
+          aria: 'Eigenkapital und Restschuld je Immobilie',
+          leerText: 'Noch keine Immobilie mit Wert erfasst.',
+          labels: rows.map(r => r.name), gestapelt: true,
+          serien: [{ name: 'Eigenkapital', farbe: F.GOLD, werte: rows.map(r => r.ek) },
+                   { name: 'Restschuld', farbe: F.BLAU, werte: rows.map(r => r.fk) }],
+          rechts: i => rows[i].wert ? Math.round(rows[i].fk / rows[i].wert * 100) + ' %' : '–',
+          tipExtra: i => [{ c: F.INK2, t: 'Wert', v: K.eur(rows[i].wert) },
+                          { c: F.INK2, t: 'Beleihungsauslauf', v: rows[i].wert ? Math.round(rows[i].fk / rows[i].wert * 100) + ' %' : '–' }],
+        })
+      }
+
+      // 2) Monatliche Einnahmen und Ausgaben: 12 Monate um heute
+      const hM = document.getElementById('kcMonat')
+      if (hM) {
+        const monate = []
+        for (let i = -5; i <= 6; i++) monate.push(C.monatPlus(m, i))
+        const daten = monate.map(mm => {
+          let ein = 0, aus = 0, cf = 0
+          PW_DATA.rows.forEach(p => {
+            const t = C.cfTeile(p, mm)
+            ein += t.miete + t.weitereMiete
+            aus += Math.abs(t.hausgeld) + Math.abs(t.bankrate) + Math.abs(t.grundsteuer)
+            cf += t.cf
+          })
+          return { m: mm, ein, aus, cf }
+        })
+        const akt = monate.indexOf(m)
+        hM.innerHTML = K.karte({ titel: 'Einnahmen und Ausgaben je Monat',
+          info: 'Mieteinnahmen und laufende Ausgaben (Hausgeld, Bankrate, Grundsteuer) aller Immobilien, fünf Monate zurück bis sechs Monate voraus. Die Linie ist der Cashflow.',
+          legende: [{ c: F.GOLD, t: 'Einnahmen' }, { c: F.BLAU, t: 'Ausgaben' }, { c: F.INK, t: 'Cashflow', linie: true }] })
+        K.saeulen(hM.querySelector('.pc-plot'), {
+          aria: 'Einnahmen und Ausgaben je Monat',
+          labels: monate.map(mm => window.IECharts.monatName(mm)),
+          serien: [{ name: 'Einnahmen', farbe: F.GOLD, werte: daten.map(d => d.ein) },
+                   { name: 'Ausgaben', farbe: F.BLAU, werte: daten.map(d => d.aus) }],
+          linie: { name: 'Cashflow', farbe: F.INK, werte: daten.map(d => d.cf) },
+          aktuell: akt,
+          blass: i => i > akt,
+          tipTitel: i => window.IECharts.monatName(monate[i], true) + (i > akt ? ' · Planung' : i === akt ? ' · laufender Monat' : ''),
+        })
+      }
+
+      // 3) Rendite je Immobilie
+      const hR = document.getElementById('kcRendite')
+      if (hR) {
+        const rows = PW_DATA.rows.map(p => {
+          const kp = C.kaufpreis(p)
+          const st = liqStats(p)
+          const t = C.cfTeile(p, m)
+          const ek = Math.abs(C.summeAlle(p, 'einzahlungEk'))
+          return { name: kurzName(p),
+                   brutto: kp > 0 ? (st.nkm || 0) * 12 / kp * 100 : 0,
+                   ekr: ek > 0 ? t.cf * 12 / ek * 100 : 0, hatEk: ek > 0, kp }
+        }).filter(r => r.kp > 0).sort((a, b) => b.brutto - a.brutto)
+        const pct = v => v.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %'
+        hR.innerHTML = K.karte({ titel: 'Rendite je Immobilie',
+          info: 'Brutto-Mietrendite (Jahreskaltmiete ÷ Kaufpreis) und Eigenkapitalrendite (Cashflow p. a. ÷ eingesetztes Eigenkapital) je Immobilie.',
+          legende: [{ c: F.GOLD, t: 'Brutto-Mietrendite' }, { c: F.BLAU, t: 'Eigenkapitalrendite' }] })
+        K.balken(hR.querySelector('.pc-plot'), {
+          aria: 'Rendite je Immobilie',
+          leerText: 'Noch keine Immobilie mit Kaufpreis erfasst.',
+          labels: rows.map(r => r.name),
+          serien: [{ name: 'Brutto-Mietrendite', farbe: F.GOLD, werte: rows.map(r => r.brutto) },
+                   { name: 'Eigenkapitalrendite', farbe: F.BLAU, werte: rows.map(r => r.ekr) }],
+          format: pct,
+          achse: v => v.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' %',
+          tipExtra: i => rows[i].hatEk ? [] : [{ c: F.INK2, t: 'Eigenkapital', v: 'nicht erfasst' }],
+        })
+      }
+    }
+
+    // Kennzahlen erst zeichnen, wenn der Bereich aufgeklappt ist
+    ;(function () {
+      const sec = document.getElementById('secKennzahlen')
+      if (sec) sec.addEventListener('toggle', () => { if (sec.open) zeichneKennzahlenCharts() })
+      let t = null
+      window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(zeichneKennzahlenCharts, 180) })
+    })()
 
     function buildTile(p, st) {
       const icon = OBJEKTART_ICONS[p.objektart] || '🏗️'

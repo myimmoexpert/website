@@ -415,6 +415,8 @@
                  summe:true zeichnet vom Nullpunkt bis zum laufenden Stand
   ─────────────────────────────────────────────────────────── */
   function wasserfall (plot, o) {
+    // o.achseFormat: Zahlen an Achse und über den Säulen (Standard: gekürzt, z. B. 2k)
+    var zForm = o.achseFormat || kurz
     merken(plot, wasserfall, o)
     plotLeeren(plot)
     var s = (o.schritte || []).filter(function (x) { return x.summe || Math.abs(Number(x.wert) || 0) > 0.004 })
@@ -441,7 +443,7 @@
     var html = svgStart(W, H, o.aria)
     sk.ticks.forEach(function (t) {
       html += '<line x1="' + pl + '" y1="' + y(t) + '" x2="' + (W - pr) + '" y2="' + y(t) + '" stroke="' + (t === 0 ? F.NULL : F.GRID) + '" stroke-width="1"/>' +
-              '<text x="' + (pl - 8) + '" y="' + (y(t) + 4) + '" text-anchor="end" fill="' + F.INK2 + '" font-size="11">' + kurz(t) + '</text>'
+              '<text x="' + (pl - 8) + '" y="' + (y(t) + 4) + '" text-anchor="end" fill="' + F.INK2 + '" font-size="11">' + zForm(t) + '</text>'
     })
     stufen.forEach(function (st, k) {
       var farbe = st.x.farbe || (st.v < 0 ? F.TERRA : F.GOLD)
@@ -454,7 +456,7 @@
       var unten = Math.max(y(st.a), y(st.b))
       var ly = st.v >= 0 ? oben - 6 : unten + 13
       if (ly > pt + ih - 2) ly = oben - 6
-      html += '<text x="' + xm(k) + '" y="' + ly + '" text-anchor="middle" fill="' + F.INK + '" font-size="11" font-weight="600">' + kurz(st.v) + '</text>'
+      html += '<text x="' + xm(k) + '" y="' + ly + '" text-anchor="middle" fill="' + F.INK + '" font-size="11" font-weight="600">' + zForm(st.v) + '</text>'
       html += '<text x="' + xm(k) + '" y="' + (H - 10) + '" text-anchor="middle" fill="' + (st.x.summe ? F.INK : F.INK2) + '" font-size="11"' + (st.x.summe ? ' font-weight="600"' : '') + '>' + esc(kuerze(st.x.name, Math.max(6, Math.floor(band / 6.4)))) + '</text>'
     })
     html += '<rect class="pc-hl" x="0" y="' + pt + '" width="' + band + '" height="' + ih + '" fill="rgba(255,255,255,0.06)" rx="4" opacity="0"/>'

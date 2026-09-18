@@ -127,7 +127,11 @@
 
   function chartCashflow (karte, props, monat) {
     var r = cfSchritte(props, monat)
-    window.IEChart.wasserfall(karte.querySelector('.pc-plot'), { aria: 'Monatlicher Cashflow', schritte: r.schritte })
+    window.IEChart.wasserfall(karte.querySelector('.pc-plot'), {
+      aria: 'Monatlicher Cashflow', schritte: r.schritte,
+      // ausgeschrieben mit Tausenderpunkt statt „2k"
+      achseFormat: function (v) { return Math.round(v).toLocaleString('de-DE') }
+    })
     return r
   }
 

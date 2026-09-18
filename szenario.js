@@ -381,12 +381,6 @@
   }
 
   /* ── Ergebnis ─────────────────────────────────────────────── */
-  function vergleich (wert, basis, format, formatDelta, schwelle) {
-    var d = wert - basis
-    if (Math.abs(d) < (schwelle || 0.5)) return '<div class="sz-kpi-sub">wie Basis</div>'
-    return '<div class="sz-kpi-sub">Basis ' + format(basis) + ' · <b class="' + (d > 0 ? 'up' : 'down') + '">' + (d > 0 ? '+' : '−') + (formatDelta || format)(Math.abs(d)) + '</b></div>'
-  }
-
   function kachel (label, wert, klasse, sub, infoText, haupt) {
     return '<div class="sz-kpi' + (haupt ? ' haupt' : '') + '"><div class="sz-kpi-lab">' + esc(label) + (infoText ? info(infoText) : '') + '</div>' +
       '<div class="sz-kpi-val ' + (klasse || '') + '">' + wert + '</div>' + (sub || '') + '</div>'
@@ -405,12 +399,7 @@
 
     var par = state.p
     var r = rechne(par)
-    var basisPar = Object.assign({}, basisWerte(state.auswahl), { jahre: par.jahre })
-    var b = rechne(basisPar)
-    var istBasis = PARAMS.every(function (d) { return Number(par[d.key]) === Number(basisPar[d.key]) })
     var exitJahr = r.exitMonat ? r.exitMonat.slice(0, 4) : ''
-    var cmp = function (w, bw, f) { return istBasis ? '' : vergleich(w, bw, f) }
-    var pctF = function (n) { return pct(n).replace(' %', ' %-Pkt.') }
 
     var html = ''
     html += '<div class="sz-titel">Ausgangslage heute</div>'
@@ -423,19 +412,18 @@
 
     html += '<div class="sz-titel">Ergebnis beim Exit ' + esc(exitJahr) + ' (nach ' + par.jahre + ' ' + (par.jahre === 1 ? 'Jahr' : 'Jahren') + ')</div>'
     html += '<div class="sz-kpis">' +
-      kachel('Vermögen beim Exit', eur(r.vermoegenExit), 'gold', cmp(r.vermoegenExit, b.vermoegenExit, eur),
+      kachel('Vermögen beim Exit', eur(r.vermoegenExit), 'gold', '',
         'Verkaufserlös nach Ablösung der Restschuld plus alle bis dahin erwirtschafteten Cashflows.', true) +
-      kachel('Vermögenszuwachs', eur(r.zuwachs), r.zuwachs < 0 ? 'red' : 'green', cmp(r.zuwachs, b.zuwachs, eur),
+      kachel('Vermögenszuwachs', eur(r.zuwachs), r.zuwachs < 0 ? 'red' : 'green', '',
         'Vermögen beim Exit abzüglich des heute gebundenen Eigenkapitals (Wert heute − Restschuld heute).') +
-      kachel('Eigenkapitalrendite p. a.', r.irr === null ? '–' : pct(r.irr), r.irr !== null && r.irr < 0 ? 'red' : '',
-        (r.irr !== null && b.irr !== null && !istBasis) ? vergleich(r.irr, b.irr, pct, pctF, 0.05) : '',
+      kachel('Eigenkapitalrendite p. a.', r.irr === null ? '–' : pct(r.irr), r.irr !== null && r.irr < 0 ? 'red' : '', '',
         'Interner Zinsfuß ab heute: heutiges Eigenkapital als Einsatz, monatliche Cashflows und der Verkaufserlös als Rückflüsse.') +
     '</div><div class="sz-kpis sz-kpis-4">' +
-      kachel('Wert beim Exit', eur(r.wertExit), '', cmp(r.wertExit, b.wertExit, eur)) +
-      kachel('Restschuld beim Exit', eur(r.restschuldExit), '', cmp(r.restschuldExit, b.restschuldExit, eur)) +
-      kachel('Verkaufserlös netto', eur(r.erloes), r.erloes < 0 ? 'red' : '', cmp(r.erloes, b.erloes, eur),
+      kachel('Wert beim Exit', eur(r.wertExit)) +
+      kachel('Restschuld beim Exit', eur(r.restschuldExit)) +
+      kachel('Verkaufserlös netto', eur(r.erloes), r.erloes < 0 ? 'red' : '', '',
         'Wert beim Exit − Verkaufskosten (' + pct(par.verkauf) + ' = ' + eur(r.verkaufskosten) + ') − Restschuld.') +
-      kachel('Cashflow bis Exit', eur(r.kumCf), r.kumCf < 0 ? 'red' : 'green', cmp(r.kumCf, b.kumCf, eur),
+      kachel('Cashflow bis Exit', eur(r.kumCf), r.kumCf < 0 ? 'red' : 'green', '',
         'Summe aller monatlichen Cashflows bis zum Verkauf, nach Zins, Tilgung und Sondertilgungen.') +
     '</div>'
 
