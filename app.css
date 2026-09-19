@@ -277,6 +277,38 @@ body.ie-app .tab-pane { flex: 1; }
   body.ie-sb-open .ie-scrim { display: block; }
   .ie-burger { display: inline-flex; align-items: center; justify-content: center; }
 }
+/* Seiten ohne Seitenleiste (Startseite, Login, Kontakt …): Menü nur am Handy */
+.ie-sidebar.ie-nur-mobil { display: none; }
+
+/* Hauptbereiche im Menü – nur am Handy, dort fehlen sie oben in der Leiste */
+.ie-sb-mobil { display: none; }
+
+@media (min-width: 701px) {
+  body.ie-app:not(.has-sidebar) .ie-burger { display: none !important; }
+}
+
+@media (max-width: 700px) {
+  /* obere Leiste: nur Menüknopf, Logo und Profil/Login */
+  .ie-topbar nav.ie-topnav ul li:not(:last-child) { display: none; }
+  .ie-topbar nav.ie-topnav ul a.ie-cta { padding: 9px 14px; font-size: 0.85rem; }
+  .ie-burger { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex: 0 0 40px; }
+
+  .ie-sidebar.ie-nur-mobil { display: block; transform: translateX(-100%); transition: transform .2s ease; }
+  body.ie-sb-open .ie-sidebar.ie-nur-mobil { transform: none; }
+  body.ie-sb-open .ie-scrim { display: block; }
+  body.ie-sb-open { overflow: hidden; }
+
+  .ie-sidebar { width: min(86vw, 320px); }
+  .ie-sb-mobil { display: flex; flex-direction: column; gap: 1px; padding: 0 10px 6px; }
+  .ie-sb-mobil + .ie-sb-head { margin-top: 12px; padding-top: 16px; border-top: 1px solid var(--ie-sb-line); }
+  .ie-sb-item { padding: 12px 12px; font-size: 0.95rem; }
+  .ie-sb-sub .ie-sb-item { padding: 10px 10px; }
+
+  /* Seiteninhalt */
+  body.ie-app .ie-page-title { font-size: 1.6rem; }
+  .pc-card { padding: 16px 14px 14px; }
+}
+
 @media (max-width: 700px) {
   body.ie-app .tab-content,
   body.ie-app .page-header,
@@ -325,12 +357,25 @@ body.ie-app .tab-pane { flex: 1; }
   transition: opacity .14s, visibility .14s;
   z-index: 500;
 }
-.ie-info:hover .ie-info-pop,
-.ie-info:focus .ie-info-pop,
-.ie-info:focus-within .ie-info-pop { opacity: 1; visibility: visible; }
+/* Der Text bleibt im Markup, angezeigt wird er aber über eine schwebende
+   Kopie (#ieInfoFloat, app-shell.js). So ragt nichts Unsichtbares über den
+   Bildschirmrand, und auf dem Handy öffnet ein Antippen die Erklärung. */
+.ie-info .ie-info-pop { display: none; }
+.ie-info.offen { color: var(--ie-accent); border-color: var(--ie-accent); background: var(--ie-accent-bg); }
 
-/* nahe am rechten Rand nach links ausrichten */
-.ie-info.links .ie-info-pop { left: auto; right: -6px; transform: none; }
+#ieInfoFloat {
+  position: fixed; left: 0; top: 0; z-index: 10000;
+  width: max-content; max-width: min(300px, calc(100vw - 24px));
+  background: var(--ie-surface-2); color: var(--ie-ink);
+  border: 1px solid var(--ie-line);
+  border-radius: 10px; padding: 10px 13px;
+  font: 400 0.8rem/1.5 'Inter', sans-serif;
+  text-align: left; text-transform: none; letter-spacing: 0;
+  box-shadow: 0 14px 36px rgba(0,0,0,0.5);
+  display: none;
+}
+#ieInfoFloat.offen { display: block; }
+#ieInfoFloat a { color: var(--ie-accent); }
 
 /* ══════════════════════════════════════════════════════════════
    Rechtstexte – Zustimmung bei der Registrierung (login.html)

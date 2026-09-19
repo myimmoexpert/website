@@ -587,7 +587,12 @@
     .nk-erg.neg .nk-erg-v { color: var(--red); }
     .nk-brief-zeile { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 4px; }
     .nk-brief-zeile .nk-status { margin-bottom: 0; }
-    @media (max-width: 620px) { .nk-zeile { grid-template-columns: 1fr 118px 30px; } }
+    @media (max-width: 620px) {
+      .nk-zeile { grid-template-columns: minmax(0, 1fr) 104px 26px; gap: 8px; }
+      .nk-lbl { min-width: 0; overflow-wrap: anywhere; hyphens: auto; }
+      .nk-zeile.sub .nk-lbl { padding-left: 10px; }
+      .nk-in { padding: 8px 8px; }
+    }
 
     .miet-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
     .mh-box { max-width: 600px; }
@@ -650,6 +655,24 @@
       .detail-grid { grid-template-columns: 1fr; }
       .cl-row { grid-template-columns: 140px 1fr 36px; }
       footer { padding: 28px 24px; flex-direction: column; align-items: flex-start; }
+
+      /* ── Handy: Bereiche ohne doppelten Innenabstand ── */
+      .sections { padding: 18px 12px 60px; }
+      .ie-sec-head { padding-left: 14px; padding-right: 10px; }
+      body.ie-app .ie-sec-body .tab-content { padding-left: 12px !important; padding-right: 12px !important; }
+      .ub-kpis { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .cl-row { grid-template-columns: minmax(0, 118px) minmax(0, 1fr) 32px; }
+
+      /* Liquiditätstabelle: schmalere feste erste Spalte, mehr Platz für Monate */
+      .liq-label { min-width: 118px; max-width: 150px; white-space: normal; font-size: 0.76rem; line-height: 1.3; overflow-wrap: anywhere; hyphens: auto; }
+      .liq-table td.liq-label, .liq-table th.liq-label { padding: 8px 8px 8px 10px; }
+      .liq-cell { width: 84px; padding: 8px 8px; }
+
+      /* Dialoge: fast volle Bildschirmhöhe, Inhalt scrollt */
+      html:not(.ie-embed) .ie-modal { align-items: flex-end; padding: 0; }
+      html:not(.ie-embed) .ie-modal-box { max-width: none; max-height: 92dvh; overflow-y: auto;
+        border-radius: 16px 16px 0 0; margin: 0; }
+      .liq-modal-box { padding: 22px 18px; }
     }
 
   </style>

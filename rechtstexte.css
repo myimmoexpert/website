@@ -35,6 +35,8 @@ table.lt-tab{width:100%;border-collapse:collapse;margin:0 0 22px;font-size:14.5p
 table.lt-tab th,table.lt-tab td{text-align:left;vertical-align:top;
   padding:10px 12px;border-bottom:1px solid var(--lt-line)}
 table.lt-tab th{color:var(--lt-muted);font-weight:600;white-space:nowrap}
+.lt-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 22px}
+.lt-scroll table.lt-tab{margin:0}
 .lt-todo{background:rgba(211,172,95,.10);border-left:3px solid var(--lt-gold);
   padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;font-size:14.5px}
 .lt-foot{border-top:1px solid var(--lt-line);padding:24px;text-align:center;
@@ -44,6 +46,16 @@ table.lt-tab th{color:var(--lt-muted);font-weight:600;white-space:nowrap}
 @media(max-width:640px){
   .lt-wrap{padding:32px 18px 64px}
   .lt-wrap h1{font-size:27px}
+  .lt-top{padding:14px 18px}
+  .lt-wrap{overflow-wrap:anywhere}
+  /* Tabellen am Handy als gestapelte Blöcke: Bezeichnung über dem Inhalt */
   table.lt-tab{font-size:13.5px}
+  table.lt-tab:not(.lt-breit),table.lt-tab:not(.lt-breit) tbody,table.lt-tab:not(.lt-breit) tr,
+  table.lt-tab:not(.lt-breit) th,table.lt-tab:not(.lt-breit) td{display:block;width:auto}
+  table.lt-tab:not(.lt-breit) tr{padding:10px 0;border-bottom:1px solid var(--lt-line)}
+  table.lt-tab:not(.lt-breit) th,table.lt-tab:not(.lt-breit) td{border-bottom:none;padding:2px 0}
+  /* Tabellen mit Spaltenköpfen: seitlich wischen statt stapeln */
+  table.lt-breit{min-width:560px;overflow-wrap:normal}
+  table.lt-breit th,table.lt-breit td{padding:8px 10px}
   table.lt-tab th{white-space:normal}
 }

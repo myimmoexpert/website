@@ -18,6 +18,110 @@
   var VIEW = PAGE.view || null
   var PROP = PAGE.propId || null
 
+  /* ── iPhone: kein automatisches Hineinzoomen in Eingabefelder ──
+     Safari auf iOS zoomt bei jedem Feld mit weniger als 16 px Schrift
+     hinein. maximum-scale verhindert das; Zoomen mit zwei Fingern bleibt
+     auf iOS trotzdem möglich. Auf Android würde es das Zoomen sperren,
+     deshalb nur auf iOS. */
+  ;(function () {
+    var ios = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+    if (!ios) return
+    var m = document.querySelector('meta[name="viewport"]')
+    if (m && !/maximum-scale/.test(m.content)) m.content += ', maximum-scale=1'
+  })()
+
+  /* ── Erklärungen hinter dem kleinen i ─────────────────────
+     Maus: beim Überfahren. Finger: Antippen öffnet, erneutes Antippen
+     oder ein Tippen daneben schließt. Die Erklärung wird als schwebende
+     Kopie am Bildschirmrand ausgerichtet, damit sie nie abgeschnitten ist. */
+  ;(function () {
+    var float = null, aktiv = null, schliessTimer = null, perTipp = false
+
+    function box () {
+      if (float) return float
+      float = document.createElement('div')
+      float.id = 'ieInfoFloat'
+      float.setAttribute('role', 'tooltip')
+      float.addEventListener('mouseenter', function () { clearTimeout(schliessTimer) })
+      float.addEventListener('mouseleave', function () { if (!perTipp) spaeterZu() })
+      document.body.appendChild(float)
+      return float
+    }
+
+    function platzieren () {
+      if (!aktiv || !float) return
+      var r = aktiv.getBoundingClientRect()
+      var vw = document.documentElement.clientWidth, vh = window.innerHeight
+      var w = float.offsetWidth, h = float.offsetHeight
+      var x = r.left + r.width / 2 - w / 2
+      x = Math.max(12, Math.min(x, vw - w - 12))
+      var y = r.bottom + 8
+      if (y + h > vh - 12 && r.top - h - 8 > 12) y = r.top - h - 8
+      float.style.left = Math.round(x) + 'px'
+      float.style.top = Math.round(y) + 'px'
+    }
+
+    function auf (info, tipp) {
+      var pop = info.querySelector('.ie-info-pop')
+      if (!pop) return
+      clearTimeout(schliessTimer)
+      if (aktiv && aktiv !== info) aktiv.classList.remove('offen')
+      aktiv = info
+      perTipp = !!tipp
+      info.classList.add('offen')
+      var f = box()
+      f.innerHTML = pop.innerHTML
+      f.classList.add('offen')
+      platzieren()
+    }
+
+    function zu () {
+      clearTimeout(schliessTimer)
+      if (aktiv) aktiv.classList.remove('offen')
+      aktiv = null
+      perTipp = false
+      if (float) float.classList.remove('offen')
+    }
+    function spaeterZu () { clearTimeout(schliessTimer); schliessTimer = setTimeout(zu, 160) }
+
+    var istTouch = false
+    document.addEventListener('touchstart', function () { istTouch = true }, { passive: true, capture: true })
+
+    document.addEventListener('mouseover', function (e) {
+      if (istTouch) return
+      var info = e.target.closest && e.target.closest('.ie-info')
+      if (info) auf(info, false)
+    })
+    document.addEventListener('mouseout', function (e) {
+      if (istTouch || perTipp) return
+      var info = e.target.closest && e.target.closest('.ie-info')
+      if (info && !info.contains(e.relatedTarget)) spaeterZu()
+    })
+    document.addEventListener('click', function (e) {
+      var info = e.target.closest && e.target.closest('.ie-info')
+      if (info) {
+        // nicht das Aufklappen einer Kopfzeile o. Ä. auslösen
+        e.preventDefault(); e.stopPropagation()
+        if (aktiv === info && perTipp) zu(); else auf(info, true)
+        return
+      }
+      if (float && float.contains(e.target)) return
+      if (aktiv) zu()
+    }, true)
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') zu()
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('ie-info')) {
+        e.preventDefault(); auf(e.target, true)
+      }
+    })
+    document.addEventListener('focusin', function (e) {
+      if (!istTouch && e.target.classList && e.target.classList.contains('ie-info')) auf(e.target, false)
+    })
+    window.addEventListener('scroll', function () { if (aktiv) platzieren() }, true)
+    window.addEventListener('resize', zu)
+  })()
+
   /* Eingebettete Ansicht (z. B. Liquiditätsplanung einer Immobilie im
      Portfoliobereich): keine Leiste, kein Menü – nur der Inhalt. */
   if (PAGE.embed) {
@@ -124,6 +228,12 @@
   function buildSidebar () {
     var aside = el('aside', 'ie-sidebar')
     aside.id = 'ieSidebar'
+    aside.appendChild(buildMobilBereiche())
+    if (!AREA) {
+      // Seite ohne eigenes Menü: am Handy trotzdem die Hauptbereiche anbieten
+      aside.className += ' ie-nur-mobil'
+      return aside
+    }
     var title = AREA === 'finder' ? 'Immo.Finder' : AREA === 'profil' ? 'Profil' : 'Immo.Portfolio'
     aside.appendChild(el('div', 'ie-sb-head', esc(title)))
     // bewusst ein <div>: seiteneigene nav-Regeln dürfen hier nicht greifen
@@ -136,6 +246,20 @@
     if (AREA === 'portfolio') buildPortfolioMenu(nav)
 
     return aside
+  }
+
+  /* Hauptbereiche für das Handy-Menü (oben in der Leiste ist dort kein Platz) */
+  function buildMobilBereiche () {
+    var box = el('div', 'ie-sb-mobil')
+    ;[[P.index, 'Startseite', AREA === null && currentFile() === P.index],
+      [P.finder, 'Immo.Finder', AREA === 'finder'],
+      [P.portfolio, 'Immo.Portfolio', AREA === 'portfolio'],
+      [P.profil, 'Profil', AREA === 'profil']].forEach(function (b) {
+      var n = makeItem({ label: b[1], href: b[0], active: b[2] })
+      if (b[0] === P.profil) n.id = 'ieSbAuthLink'
+      box.appendChild(n)
+    })
+    return box
   }
 
   function addSimple (nav, file, key, label) {
@@ -243,7 +367,11 @@
   }
 
   /* ── Mobil ─────────────────────────────────────────────── */
-  function closeMobile () { document.body.classList.remove('ie-sb-open') }
+  function closeMobile () {
+    document.body.classList.remove('ie-sb-open')
+    var b = document.getElementById('ieBurger')
+    if (b) { b.textContent = '☰'; b.setAttribute('aria-expanded', 'false') }
+  }
 
   /* ── Aufbau ────────────────────────────────────────────── */
   function mount () {
@@ -268,21 +396,25 @@
     var top = buildTopbar()
     body.insertBefore(top, body.firstChild)
 
-    if (AREA) {
-      body.classList.add('has-sidebar')
-      var sb = buildSidebar()
-      top.insertAdjacentElement('afterend', sb)
-      var scrim = el('div', 'ie-scrim')
-      scrim.addEventListener('click', closeMobile)
-      sb.insertAdjacentElement('afterend', scrim)
-      sb.insertAdjacentElement('afterend', content)
-    } else {
-      top.insertAdjacentElement('afterend', content)
-    }
+    if (AREA) body.classList.add('has-sidebar')
+    var sb = buildSidebar()
+    top.insertAdjacentElement('afterend', sb)
+    var scrim = el('div', 'ie-scrim')
+    scrim.addEventListener('click', closeMobile)
+    sb.insertAdjacentElement('afterend', scrim)
+    sb.insertAdjacentElement('afterend', content)
+
+    // Menü schließt sich, sobald ein Eintrag angetippt wird
+    sb.addEventListener('click', function (e) {
+      if (e.target.closest && e.target.closest('a.ie-sb-item')) closeMobile()
+    })
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMobile() })
 
     var burger = document.getElementById('ieBurger')
     if (burger) burger.addEventListener('click', function () {
-      document.body.classList.toggle('ie-sb-open')
+      var offen = document.body.classList.toggle('ie-sb-open')
+      burger.textContent = offen ? '✕' : '☰'
+      burger.setAttribute('aria-expanded', offen ? 'true' : 'false')
     })
 
     syncAuthLink()
@@ -303,6 +435,12 @@
     function apply (has) {
       link.href = has ? P.profil : P.login
       link.textContent = has ? 'Profil' : 'Login'
+      var sbLink = document.getElementById('ieSbAuthLink')
+      if (sbLink) {
+        sbLink.href = has ? P.profil : P.login
+        var l = sbLink.querySelector('.ie-lbl')
+        if (l) l.textContent = has ? 'Profil' : 'Login'
+      }
     }
     client.auth.getSession().then(function (r) { apply(!!(r.data && r.data.session)) })
     client.auth.onAuthStateChange(function (_e, s) { apply(!!s) })
