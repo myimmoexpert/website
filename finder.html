@@ -213,6 +213,24 @@
     .loading-card p { color: var(--muted); font-size: 0.95rem; }
     .loading-card strong { color: var(--white); display: block; margin-bottom: 6px; font-size: 1rem; }
 
+    .loading-bar {
+      width: min(420px, 100%);
+      height: 6px;
+      margin: 22px auto 0;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .loading-bar span {
+      display: block;
+      height: 100%;
+      width: 4%;
+      background: var(--gold);
+      border-radius: 999px;
+      transition: width 0.5s ease;
+    }
+
 
     /* ── STECKBRIEF IM POP-UP ── */
     .sb-modal {
@@ -803,8 +821,9 @@
   <div class="loading" id="loading">
     <div class="loading-card">
       <div class="spinner"></div>
-      <strong>Inserat wird analysiert…</strong>
-      <p>Das dauert in der Regel nur wenige Sekunden.</p>
+      <strong id="loadingStep">Inserat wird geladen…</strong>
+      <p>Das kann bis zu 30 Sekunden dauern. Bitte dieses Fenster so lange offen lassen.</p>
+      <div class="loading-bar" role="progressbar" aria-label="Fortschritt der Analyse"><span id="loadingBar"></span></div>
     </div>
   </div>
 
@@ -1061,6 +1080,44 @@
       }
     })
 
+    // ── FORTSCHRITT WÄHREND DER ANALYSE ─────────────
+    // Der Abruf beim Portal dauert je nach Inserat 10–30 Sekunden.
+    // Die Anzeige zeigt währenddessen, woran gerade gearbeitet wird.
+    let loadingTimer = null
+
+    const LOADING_STEPS = [
+      { ab:  0, text: 'Inserat wird geladen…' },
+      { ab:  8, text: 'Daten werden ausgelesen…' },
+      { ab: 16, text: 'Inserat wird analysiert…' },
+      { ab: 26, text: 'Steckbrief wird erstellt…' },
+    ]
+
+    function startLoadingProgress() {
+      const bar  = document.getElementById('loadingBar')
+      const step = document.getElementById('loadingStep')
+      const start = Date.now()
+
+      clearInterval(loadingTimer)
+      if (step) step.textContent = LOADING_STEPS[0].text
+      if (bar)  bar.style.width = '4%'
+
+      loadingTimer = setInterval(() => {
+        const sek = (Date.now() - start) / 1000
+        // Der Balken läuft in rund 30 Sekunden auf 95 % und wartet dort
+        if (bar) bar.style.width = Math.min(95, 4 + sek * 3).toFixed(1) + '%'
+        const aktuell = LOADING_STEPS.filter(s => sek >= s.ab).pop()
+        if (step && aktuell && step.textContent !== aktuell.text) step.textContent = aktuell.text
+      }, 500)
+    }
+
+    function stopLoadingProgress() {
+      clearInterval(loadingTimer)
+      loadingTimer = null
+      const bar = document.getElementById('loadingBar')
+      if (bar) bar.style.width = '100%'
+      document.getElementById('loading').classList.remove('visible')
+    }
+
     async function startAnalysis() {
       const url = document.getElementById('urlInput').value.trim()
       if (!url) { document.getElementById('urlInput').focus(); return }
@@ -1075,6 +1132,7 @@
       document.getElementById('freemiumBanner').classList.remove('visible')
       document.getElementById('saveBtn').classList.remove('visible')
       document.getElementById('loading').classList.add('visible')
+      startLoadingProgress()
       document.getElementById('analyzeBtn').disabled = true
 
       try {
@@ -1091,7 +1149,7 @@
         if (!session) localStorage.setItem(FREE_KEY, 'true')
 
         fillResult(data, url)
-        document.getElementById('loading').classList.remove('visible')
+        stopLoadingProgress()
         openResultModal()
 
         if (session) {
@@ -1105,7 +1163,7 @@
 
 
       } catch (err) {
-        document.getElementById('loading').classList.remove('visible')
+        stopLoadingProgress()
         alert('Fehler bei der Analyse: ' + err.message)
       } finally {
         document.getElementById('analyzeBtn').disabled = false
