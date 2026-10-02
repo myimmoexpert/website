@@ -329,7 +329,7 @@
       <div class="s-value" id="sumCf">0 €</div>
     </div>
     <div class="summary-stat">
-      <div class="s-label">Empfohlene Liquidität zum Monatswechsel</div>
+      <div class="s-label s-label-row">Empfohlene Liquidität zum Monatswechsel <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Summe aus Hausgeldzahlungen und Bankraten, welche zum Monatswechsel fällig werden.</span></span></div>
       <div class="s-value gold" id="sumLiq">0 €</div>
     </div>
   </div>
@@ -559,7 +559,9 @@
       const ek  = Math.max(0, aum - fk)
       const ltv = aum > 0 ? fk / aum : null
       const brutto = kaufpreis > 0 && nkmJahr > 0 ? nkmJahr / kaufpreis : null
-      const ekRendite = ekEingesetzt > 0 ? (cf * 12) / ekEingesetzt : null
+      // Nettomietrendite: Jahreskaltmiete abzüglich Hausgeld, bezogen auf den Kaufpreis
+      const nettoJahr = nkmJahr + hausgeld * 12   // Hausgeld ist negativ erfasst
+      const netto = kaufpreis > 0 && nkmJahr > 0 ? nettoJahr / kaufpreis : null
       const faktor = nkmJahr > 0 ? kaufpreis / nkmJahr : null
 
       const pct = v => v === null ? '–' : (v * 100).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' %'
@@ -588,8 +590,8 @@
                 zaehler.steigerung ? zaehler.steigerung + '× mit Wertsteigerung' : '',
                 zaehler.eigen ? zaehler.eigen + '× eigener Wert' : ''].filter(Boolean).join(' · ') },
           { l: 'Restschuld',    v: formatEur(fk),  s: 'Darlehen abzüglich Tilgung' },
-          { l: 'Eigenkapital',  v: formatEur(ek),  c: 'green', s: 'Wert abzüglich Restschuld' },
-          { l: 'Beleihungsauslauf', v: pct(ltv), s: 'Restschuld ÷ Portfoliowert' },
+          { l: 'Eigenkapitalwert',  v: formatEur(ek),  c: 'green', s: 'Wert abzüglich Restschuld' },
+          { l: 'Finanzierungsquote', v: pct(ltv), s: 'Restschuld ÷ Portfoliowert' },
         ], 'kcVermoegen') +
         gruppe('Monatliche Einnahmen und Ausgaben', [
           { l: 'Mieteinnahmen', v: formatEur(miete), c: 'green' },
@@ -599,8 +601,8 @@
         ], 'kcMonat') +
         gruppe('Rendite', [
           { l: 'Brutto-Mietrendite', v: pct(brutto), s: 'Jahreskaltmiete ÷ Kaufpreis' },
-          { l: 'Eigenkapitalrendite', v: pct(ekRendite),
-            s: ekEingesetzt > 0 ? 'Cashflow p. a. ÷ eingesetztes EK' : 'kein Eigenkapital erfasst' },
+          { l: 'Nettomietrendite', v: pct(netto),
+            s: 'Jahreskaltmiete abzüglich Hausgeld ÷ Kaufpreis' },
           { l: 'Kaufpreisfaktor', v: fak(faktor), s: 'Kaufpreis ÷ Jahreskaltmiete' },
         ], 'kcRendite')
 
@@ -627,17 +629,17 @@
           return { name: kurzName(p), wert: w, fk: fk, ek: Math.max(0, w - fk) }
         }).filter(r => r.wert > 0).sort((a, b) => b.wert - a.wert)
         hV.innerHTML = K.karte({ titel: 'Wert je Immobilie',
-          info: 'Aktueller Wert jeder Immobilie, aufgeteilt in Eigenkapital und Restschuld. Rechts der Beleihungsauslauf.',
-          legende: [{ c: F.GOLD, t: 'Eigenkapital' }, { c: F.BLAU, t: 'Restschuld' }] })
+          info: 'Aktueller Wert jeder Immobilie, aufgeteilt in Eigenkapitalwert und Restschuld. Rechts die Finanzierungsquote.',
+          legende: [{ c: F.GOLD, t: 'Eigenkapitalwert' }, { c: F.BLAU, t: 'Restschuld' }] })
         K.balken(hV.querySelector('.pc-plot'), {
-          aria: 'Eigenkapital und Restschuld je Immobilie',
+          aria: 'Eigenkapitalwert und Restschuld je Immobilie',
           leerText: 'Noch keine Immobilie mit Wert erfasst.',
           labels: rows.map(r => r.name), gestapelt: true,
-          serien: [{ name: 'Eigenkapital', farbe: F.GOLD, werte: rows.map(r => r.ek) },
+          serien: [{ name: 'Eigenkapitalwert', farbe: F.GOLD, werte: rows.map(r => r.ek) },
                    { name: 'Restschuld', farbe: F.BLAU, werte: rows.map(r => r.fk) }],
           rechts: i => rows[i].wert ? Math.round(rows[i].fk / rows[i].wert * 100) + ' %' : '–',
           tipExtra: i => [{ c: F.INK2, t: 'Wert', v: K.eur(rows[i].wert) },
-                          { c: F.INK2, t: 'Beleihungsauslauf', v: rows[i].wert ? Math.round(rows[i].fk / rows[i].wert * 100) + ' %' : '–' }],
+                          { c: F.INK2, t: 'Finanzierungsquote', v: rows[i].wert ? Math.round(rows[i].fk / rows[i].wert * 100) + ' %' : '–' }],
         })
       }
 
@@ -679,24 +681,25 @@
           const kp = C.kaufpreis(p)
           const st = liqStats(p)
           const t = C.cfTeile(p, m)
-          const ek = Math.abs(C.summeAlle(p, 'einzahlungEk'))
+          // Nettomietrendite: Jahreskaltmiete abzüglich Hausgeld ÷ Kaufpreis
+          const netto = ((st.nkm || 0) + t.hausgeld) * 12
           return { name: kurzName(p),
                    brutto: kp > 0 ? (st.nkm || 0) * 12 / kp * 100 : 0,
-                   ekr: ek > 0 ? t.cf * 12 / ek * 100 : 0, hatEk: ek > 0, kp }
+                   ekr: kp > 0 ? netto / kp * 100 : 0, hatEk: Math.abs(t.hausgeld) > 0.004, kp }
         }).filter(r => r.kp > 0).sort((a, b) => b.brutto - a.brutto)
         const pct = v => v.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %'
         hR.innerHTML = K.karte({ titel: 'Rendite je Immobilie',
-          info: 'Brutto-Mietrendite (Jahreskaltmiete ÷ Kaufpreis) und Eigenkapitalrendite (Cashflow p. a. ÷ eingesetztes Eigenkapital) je Immobilie.',
-          legende: [{ c: F.GOLD, t: 'Brutto-Mietrendite' }, { c: F.BLAU, t: 'Eigenkapitalrendite' }] })
+          info: 'Brutto-Mietrendite (Jahreskaltmiete ÷ Kaufpreis) und Nettomietrendite (Jahreskaltmiete abzüglich Hausgeld ÷ Kaufpreis) je Immobilie.',
+          legende: [{ c: F.GOLD, t: 'Brutto-Mietrendite' }, { c: F.BLAU, t: 'Nettomietrendite' }] })
         K.balken(hR.querySelector('.pc-plot'), {
           aria: 'Rendite je Immobilie',
           leerText: 'Noch keine Immobilie mit Kaufpreis erfasst.',
           labels: rows.map(r => r.name),
           serien: [{ name: 'Brutto-Mietrendite', farbe: F.GOLD, werte: rows.map(r => r.brutto) },
-                   { name: 'Eigenkapitalrendite', farbe: F.BLAU, werte: rows.map(r => r.ekr) }],
+                   { name: 'Nettomietrendite', farbe: F.BLAU, werte: rows.map(r => r.ekr) }],
           format: pct,
           achse: v => v.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' %',
-          tipExtra: i => rows[i].hatEk ? [] : [{ c: F.INK2, t: 'Eigenkapital', v: 'nicht erfasst' }],
+          tipExtra: i => rows[i].hatEk ? [] : [{ c: F.INK2, t: 'Hausgeld', v: 'nicht erfasst' }],
         })
       }
     }

@@ -176,6 +176,13 @@
       content: '✓'; position: absolute; top: 1px; right: 4px;
       font-size: 0.62rem; line-height: 1; font-weight: 700; color: var(--green); pointer-events: none;
     }
+    /* Rotes ✕ : die Buchung vom Konto passt nicht zur Summe der Einzelzeilen */
+    .liq-table td.liq-xmark { background: #2a1719; }
+    .liq-table td.liq-xmark.liq-now { background: #2a1719; }
+    .liq-table td.liq-xmark::before {
+      content: '✕'; position: absolute; top: 1px; right: 4px;
+      font-size: 0.62rem; line-height: 1; font-weight: 700; color: var(--red); pointer-events: none;
+    }
     /* Rotes ! : gebucht, aber nicht wie geplant */
     .liq-table td.liq-abw { background: #2a1719; }
     .liq-table td.liq-abw.liq-now { background: #2a1719; }
@@ -864,6 +871,7 @@
       <div class="liq-controls">
         <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Alle Werte in € · Zelle leeren = zurück zur Formel · Doppelklick = Notiz</span></span>
         <button class="liq-btn" onclick="liqOpenImport()">⤒ Tilgungsplan importieren</button>
+        <button class="liq-btn" id="liqD2Btn" onclick="liqDarlehen2Umschalten()">+ Zweites Darlehen</button>
         <input type="file" id="liqPdfInput" accept="application/pdf" style="display:none" onchange="liqImportPdf(this.files[0])" />
         <div class="save-indicator" id="siLiq" style="margin-left:auto;"></div>
         <button class="liq-btn" onclick="liqExportExcel()" id="liqXlsBtn">⤓ Als Excel herunterladen</button>
@@ -1713,9 +1721,13 @@
       { key: 'nk',           label: 'Nebenkostenvorauszahlungen', type: 'input', sub: true, group: 'miete' },
       { key: 'weitereMiete', label: 'Weitere Mieteinnahmen', type: 'input' },
       { key: 'hausgeld',     label: 'Hausgeld',          type: 'input' },
-      { key: 'bankrate',     label: 'Bankrate',          type: 'calc',  toggle: 'bankrate' },
+      { key: 'bankrate',     label: 'Darlehen',          type: 'calc',  toggle: 'bankrate' },
       { key: 'zins',         label: 'Zins',              type: 'input', sub: true, group: 'bankrate' },
       { key: 'tilgung',      label: 'Tilgung',           type: 'input', sub: true, group: 'bankrate' },
+      // Zweites Darlehen – nur sichtbar, wenn für diese Immobilie angelegt
+      { key: 'bankrate2',    label: 'Darlehen 2',        type: 'calc',  toggle: 'bankrate2', d2: true },
+      { key: 'zins2',        label: 'Zins',              type: 'input', sub: true, group: 'bankrate2', d2: true },
+      { key: 'tilgung2',     label: 'Tilgung',           type: 'input', sub: true, group: 'bankrate2', d2: true },
       { key: 'grundsteuer',  label: 'Grundsteuer',       type: 'input' },
       { key: 'cf',           label: 'CF Wohnung',        type: 'calc',  strong: true, sep: true },
 
@@ -1728,8 +1740,17 @@
 
     // Zeilen, für die der Abgleich mit den Kontoumsätzen gilt
     const LIQ_TRACK_ROWS = ['nkm', 'nk', 'weitereMiete', 'hausgeld', 'bankrate',
-                            'zins', 'tilgung', 'grundsteuer', 'weitereAusgaben',
-                            'nebenkostenabrechnung']
+                            'zins', 'tilgung', 'zins2', 'tilgung2', 'grundsteuer',
+                            'weitereAusgaben', 'nebenkostenabrechnung']
+
+    // Zeilen, deren Wert auf dem Bankkonto als EINE Buchung erscheint, in der
+    // Tabelle aber aus mehreren Zeilen besteht. Für sie wird die Buchung mit
+    // der Summe der Einzelzeilen verglichen.
+    const LIQ_SUMMEN = {
+      miete:     { label: 'Miete',      teile: ['nkm', 'nk'] },
+      bankrate:  { label: 'Darlehen',   teile: ['zins', 'tilgung'] },
+      bankrate2: { label: 'Darlehen 2', teile: ['zins2', 'tilgung2'] },
+    }
 
     // Aufgeklappte Detailgruppen (Miete, Bankrate) – Einstellung bleibt im Browser
     let liqOpenGroups = (() => {
@@ -1746,7 +1767,32 @@
 
     // Zeilen, die gerade sichtbar sind (für Rendering und Tastaturnavigation)
     function liqVisibleRows() {
-      return LIQ_ROWS.filter(r => !r.group || liqOpenGroups.has(r.group))
+      const d2 = !!(liqData && liqData.darlehen2)
+      return LIQ_ROWS.filter(r => (!r.d2 || d2) && (!r.group || liqOpenGroups.has(r.group)))
+    }
+
+    // Zweites Darlehen an- oder abmelden
+    function liqDarlehen2Umschalten() {
+      if (!liqData) return
+      if (liqData.darlehen2) {
+        const belegt = ['zins2', 'tilgung2'].some(k =>
+          Object.values(liqData.cells[k] || {}).some(v => Number(v)))
+        if (belegt && !confirm('Das zweite Darlehen enthält Werte. Wirklich entfernen? Die Beträge werden gelöscht.')) return
+        delete liqData.cells.zins2; delete liqData.cells.tilgung2
+        if (liqData.overrides) delete liqData.overrides.bankrate2
+        liqData.darlehen2 = false
+      } else {
+        liqData.darlehen2 = true
+        liqOpenGroups.add('bankrate2')
+        try { localStorage.setItem('ie_liq_groups', JSON.stringify([...liqOpenGroups])) } catch (e) {}
+      }
+      liqRender()
+      scheduleSave('l')
+      liqD2BtnText()
+    }
+    function liqD2BtnText() {
+      const b = document.getElementById('liqD2Btn')
+      if (b) b.textContent = liqData && liqData.darlehen2 ? '− Zweites Darlehen entfernen' : '+ Zweites Darlehen'
     }
 
     let liqData = null
@@ -1766,7 +1812,11 @@
       const z = liqZeitraum(data)
       liqData.startMonth = z.start
       liqData.monthCount = z.count
+      // Ein zweites Darlehen zählt als angelegt, sobald Werte dafür vorhanden sind
+      if (!liqData.darlehen2 && ['zins2', 'tilgung2'].some(k =>
+            Object.values(liqData.cells[k] || {}).some(v => Number(v)))) liqData.darlehen2 = true
       liqRender()
+      liqD2BtnText()
     }
 
     // Planungszeitraum: fest an der Übernahme ausgerichtet
@@ -2009,13 +2059,15 @@
       months.forEach(m => {
         LIQ_ROWS.forEach(r => { if (r.type === 'input') out[r.key][m] = inp(r.key, m) })
         const miete    = ov('miete', m)      ?? out.nkm[m] + out.nk[m]                       // Miete = NKM + NK
-        const bankrate = ov('bankrate', m)   ?? out.zins[m] + out.tilgung[m]                 // Bankrate = Zins + Tilgung
+        const bankrate = ov('bankrate', m)   ?? out.zins[m] + out.tilgung[m]                 // Darlehen = Zins + Tilgung
+        const bankrate2 = ov('bankrate2', m) ?? out.zins2[m] + out.tilgung2[m]               // Darlehen 2
         const cf       = ov('cf', m)         ?? miete + out.weitereMiete[m] + out.grundsteuer[m]
-                                               + out.hausgeld[m] + bankrate                  // CF Wohnung
+                                               + out.hausgeld[m] + bankrate + bankrate2      // CF Wohnung
         guthaben       = ov('guthaben', m)   ?? guthaben + out.einzahlungEk[m] + out.einzahlungFk[m]
                                                + out.kaufpreis[m] + out.ausgabe[m] + out.weitereAusgaben[m]
                                                + out.nebenkostenabrechnung[m] + cf            // Guthaben kumuliert
-        out.miete[m] = miete; out.bankrate[m] = bankrate; out.cf[m] = cf; out.guthaben[m] = guthaben
+        out.miete[m] = miete; out.bankrate[m] = bankrate; out.bankrate2[m] = bankrate2
+        out.cf[m] = cf; out.guthaben[m] = guthaben
       })
       return { months, out }
     }
@@ -2152,7 +2204,7 @@
         })
         zeilen.push(kopf)
 
-        LIQ_ROWS.forEach(r => {
+        LIQ_ROWS.filter(r => !r.d2 || liqData.darlehen2).forEach(r => {
           const fett = r.type === 'header' || r.strong || r.total || r.type === 'calc'
           const zeile = [{ t: (r.sub ? '   ' : '') + r.label, s: fett ? 1 : 0 }]
           if (r.type !== 'header') {
@@ -2307,7 +2359,8 @@
     }
 
     // ── Forward-Edit: geänderte Zelle für alle Folgemonate übernehmen ──
-    const LIQ_FORWARD_ROWS = ['miete', 'nkm', 'nk', 'weitereMiete', 'grundsteuer', 'hausgeld', 'bankrate', 'zins', 'tilgung']
+    const LIQ_FORWARD_ROWS = ['miete', 'nkm', 'nk', 'weitereMiete', 'grundsteuer', 'hausgeld',
+                              'bankrate', 'zins', 'tilgung', 'bankrate2', 'zins2', 'tilgung2']
     let liqToastTimer = null
 
     function liqMaybeOfferForward(cell) {
@@ -2435,6 +2488,7 @@
         td.classList.toggle('liq-warn', stand === 'warn' && !gebucht)
         td.classList.toggle('liq-gebucht', gebucht && !abw)
         td.classList.toggle('liq-abw', !!abw)
+        td.classList.remove('liq-xmark')   // wird in liqRollupGroups neu gesetzt
 
         const note = liqData.notes?.[row]?.[month]
         const hinweis = abw
@@ -2453,6 +2507,17 @@
       updateFinanzWerte()
     }
 
+    // Eine Buchung vom Bankkonto gegen die Summe der Einzelzeilen halten.
+    // Beispiel: Die Mietzahlung ist auf dem Konto eine Buchung, in der Tabelle
+    // steht sie als Nettokaltmiete + Nebenkostenvorauszahlung.
+    function liqSummeStand(key, m, out) {
+      const geb = liqData.bankBuchungen?.[m]?.[key]
+      if (geb === undefined || geb === null || geb === '') return null
+      const summe = (LIQ_SUMMEN[key].teile).reduce((s, k) => s + (out[k]?.[m] ?? 0), 0)
+      const diff = Math.round((Math.abs(Number(geb)) - Math.abs(summe)) * 100) / 100
+      return { geb: Number(geb), summe, diff, ok: Math.abs(diff) <= 1 }
+    }
+
     // Ist eine Gruppe zugeklappt, erbt die Kopfzeile den Zustand ihrer Kinder:
     // eine Warnung darf sich nicht hinter einem „+" verstecken.
     function liqRollupGroups(rec) {
@@ -2466,6 +2531,22 @@
           const cell = document.querySelector(`.liq-cell[data-row="${parent.key}"][data-month="${m}"]`)
           if (!cell) return
           const td = cell.parentElement
+          // Gibt es für diesen Monat eine echte Buchung vom Konto, entscheidet
+          // der Vergleich mit der Summe der Einzelzeilen – sonst nichts.
+          const bs = LIQ_SUMMEN[parent.key] ? liqSummeStand(parent.key, m, out) : null
+          if (bs) {
+            td.classList.remove('liq-warn', 'liq-abw', 'liq-ok', 'liq-gebucht', 'liq-xmark')
+            if (bs.ok) {
+              td.classList.add('liq-ok', 'liq-gebucht')
+              cell.title = `Buchung vom Konto: ${liqFmt(bs.geb)} € – stimmt mit der Tabelle überein.`
+            } else {
+              td.classList.add('liq-xmark')
+              cell.title = `Buchung vom Konto: ${liqFmt(bs.geb)} €, die Tabelle ergibt `
+                + `${liqFmt(bs.summe)} € (${bs.diff > 0 ? '+' : ''}${liqFmt(bs.diff)} € Unterschied). `
+                + LIQ_SUMMEN[parent.key].teile.length + ' Zeilen prüfen: Gruppe aufklappen.'
+            }
+            return
+          }
           const staende = kinder.map(k => liqStand(k.key, m, out[k.key]?.[m] ?? 0, rec))
           // Summenzeile (z. B. Miete): gebucht, sobald eine Kindzeile gebucht ist;
           // rotes ! , sobald eine gebuchte Kindzeile vom Plan abweicht.
@@ -3973,7 +4054,7 @@
         kachel('Fremdkapital', formatEur(fk), '', 'Restschuld heute: valutiertes Darlehen abzüglich geleisteter Tilgung.' + (wert > 0 ? ' Beleihung ' + Math.round(fk / wert * 100) + ' %.' : '')) +
         kachel('Eigenkapital', formatEur(ek), '', ekEinzahlung ? 'Investiertes Eigenkapital: eingezahlt laut Liquiditätsplanung.' : 'Geschätzt: Kaufpreis abzüglich Darlehen.') +
         kachel('Kaufpreis', kaufpreis ? formatEur(kaufpreis) : '–', '', nebenkosten ? 'Zzgl. Kaufnebenkosten ' + formatEur(nebenkosten) + '.' : '') +
-        kachel('Beleihungsauslauf', wert > 0 ? pctF(fk / wert * 100) : '–', '', 'Restschuld ÷ aktueller Wert') +
+        kachel('Finanzierungsquote', wert > 0 ? pctF(fk / wert * 100) : '–', '', 'Restschuld ÷ aktueller Wert') +
         kachel('Kaltmiete / Monat', nkm ? formatEur(nkm) : '–', 'green') +
         kachel('Mietrendite', kaufpreis > 0 && nkm ? pctF(nkm * 12 / kaufpreis * 100) : '–', 'gold', 'Jahreskaltmiete ÷ Kaufpreis') +
         kachel('Bankrate / Monat', formatEur(Math.abs(t.bankrate)), '', t.bankrateFix ? 'Übersteuerte Bankrate aus der Liquiditätsplanung.' : 'Zins ' + formatEur(Math.abs(t.zins)) + ' + Tilgung ' + formatEur(Math.abs(t.tilgung))) +

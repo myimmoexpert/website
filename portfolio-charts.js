@@ -70,13 +70,13 @@
       s.hausgeld += t.hausgeld
       s.grundsteuer += t.grundsteuer
       s.bankrate += t.bankrate
-      s.zins += t.zins; s.tilgung += t.tilgung
+      s.zins += t.zins + (t.zins2 || 0); s.tilgung += t.tilgung + (t.tilgung2 || 0)
       if (t.bankrateFix) s.fix = true
       s.cf += t.cf
     })
     // weicht der gebuchte Cashflow von der Summe ab (Übersteuerung), als eigenen Schritt zeigen
     var bank = s.fix
-      ? [{ name: 'Bankrate', wert: -Math.abs(s.bankrate), farbe: F.TERRA }]
+      ? [{ name: 'Darlehen', wert: -Math.abs(s.bankrate), farbe: F.TERRA }]
       : [{ name: 'Zins', wert: -Math.abs(s.zins), farbe: F.TERRA },
          { name: 'Tilgung', wert: -Math.abs(s.tilgung), farbe: F.TEAL, hinweis: 'baut Eigenkapital auf' }]
     var schritte = [{ name: 'Miete', wert: s.miete, farbe: F.GOLD },

@@ -311,6 +311,10 @@
     .bs-dot.ja   { background: var(--green); box-shadow: 0 0 0 4px rgba(92,201,138,0.16); }
     .bs-dot.nein { background: var(--red);   box-shadow: 0 0 0 4px rgba(239,107,107,0.16); }
     .bs-dot.na   { background: transparent; border: 2px dashed rgba(255,255,255,0.22); }
+    /* gebucht, aber der Betrag passt nicht zur Summe der Zeilen */
+    .bs-dot.abw  { background: var(--red); box-shadow: 0 0 0 4px rgba(239,107,107,0.16);
+      color: #200b0b; font: 800 0.72rem/22px 'Inter', sans-serif; }
+    .bs-dot.abw::before { content: '✕'; }
     .bs-legende { display: flex; gap: 18px; flex-wrap: wrap; font-size: 0.76rem; color: var(--muted); padding: 10px 14px;
       border-top: 1px solid rgba(255,255,255,0.075); }
     .bs-legende span { display: inline-flex; align-items: center; gap: 7px; }
@@ -482,7 +486,7 @@
       <!-- Buchungsstatus -->
       <div class="kpi-group">
         <div class="kpi-group-title">Buchungsstatus
-          <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Sind Miete, Hausgeld und Bankrate im gewählten Monat schon gebucht? Grün wird automatisch gesetzt, sobald die Buchung über einen Kontoauszug eingelesen wurde. Ein Klick auf den Kreis schaltet von Hand um.</span></span>
+          <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Sind Miete, Hausgeld und Darlehen im gewählten Monat schon gebucht? Grün wird automatisch gesetzt, sobald die Buchung über einen Kontoauszug eingelesen wurde. Ein rotes ✕ heißt: die Buchung passt nicht zur Summe der Zeilen in der Liquiditätsplanung (Miete = Nettokaltmiete + Nebenkostenvorauszahlung, Darlehen = Zins + Tilgung). Ein Klick auf den Kreis schaltet von Hand um.</span></span>
           <span class="save-indicator" id="siStatus"></span>
         </div>
         <div class="bs-monat">
@@ -607,9 +611,12 @@
       { key: 'nk',           label: 'Nebenkostenvorauszahlungen', type: 'input', sub: true },
       { key: 'weitereMiete', label: 'Weitere Miete',     type: 'input' },
       { key: 'hausgeld',     label: 'Hausgeld',          type: 'input' },
-      { key: 'bankrate',     label: 'Bankrate',          type: 'calc' },
+      { key: 'bankrate',     label: 'Darlehen',          type: 'calc' },
       { key: 'zins',         label: 'Zins',              type: 'input', sub: true },
       { key: 'tilgung',      label: 'Tilgung',           type: 'input', sub: true },
+      { key: 'bankrate2',    label: 'Darlehen 2',        type: 'calc' },
+      { key: 'zins2',        label: 'Zins',              type: 'input', sub: true },
+      { key: 'tilgung2',     label: 'Tilgung',           type: 'input', sub: true },
       { key: 'grundsteuer',  label: 'Grundsteuer',       type: 'input' },
       { key: 'cf',           label: 'CF Wohnung',        type: 'calc',  strong: true, sep: true },
       { key: 'weitereAusgaben',       label: 'Weitere Ausgaben',      type: 'input' },
@@ -673,7 +680,8 @@
       const ov  = k => { const v = ovs[k]?.[nowM]; return (v === undefined || v === null || v === '') ? null : Number(v) }
       const kaufpreis = Math.abs(sum('kaufpreis')) || p.kaufpreis || 0
       const miete    = ov('miete') ?? c('nkm') + c('nk')
-      const bankrate = ov('bankrate') ?? c('zins') + c('tilgung')
+      const bankrate = (ov('bankrate') ?? c('zins') + c('tilgung'))
+                     + (ov('bankrate2') ?? c('zins2') + c('tilgung2'))
       const cf  = ov('cf') ?? miete + c('weitereMiete') + c('grundsteuer') + c('hausgeld') + bankrate
       const liq = Math.abs(c('hausgeld') + bankrate)
       return { kaufpreis, nkm: c('nkm') || p.kaltmiete || 0, cf, liq,
@@ -834,13 +842,15 @@
       months.forEach(m => {
         LIQ_ROWS.forEach(r => { if (r.type === 'input') out[r.key][m] = inp(r.key, m) })
         const miete    = ov('miete', m) ?? out.nkm[m] + out.nk[m]
-        const bankrate = ov('bankrate', m) ?? out.zins[m] + out.tilgung[m]
+        const bankrate  = ov('bankrate', m)  ?? out.zins[m] + out.tilgung[m]
+        const bankrate2 = ov('bankrate2', m) ?? out.zins2[m] + out.tilgung2[m]
         const cf = ov('cf', m) ?? miete + out.weitereMiete[m] + out.grundsteuer[m]
-                                  + out.hausgeld[m] + bankrate
+                                  + out.hausgeld[m] + bankrate + bankrate2
         guthaben = ov('guthaben', m) ?? guthaben + out.einzahlungEk[m] + out.einzahlungFk[m]
                                         + out.kaufpreis[m] + out.ausgabe[m] + out.weitereAusgaben[m]
                                         + out.nebenkostenabrechnung[m] + cf
-        out.miete[m] = miete; out.bankrate[m] = bankrate; out.cf[m] = cf; out.guthaben[m] = guthaben
+        out.miete[m] = miete; out.bankrate[m] = bankrate; out.bankrate2[m] = bankrate2
+        out.cf[m] = cf; out.guthaben[m] = guthaben
       })
       return { months, out }
     }
@@ -889,9 +899,12 @@
       { key: 'nk',           label: 'Nebenkostenvorauszahlungen', type: 'input', sub: true, group: 'miete' },
       { key: 'weitereMiete', label: 'Weitere Mieteinnahmen',      type: 'input' },
       { key: 'hausgeld',     label: 'Hausgeld',                   type: 'input' },
-      { key: 'bankrate',     label: 'Bankrate',                   type: 'calc',  toggle: 'bankrate' },
+      { key: 'bankrate',     label: 'Darlehen',                   type: 'calc',  toggle: 'bankrate' },
       { key: 'zins',         label: 'Zins',                       type: 'input', sub: true, group: 'bankrate' },
       { key: 'tilgung',      label: 'Tilgung',                    type: 'input', sub: true, group: 'bankrate' },
+      { key: 'bankrate2',    label: 'Darlehen 2',                 type: 'calc',  toggle: 'bankrate2', d2: true },
+      { key: 'zins2',        label: 'Zins',                       type: 'input', sub: true, group: 'bankrate2', d2: true },
+      { key: 'tilgung2',     label: 'Tilgung',                    type: 'input', sub: true, group: 'bankrate2', d2: true },
       { key: 'grundsteuer',  label: 'Grundsteuer',                type: 'input' },
       { key: 'cf',           label: 'CF Wohnung',                 type: 'calc',  strong: true, sep: true },
       { key: 'weitereAusgaben',       label: 'Weitere Ausgaben',      type: 'input', gap: true },
@@ -929,7 +942,10 @@
       }).join('')
 
       const spacer = `<tr class="liq-spacer"><td class="liq-label"></td>${months.map(() => '<td></td>').join('')}</tr>`
-      const rows = LIQ_ANZEIGE.filter(r => !r.group || liqOffeneGruppen.has(r.group)).map(r => {
+      // Zeilen des zweiten Darlehens nur, wenn mindestens eine Immobilie eines hat
+      const hatD2 = properties.some(p => p.liquiditaet && (p.liquiditaet.darlehen2 ||
+        ['zins2', 'tilgung2'].some(k => Object.values((p.liquiditaet.cells || {})[k] || {}).some(v => Number(v)))))
+      const rows = LIQ_ANZEIGE.filter(r => (!r.d2 || hatD2) && (!r.group || liqOffeneGruppen.has(r.group))).map(r => {
         const cls = ['liq-row-' + r.type,
           r.sub ? 'liq-row-sub' : '', r.sep ? 'liq-sep' : '',
           r.strong ? 'liq-row-strong' : '', r.total ? 'liq-row-total' : ''].filter(Boolean).join(' ')
@@ -1136,17 +1152,28 @@
     const BK_FN_URL = SUPABASE_URL + '/functions/v1/read-bank-screenshot'
 
     const ROW_LABELS = {
-      nkm: 'Nettokaltmiete', nk: 'Nebenkostenvorauszahlungen', weitereMiete: 'Weitere Miete',
-      grundsteuer: 'Grundsteuer', hausgeld: 'Hausgeld', bankrate: 'Bankrate',
-      zins: 'Zins', tilgung: 'Tilgung', nebenkostenabrechnung: 'Nebenkostenabrechnung',
+      miete: 'Miete (gesamte Buchung)', nkm: 'Nettokaltmiete', nk: 'Nebenkostenvorauszahlungen',
+      weitereMiete: 'Weitere Miete',
+      grundsteuer: 'Grundsteuer', hausgeld: 'Hausgeld', bankrate: 'Darlehen (gesamte Rate)',
+      zins: 'Zins', tilgung: 'Tilgung', bankrate2: 'Darlehen 2 (gesamte Rate)',
+      zins2: 'Zins (Darlehen 2)', tilgung2: 'Tilgung (Darlehen 2)',
+      nebenkostenabrechnung: 'Nebenkostenabrechnung',
       weitereAusgaben: 'Weitere Ausgaben', einzahlungEk: 'Einzahlung Eigenkapital',
       einzahlungFk: 'Valutierung Fremdkapital', kaufpreis: 'Zahlung Kaufpreis',
       ausgabe: 'Zahlung Nebenkosten',
     }
     // Zeilen, die als Zufluss geführt werden (positives Vorzeichen)
-    const EINNAHME_ROWS = ['nkm', 'nk', 'weitereMiete', 'einzahlungEk', 'einzahlungFk']
+    const EINNAHME_ROWS = ['miete', 'nkm', 'nk', 'weitereMiete', 'einzahlungEk', 'einzahlungFk']
     // Zeilen, die in der Immobilie als Formel-Übersteuerung landen
-    const OVERRIDE_ROWS = ['bankrate']
+    const OVERRIDE_ROWS = []
+    // Buchungen, die auf dem Konto eine Zahlung sind, in der Tabelle aber aus
+    // mehreren Zeilen bestehen. Sie überschreiben nichts, sondern werden
+    // gegen die Summe dieser Zeilen gehalten (grüner Haken oder rotes ✕).
+    const SUMMEN_ROWS = {
+      miete:     ['nkm', 'nk'],
+      bankrate:  ['zins', 'tilgung'],
+      bankrate2: ['zins2', 'tilgung2'],
+    }
 
     let bkBuchungen = []
 
@@ -1449,6 +1476,25 @@
 
           const positiv = EINNAHME_ROWS.includes(b.zeile)
           const wert = positiv ? Math.abs(b.betrag) : -Math.abs(b.betrag)
+
+          // Summenbuchung (Miete, Darlehen): nur merken, nichts überschreiben
+          if (SUMMEN_ROWS[b.zeile]) {
+            if (!lq.bankBuchungen) lq.bankBuchungen = {}
+            if (!lq.bankBuchungen[monat]) lq.bankBuchungen[monat] = {}
+            const zelleS = b.zeile + '|' + monat
+            const altS = imLauf.has(p.id + '|' + zelleS)
+              ? (Number(lq.bankBuchungen[monat][b.zeile]) || 0) : 0
+            lq.bankBuchungen[monat][b.zeile] = Math.round((altS + wert) * 100) / 100
+            imLauf.add(p.id + '|' + zelleS)
+            lq.importedCells[zelleS] = true
+            lq.imported[fp] = true
+            geaendert = true
+            uebernommen++
+            proBezeichnung[p.bezeichnung || 'Immobilie'] = (proBezeichnung[p.bezeichnung || 'Immobilie'] || 0) + 1
+            bkRegelMerken(b)
+            continue
+          }
+
           const store = OVERRIDE_ROWS.includes(b.zeile) ? lq.overrides : lq.cells
           if (!store[b.zeile]) store[b.zeile] = {}
           const zelle = b.zeile + '|' + monat
@@ -1695,9 +1741,10 @@
     // in der Liquiditätsplanung der Immobilie unter „gebucht".
     // ════════════════════════════════════════
     const BS_ARTEN = [
-      { key: 'miete',    label: 'Miete',    zeilen: ['miete', 'nkm', 'nk', 'weitereMiete'] },
-      { key: 'hausgeld', label: 'Hausgeld', zeilen: ['hausgeld'] },
-      { key: 'bank',     label: 'Bankrate', zeilen: ['bankrate', 'zins', 'tilgung'] },
+      { key: 'miete',    label: 'Miete',    zeilen: ['miete', 'nkm', 'nk', 'weitereMiete'], summen: ['miete'] },
+      { key: 'hausgeld', label: 'Hausgeld', zeilen: ['hausgeld'], summen: [] },
+      { key: 'bank',     label: 'Darlehen', zeilen: ['bankrate', 'zins', 'tilgung', 'bankrate2', 'zins2', 'tilgung2'],
+        summen: ['bankrate', 'bankrate2'] },
     ]
     let bsMonat = null
     const bsTimer = {}
@@ -1724,7 +1771,20 @@
       const auto = art.zeilen.some(z => ic[z + '|' + monat])
       const hand = lq.gebucht && lq.gebucht[monat] ? lq.gebucht[monat][art.key] : undefined
       const gebucht = hand !== undefined ? !!hand : auto
-      return { erwartet, gebucht, auto, hand, zaehlt: erwartet || gebucht }
+
+      // Die Buchung vom Konto gegen die Summe der Zeilen halten:
+      // Miete = Nettokaltmiete + Nebenkostenvorauszahlung,
+      // Darlehen = Zins + Tilgung.
+      const bb = (lq.bankBuchungen || {})[monat] || {}
+      const soll = { miete: t.miete, bankrate: t.bankrate1, bankrate2: t.bankrate2 }
+      let abw = null
+      ;(art.summen || []).forEach(k => {
+        const g = bb[k]
+        if (g === undefined || g === null || g === '') return
+        const diff = Math.round((Math.abs(Number(g)) - Math.abs(soll[k] || 0)) * 100) / 100
+        if (Math.abs(diff) > 1 && !abw) abw = { zeile: k, gebucht: Number(g), soll: soll[k] || 0, diff }
+      })
+      return { erwartet, gebucht, auto, hand, abw, zaehlt: erwartet || gebucht }
     }
 
     function renderBuchungsstatus() {
@@ -1746,11 +1806,15 @@
       const zeilen = properties.map((p, pi) => {
         const zellen = BS_ARTEN.map(a => {
           const st = bsStand(p, a, bsMonat)
-          if (st.zaehlt) { zaehler[a.key].von++; if (st.gebucht) zaehler[a.key].ja++ }
-          const cls = st.gebucht ? 'ja' : (st.erwartet ? 'nein' : 'na')
-          const titel = st.gebucht
-            ? (st.hand !== undefined ? 'gebucht (von Hand markiert)' : 'gebucht (aus Kontoauszug)') + ' – klicken für „offen"'
-            : (st.erwartet ? 'noch nicht gebucht – klicken für „gebucht"' : 'in diesem Monat nicht geplant – klicken für „gebucht"')
+          if (st.zaehlt) { zaehler[a.key].von++; if (st.gebucht && !st.abw) zaehler[a.key].ja++ }
+          const eur = v => Math.abs(v).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
+          const cls = st.abw ? 'abw' : (st.gebucht ? 'ja' : (st.erwartet ? 'nein' : 'na'))
+          const titel = st.abw
+            ? `Gebucht ${eur(st.abw.gebucht)}, die Liquiditätsplanung ergibt ${eur(st.abw.soll)} `
+              + `(${st.abw.diff > 0 ? '+' : '−'}${eur(st.abw.diff)} Unterschied) – Zeilen in der Immobilie prüfen.`
+            : st.gebucht
+              ? (st.hand !== undefined ? 'gebucht (von Hand markiert)' : 'gebucht (aus Kontoauszug)') + ' – klicken für „offen"'
+              : (st.erwartet ? 'noch nicht gebucht – klicken für „gebucht"' : 'in diesem Monat nicht geplant – klicken für „gebucht"')
           return `<td class="bs-c"><button type="button" class="bs-dot ${cls}" title="${esc(titel)}" aria-label="${esc(a.label + ': ' + titel)}"
                     onclick="bsUmschalten(${pi}, '${a.key}')"></button></td>`
         }).join('')
@@ -1776,6 +1840,7 @@
         <div class="bs-legende">
           <span><i style="background:var(--green)"></i>gebucht</span>
           <span><i style="background:var(--red)"></i>offen</span>
+          <span><span style="color:var(--red);font-weight:800;margin-right:6px">✕</span>Betrag passt nicht</span>
           <span><i style="border:2px dashed rgba(255,255,255,0.3);width:8px;height:8px"></i>nicht geplant</span>
         </div>`
     }

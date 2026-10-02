@@ -372,6 +372,37 @@
     var b = document.getElementById('ieBurger')
     if (b) { b.textContent = '☰'; b.setAttribute('aria-expanded', 'false') }
   }
+  function openMobile () {
+    document.body.classList.add('ie-sb-open')
+    var b = document.getElementById('ieBurger')
+    if (b) { b.textContent = '✕'; b.setAttribute('aria-expanded', 'true') }
+  }
+
+  /* Wischen vom linken Rand öffnet das Menü, Wischen nach links schließt es.
+     Nur am Handy; waagerechte Bewegung muss deutlich überwiegen, damit
+     normales Scrollen und das seitliche Wischen in Tabellen nichts auslöst. */
+  function wischgeste () {
+    var x0 = 0, y0 = 0, aktiv = false, ausRand = false
+    document.addEventListener('touchstart', function (e) {
+      if (window.innerWidth > 700 || e.touches.length !== 1) { aktiv = false; return }
+      var t = e.touches[0]
+      x0 = t.clientX; y0 = t.clientY
+      var offen = document.body.classList.contains('ie-sb-open')
+      ausRand = x0 <= 28
+      // Zum Öffnen nur vom linken Rand; zum Schließen überall auf dem Menü
+      aktiv = offen ? !!(e.target.closest && e.target.closest('.ie-sidebar, .ie-scrim')) : ausRand
+    }, { passive: true })
+    document.addEventListener('touchmove', function (e) {
+      if (!aktiv || e.touches.length !== 1) return
+      var dx = e.touches[0].clientX - x0, dy = e.touches[0].clientY - y0
+      if (Math.abs(dy) > 45) { aktiv = false; return }
+      if (Math.abs(dx) < 55) return
+      aktiv = false
+      if (dx > 0 && ausRand && !document.body.classList.contains('ie-sb-open')) openMobile()
+      else if (dx < 0 && document.body.classList.contains('ie-sb-open')) closeMobile()
+    }, { passive: true })
+    document.addEventListener('touchend', function () { aktiv = false }, { passive: true })
+  }
 
   /* ── Aufbau ────────────────────────────────────────────── */
   function mount () {
@@ -412,10 +443,10 @@
 
     var burger = document.getElementById('ieBurger')
     if (burger) burger.addEventListener('click', function () {
-      var offen = document.body.classList.toggle('ie-sb-open')
-      burger.textContent = offen ? '✕' : '☰'
-      burger.setAttribute('aria-expanded', offen ? 'true' : 'false')
+      if (document.body.classList.contains('ie-sb-open')) closeMobile(); else openMobile()
     })
+
+    wischgeste()
 
     syncAuthLink()
 

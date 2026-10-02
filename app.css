@@ -288,9 +288,9 @@ body.ie-app .tab-pane { flex: 1; }
 }
 
 @media (max-width: 700px) {
-  /* obere Leiste: nur Menüknopf, Logo und Profil/Login */
-  .ie-topbar nav.ie-topnav ul li:not(:last-child) { display: none; }
-  .ie-topbar nav.ie-topnav ul a.ie-cta { padding: 9px 14px; font-size: 0.85rem; }
+  /* obere Leiste am Handy: nur Menüknopf und Logo – alle Bereiche
+     einschließlich Profil/Login stehen im Menü hinter dem ☰ */
+  .ie-topbar nav.ie-topnav { display: none; }
   .ie-burger { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex: 0 0 40px; }
 
   .ie-sidebar.ie-nur-mobil { display: block; transform: translateX(-100%); transition: transform .2s ease; }
@@ -361,6 +361,8 @@ body.ie-app .tab-pane { flex: 1; }
    Kopie (#ieInfoFloat, app-shell.js). So ragt nichts Unsichtbares über den
    Bildschirmrand, und auf dem Handy öffnet ein Antippen die Erklärung. */
 .ie-info .ie-info-pop { display: none; }
+/* Das i bleibt klein, auch in Überschriften mit Großbuchstaben */
+.ie-info { text-transform: none !important; }
 .ie-info.offen { color: var(--ie-accent); border-color: var(--ie-accent); background: var(--ie-accent-bg); }
 
 #ieInfoFloat {

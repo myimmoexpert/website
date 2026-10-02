@@ -102,12 +102,12 @@
     var miete0  = (t.miete || 0) + (t.weitereMiete || 0)
     var kosten0 = (t.hausgeld || 0) + (t.grundsteuer || 0)          // negativ
     var rate    = Math.abs(t.bankrate || 0)
-    var zins0   = Math.abs(t.zins || 0)
+    var zins0   = Math.abs(t.zins || 0) + Math.abs(t.zins2 || 0)
     var satz    = RS > 0 && zins0 ? zins0 * 12 / RS : 0
-    var ohneDarlehen = RS <= 0 && rate > 0                             // Bankrate ohne erfasste Restschuld
+    var ohneDarlehen = RS <= 0 && rate > 0                             // Darlehensrate ohne erfasste Restschuld
     var hinweise = []
-    if (ohneDarlehen) hinweise.push('keine Restschuld erfasst – die Bankrate wird unverändert fortgeschrieben')
-    if (RS > 0 && rate > 0 && !zins0) hinweise.push('kein Zins erfasst – die Bankrate wird vollständig als Tilgung gerechnet')
+    if (ohneDarlehen) hinweise.push('keine Restschuld erfasst – die Darlehensrate wird unverändert fortgeschrieben')
+    if (RS > 0 && rate > 0 && !zins0) hinweise.push('kein Zins erfasst – die Darlehensrate wird vollständig als Tilgung gerechnet')
 
     var jahre = []
     var j = null
