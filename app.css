@@ -447,6 +447,37 @@ label.ie-zust-zeile a { color: var(--ie-accent, #d3ac5f); }
 .pc-tip-row { display: flex; align-items: center; gap: 7px; color: #9b968c; margin-top: 3px; }
 .pc-tip-row i { width: 9px; height: 9px; border-radius: 2px; flex: 0 0 9px; }
 .pc-tip-row b { display: inline; margin: 0 0 0 auto; padding-left: 14px; color: #f1eee7; font-size: 0.78rem; }
+/* Zahnrad in der Kopfzeile einer Graphenkarte */
+.pc-head { position: relative; }
+.pc-zahnrad {
+  margin-left: auto; background: none; border: 1px solid var(--ie-line);
+  color: var(--ie-ink-soft); border-radius: 8px; width: 28px; height: 28px;
+  cursor: pointer; font-size: 0.9rem; line-height: 1; flex: 0 0 28px;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.pc-zahnrad:hover { color: var(--ie-accent); border-color: var(--ie-accent); background: var(--ie-accent-bg); }
+.pc-zeitraum {
+  position: absolute; right: 0; top: 34px; z-index: 60;
+  background: var(--ie-surface-2); border: 1px solid var(--ie-line);
+  border-radius: 10px; padding: 12px; width: 212px;
+  box-shadow: 0 14px 36px rgba(0,0,0,0.5);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.pc-zeitraum label { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  font: 500 0.8rem 'Inter', sans-serif; color: var(--ie-ink-soft); }
+.pc-zeitraum input {
+  width: 92px; background: var(--ie-bg); border: 1px solid var(--ie-line);
+  border-radius: 7px; padding: 6px 8px; color: var(--ie-ink);
+  font: 500 0.85rem 'Inter', sans-serif; color-scheme: dark;
+}
+.pc-zeitraum-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 2px; }
+.pc-zeitraum-btns button {
+  border-radius: 7px; padding: 6px 11px; cursor: pointer;
+  font: 600 0.78rem 'Inter', sans-serif; border: 1px solid var(--ie-line);
+  background: none; color: var(--ie-ink-soft);
+}
+.pc-zeitraum-btns .pc-zr-ok { background: var(--ie-accent); border-color: var(--ie-accent); color: var(--ie-on-accent); }
+
 .pc-hero { display: flex; align-items: baseline; gap: 9px; margin-top: 10px; }
 .pc-hero-val { font-size: 1.45rem; font-weight: 700; letter-spacing: -0.5px; color: #f1eee7; }
 .pc-hero-val.green { color: #5cc98a; } .pc-hero-val.red { color: #ef6b6b; }

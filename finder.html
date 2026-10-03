@@ -5,7 +5,11 @@
   <script>if(sessionStorage.getItem('ie_gate')!=='1')document.documentElement.style.visibility='hidden'</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Immo.Finder – Inserat analysieren</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="manifest" href="site.webmanifest" />
+  <meta name="apple-mobile-web-app-title" content="Immo.Expert" />
+  <meta name="theme-color" content="#0f0f11" />
   <link rel="stylesheet" href="fonts/inter.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -866,6 +870,11 @@
         <div class="kpi-value" id="kpiNettokaltmiete">–</div>
         <div class="kpi-sub">pro Monat</div>
       </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Mietrendite</div>
+        <div class="kpi-value" id="kpiMietrendite">–</div>
+        <div class="kpi-sub">Jahreskaltmiete / Kaufpreis</div>
+      </div>
     </div>
 
     <!-- Details -->
@@ -876,6 +885,7 @@
         <div class="detail-row"><span class="label">Wohnfläche</span><span class="value" id="dWohnflaeche">–</span></div>
         <div class="detail-row"><span class="label">Baujahr</span><span class="value" id="dBaujahr">–</span></div>
         <div class="detail-row"><span class="label">Vermietet</span><span class="value" id="dVermietet">–</span></div>
+        <div class="detail-row"><span class="label">Energieklasse</span><span class="value" id="dEnergieklasse">–</span></div>
       </div>
       <div class="detail-card">
         <h3>Investment</h3>
@@ -888,10 +898,10 @@
 
     <!-- Cashflow Analyse -->
     <div class="cashflow-card">
-      <h3>Cashflow Analyse <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Bankrate basiert auf 5 % des Kaufpreises p. a. · Steuern nicht berücksichtigt</span></span></h3>
+      <h3>Cashflow Analyse <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Alle Beträge pro Monat · Bankrate basiert auf 5 % des Kaufpreises p. a. · Steuern nicht berücksichtigt</span></span></h3>
       <div class="cf-rows">
         <div class="cf-row">
-          <span class="cf-lbl">Jährliche Warmmiete</span>
+          <span class="cf-lbl">Warmmiete</span>
           <span class="cf-amt plus" id="cfWarmmieteJahr">–</span>
         </div>
         <div class="cf-row">
@@ -899,7 +909,7 @@
           <span class="cf-amt minus" id="cfHausgeldJahr">–</span>
         </div>
         <div class="cf-row">
-          <span class="cf-lbl">Voraussichtliche Bankrate <span style="font-size:0.78rem;">(Kaufpreis × 5 %)</span></span>
+          <span class="cf-lbl">Voraussichtliche Bankrate <span style="font-size:0.78rem;">(Kaufpreis × 5 % p. a.)</span></span>
           <span class="cf-amt minus" id="cfBankrateJahr">–</span>
         </div>
       </div>
@@ -981,7 +991,7 @@
   <!-- GESPEICHERTE STECKBRIEFE -->
   <div class="ie-view" id="viewSteckbriefe">
   <div class="sb-head">
-    <h1>Gespeicherte <span>Steckbriefe</span> <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Alle analysierten Inserate auf einen Blick.</span></span></h1>
+    <h1>Gespeicherte <span>Steckbriefe</span></h1>
   </div>
   <div class="sb-empty" id="sbEmpty">
     <div class="ie-placeholder">
@@ -1283,10 +1293,17 @@
       document.getElementById('dNebenkosten').textContent       = data.dNebenkosten  || '–'
       document.getElementById('dGesamt').textContent            = data.dGesamt       || '–'
       document.getElementById('dAbschreibung').textContent      = data.dAbschreibung || '–'
-      // Cashflow
-      document.getElementById('cfWarmmieteJahr').textContent    = data.cfWarmmieteJahr || '–'
-      document.getElementById('cfHausgeldJahr').textContent     = data.cfHausgeldJahr  || '–'
-      document.getElementById('cfBankrateJahr').textContent     = data.cfBankrateJahr  || '–'
+      // Mietrendite aus Kaufpreis und Nettokaltmiete
+      const kpWert = parseNumber(data.kpiKaufpreis) || parseNumber(data.dKaufpreis)
+      const nkmWert = parseNumber(data.kpiNettokaltmiete)
+      document.getElementById('kpiMietrendite').textContent =
+        (kpWert && nkmWert) ? (nkmWert * 12 / kpWert * 100).toLocaleString('de-DE',
+          { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %' : '–'
+      document.getElementById('dEnergieklasse').textContent     = data.dEnergieklasse || '–'
+      // Cashflow – alle Zeilen pro Monat (die Analyse liefert Jahreswerte)
+      document.getElementById('cfWarmmieteJahr').textContent    = proMonat(data.cfWarmmieteJahr)
+      document.getElementById('cfHausgeldJahr').textContent     = proMonat(data.cfHausgeldJahr)
+      document.getElementById('cfBankrateJahr').textContent     = proMonat(data.cfBankrateJahr)
       document.getElementById('cfMonatlich').textContent        = data.cfMonatlich      || '–'
       // CF-Ergebnis einfärben
       const cfRes = document.getElementById('cfResult')
@@ -1299,7 +1316,13 @@
         cfTot.className = 'cf-total neg'
       }
       // Beschreibung + Bewertung
-      document.getElementById('dBeschreibung').textContent      = data.dBeschreibung  || '–'
+      // Energieklasse gehört in den Beschreibungstext; fehlt sie dort, wird sie ergänzt
+      let besch = data.dBeschreibung || '–'
+      const ek = data.dEnergieklasse
+      if (ek && besch !== '–' && !/energie/i.test(besch)) {
+        besch = besch.replace(/\s*$/, '') + ' Energieklasse: ' + ek + '.'
+      }
+      document.getElementById('dBeschreibung').textContent      = besch
       document.getElementById('ratingSummary').textContent      = data.ratingSummary   || '–'
 
       const tagsEl = document.getElementById('ratingTags')
@@ -1315,6 +1338,15 @@
     /* ── ANSCHREIBEN ── */
     const GEN_MSG_URL = SUPABASE_URL + '/functions/v1/generate-message'
     let currentLetterMode = null
+
+    // Jahresbetrag der Analyse auf den Monat umrechnen; Vorzeichen bleibt erhalten
+    function proMonat(str) {
+      const n = parseNumber(str)
+      if (n === null) return str || '–'
+      const neg = /^\s*[-−]/.test(String(str))
+      const v = Math.round(n / 12)
+      return (neg ? '-' : '') + v.toLocaleString('de-DE') + ' €'
+    }
 
     function parseNumber(str) {
       if (!str) return null

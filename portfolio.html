@@ -5,7 +5,11 @@
   <script>if(sessionStorage.getItem('ie_gate')!=='1')document.documentElement.style.visibility='hidden'</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Immo.Portfolio – Immo.Expert</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="manifest" href="site.webmanifest" />
+  <meta name="apple-mobile-web-app-title" content="Immo.Expert" />
+  <meta name="theme-color" content="#0f0f11" />
   <link rel="stylesheet" href="fonts/inter.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -268,8 +272,7 @@
     .ie-sec-ico { font-size: 1.05rem; }
     .ie-sec-titel { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.2px; flex: 1; }
     .ie-sec-anzahl { font-size: 0.8rem; color: var(--muted); }
-    .ie-sec-chev { color: var(--muted); font-size: 0.9rem; transition: transform .18s; }
-    .ie-sec[open] .ie-sec-chev { transform: rotate(90deg); }
+    .ie-sec-chev { color: var(--muted); font-size: 0.9rem; }
     .ie-sec-body { padding: 4px 22px 22px; }
     .ie-sec .tile-grid { padding: 0; max-width: none; }
     .ie-sec .kpi-group:first-child { margin-top: 0; padding-top: 0; border-top: none; }
@@ -343,7 +346,7 @@
       <summary>
         <span class="ie-sec-ico">📊</span>
         <span class="ie-sec-titel">Weitere Portfoliokennzahlen</span>
-        <span class="ie-sec-chev">▸</span>
+        <span class="ie-sec-chev">▾</span>
       </summary>
       <div class="ie-sec-body"><div id="kpiWrap"></div></div>
     </details>
@@ -353,7 +356,7 @@
         <span class="ie-sec-ico">🏢</span>
         <span class="ie-sec-titel">Meine Immobilien</span>
         <span class="ie-sec-anzahl" id="secImmoAnzahl"></span>
-        <span class="ie-sec-chev">▸</span>
+        <span class="ie-sec-chev">▾</span>
       </summary>
       <div class="ie-sec-body">
         <div class="tile-grid" id="tileGrid"><!-- Wird per JS befüllt --></div>
@@ -390,6 +393,11 @@
       <div class="form-group">
         <label>Kaufpreis (€)</label>
         <input type="number" id="fKaufpreis" placeholder="z.B. 349000" min="0" />
+      </div>
+      <div class="form-group">
+        <label>Wohnfläche (m²) <span class="opt">optional</span></label>
+        <input type="number" id="fWohnflaeche" placeholder="z.B. 72" min="0" step="0.1" />
+        <p class="form-hint">Kann später in den Einstellungen der Immobilie ergänzt oder geändert werden.</p>
       </div>
       <div class="form-group">
         <label>Festgelegter Wert (€) <span class="opt">optional</span></label>
@@ -591,6 +599,8 @@
                 zaehler.eigen ? zaehler.eigen + '× eigener Wert' : ''].filter(Boolean).join(' · ') },
           { l: 'Restschuld',    v: formatEur(fk),  s: 'Darlehen abzüglich Tilgung' },
           { l: 'Eigenkapitalwert',  v: formatEur(ek),  c: 'green', s: 'Wert abzüglich Restschuld' },
+          { l: 'Eigenkapital investiert', v: formatEur(ekEingesetzt),
+            s: 'Summe der Einzahlungen Eigenkapital aus den Liquiditätsplanungen' },
           { l: 'Finanzierungsquote', v: pct(ltv), s: 'Restschuld ÷ Portfoliowert' },
         ], 'kcVermoegen') +
         gruppe('Monatliche Einnahmen und Ausgaben', [
@@ -800,8 +810,9 @@
     function closeModal() {
       document.getElementById('addModal').classList.remove('visible')
       document.body.style.overflow = ''
-      // Felder zurücksetzen
-      ['fBezeichnung','fAdresse','fKaufpreis','fWert','fStichtag']
+      // Felder zurücksetzen (führendes Semikolon: sonst liest JavaScript die
+      // Zeile als Index-Zugriff auf den String darüber)
+      ;['fBezeichnung','fAdresse','fKaufpreis','fWohnflaeche','fWert','fStichtag']
         .forEach(id => { const el = document.getElementById(id); if(el) el.value = '' })
     }
 
@@ -822,6 +833,7 @@
                           String(gestern.getMonth() + 1).padStart(2, '0') + '-' +
                           String(gestern.getDate()).padStart(2, '0')
       const wert        = parseFloat(document.getElementById('fWert').value) || null
+      const wohnflaeche = parseFloat((document.getElementById('fWohnflaeche') || {}).value) || null
       const stichtag    = (document.getElementById('fStichtag') || {}).value || ''
 
       if (!bezeichnung) {
@@ -842,7 +854,7 @@
       const { error } = await sb.from('portfolio').insert({
         user_id:     session.user.id,
         bezeichnung, objektart, adresse, kaufpreis, kaufdatum, wert,
-        einstellungen: { uebernahmestichtag: stichtag }
+        einstellungen: { uebernahmestichtag: stichtag, wohnflaeche: wohnflaeche }
       })
 
       btn.disabled = false

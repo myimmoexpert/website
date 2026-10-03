@@ -19,6 +19,31 @@
       : MONATE_KURZ[t[1] - 1] + ' ' + String(t[0]).slice(2)
   }
 
+  /* ── Zeitraum des Portfoliowert-Graphen ──────────────────
+     Standard: voriges Jahr bis acht Jahre voraus (zehn Jahre).
+     Über das Zahnrad lassen sich Start und Ende frei setzen; die
+     Einstellung bleibt im Browser gespeichert. */
+  var ZR_KEY = 'ie_pw_zeitraum'
+  function zeitraum () {
+    var jetztJ = new Date().getFullYear()
+    var std = { von: jetztJ - 1, bis: jetztJ + 8 }
+    try {
+      var z = JSON.parse(localStorage.getItem(ZR_KEY) || 'null')
+      if (z && z.von && z.bis && z.bis >= z.von) {
+        return { von: Math.max(1990, z.von | 0), bis: Math.min(2100, Math.max(z.von | 0, z.bis | 0)) }
+      }
+    } catch (e) {}
+    return std
+  }
+  function zeitraumSetzen (von, bis) {
+    try { localStorage.setItem(ZR_KEY, JSON.stringify({ von: von, bis: bis })) } catch (e) {}
+  }
+  function zeitraumJahre () {
+    var z = zeitraum(), out = []
+    for (var j = z.von; j <= z.bis; j++) out.push(j)
+    return out.length ? out : [new Date().getFullYear()]
+  }
+
   /* ── Zehn Jahre, in denen das Portfolio besteht ──────────── */
   function zehnJahre (props) {
     var C = window.IECalc
@@ -108,7 +133,7 @@
   /* ── Einzelne Charts, auch für andere Seiten ─────────────── */
   function chartPortfoliowert (karte, props) {
     var F = window.IEChart.farben, eur = window.IEChart.eur
-    var daten = jahresDaten(props, zehnJahre(props))
+    var daten = jahresDaten(props, zeitraumJahre())
     var akt = daten.findIndex(function (d) { return d.heute })
     window.IEChart.saeulen(karte.querySelector('.pc-plot'), {
       aria: 'Portfoliowert je Jahr',
@@ -179,24 +204,66 @@
 
     container.innerHTML =
       K.karte({ id: 'pcAum', titel: 'Entwicklung Portfoliowert',
-        hero: { wert: K.eur(heuteJ.wert), label: 'Portfoliowert heute' +
-                  (zuwachs ? ' · ' + (zuwachs >= 0 ? '+' : '') + pct(zuwachs) + ' seit ' + ersteJ.jahr : '') },
-        info: 'Wert aller Immobilien zum Jahresende, ' + jahre[0] + ' bis ' + jahre[9] +
-              '. Das laufende Jahr ist hervorgehoben, spätere Jahre sind eine Prognose aus der Werteinstellung der einzelnen Immobilien.' }) +
+        werkzeug: '<button type="button" class="pc-zahnrad" id="pcAumZahnrad" title="Zeitraum einstellen" aria-label="Zeitraum einstellen">⚙</button>',
+        hero: { wert: K.eur(heuteJ ? heuteJ.wert : 0) } }) +
       K.karte({ id: 'pcCf', titel: 'Cashflow im ' + monatName(monat, true),
-        info: 'Von der Miete zum Überschuss: jede Säule zieht eine Zahlung ab. Werte aus der Liquiditätsplanung aller Immobilien für den laufenden Monat.',
-        hero: { wert: K.eur(vorschauCf.cf), label: vorschauCf.cf < -0.004 ? 'Unterdeckung pro Monat' : 'Überschuss pro Monat',
+        hero: { wert: K.eur(vorschauCf.cf),
                 klasse: vorschauCf.cf < -0.004 ? 'red' : 'green' },
         legende: vorschauCf.schritte.filter(function (x) { return gibt[x.name] })
           .map(function (x) { return { c: x.farbe, t: x.name } }) }) +
       K.karte({ id: 'pcRd', titel: 'Mietrendite je Immobilie',
-        info: 'Jahresmiete bezogen auf den aktuellen Wert der Immobilie · Stand heute. Die gestrichelte Linie ist der Portfolioschnitt.',
+        info: 'Jahresmiete bezogen auf den aktuellen Wert der Immobilie · Stand heute.',
         hero: { wert: pct(sb > 0 ? sm / sb * 100 : 0), label: 'Portfolio im Schnitt' },
         legende: [{ c: F.GOLD, t: 'Mietrendite' }, { c: F.INK, t: 'Portfolioschnitt', linie: true }] })
 
     chartPortfoliowert(container.querySelector('#pcAum'), props)
     chartCashflow(container.querySelector('#pcCf'), props, monat)
     chartRendite(container.querySelector('#pcRd'), props)
+    zahnradVerdrahten(container, props)
+  }
+
+  /* Zahnrad am Portfoliowert: Start- und Endjahr frei wählen */
+  function zahnradVerdrahten (container, props) {
+    var btn = container.querySelector('#pcAumZahnrad')
+    if (!btn) return
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation()
+      var alt = container.querySelector('.pc-zeitraum')
+      if (alt) { alt.remove(); return }
+      var z = zeitraum()
+      var box = document.createElement('div')
+      box.className = 'pc-zeitraum'
+      box.innerHTML =
+        '<label>Von <input type="number" id="pcZrVon" value="' + z.von + '" min="1990" max="2100" step="1"></label>' +
+        '<label>Bis <input type="number" id="pcZrBis" value="' + z.bis + '" min="1990" max="2100" step="1"></label>' +
+        '<div class="pc-zeitraum-btns">' +
+          '<button type="button" class="pc-zr-std">Standard</button>' +
+          '<button type="button" class="pc-zr-ok">Übernehmen</button>' +
+        '</div>'
+      btn.parentElement.appendChild(box)
+      box.addEventListener('click', function (ev) { ev.stopPropagation() })
+      box.querySelector('.pc-zr-ok').addEventListener('click', function () {
+        var von = parseInt(box.querySelector('#pcZrVon').value, 10)
+        var bis = parseInt(box.querySelector('#pcZrBis').value, 10)
+        if (!von || !bis || bis < von) return
+        if (bis - von > 49) bis = von + 49
+        zeitraumSetzen(von, bis)
+        box.remove()
+        aufbauen(container, props)
+      })
+      box.querySelector('.pc-zr-std').addEventListener('click', function () {
+        try { localStorage.removeItem(ZR_KEY) } catch (er) {}
+        box.remove()
+        aufbauen(container, props)
+      })
+      setTimeout(function () {
+        document.addEventListener('click', function weg () {
+          var b = container.querySelector('.pc-zeitraum')
+          if (b) b.remove()
+          document.removeEventListener('click', weg)
+        }, { once: true })
+      }, 0)
+    })
   }
 
   var letzte = null, resizeTimer = null
@@ -206,6 +273,7 @@
       aufbauen(container, props)
     },
     zehnJahre: zehnJahre,
+    zeitraumJahre: zeitraumJahre,
     jahresDaten: jahresDaten,
     cfSchritte: cfSchritte,
     objektDaten: objektDaten,

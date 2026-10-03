@@ -5,7 +5,11 @@
   <script>if(sessionStorage.getItem('ie_gate')!=='1')document.documentElement.style.visibility='hidden'</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Immobilie – Immo.Expert</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="manifest" href="site.webmanifest" />
+  <meta name="apple-mobile-web-app-title" content="Immo.Expert" />
+  <meta name="theme-color" content="#0f0f11" />
   <link rel="stylesheet" href="fonts/inter.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -176,6 +180,24 @@
       content: '✓'; position: absolute; top: 1px; right: 4px;
       font-size: 0.62rem; line-height: 1; font-weight: 700; color: var(--green); pointer-events: none;
     }
+    /* Rechtsklick-Menü in der Liquiditätstabelle */
+    .liq-menue {
+      position: fixed; z-index: 900; min-width: 212px;
+      background: var(--navy2); border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 10px; padding: 5px; box-shadow: 0 18px 44px rgba(0,0,0,0.6);
+      display: flex; flex-direction: column; gap: 1px;
+    }
+    .liq-menue button {
+      display: flex; align-items: center; gap: 9px; width: 100%; text-align: left;
+      background: none; border: none; border-radius: 7px; cursor: pointer;
+      padding: 9px 11px; color: var(--white);
+      font: 500 0.84rem/1.2 'Inter', sans-serif;
+    }
+    .liq-menue button:hover { background: rgba(255,255,255,0.07); }
+    .liq-menue button.aktiv { background: rgba(211,172,95,0.12); color: var(--gold); }
+    .liq-menue .lm-ok { color: var(--green); font-weight: 700; }
+    .liq-menue .lm-x  { color: var(--red); font-weight: 700; }
+
     /* Rotes ✕ : die Buchung vom Konto passt nicht zur Summe der Einzelzeilen */
     .liq-table td.liq-xmark { background: #2a1719; }
     .liq-table td.liq-xmark.liq-now { background: #2a1719; }
@@ -317,7 +339,7 @@
 
     .kpi-bar {
       margin-top: 24px;
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
     }
     .kpi-stat {
       background: var(--navy2); border: 1px solid rgba(255,255,255,0.088);
@@ -342,6 +364,7 @@
     /* ══ ÜBERSICHT ══ */
     .ub-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
     @media (max-width: 1100px) { .ub-kpis { grid-template-columns: repeat(2, 1fr); } }
+    .ub-trenner { grid-column: 1 / -1; height: 1px; background: rgba(255,255,255,0.16); margin: 6px 0; }
     .ub-tile { background: #1f1f23; border: 1px solid rgba(255,255,255,0.09); border-radius: 12px; padding: 13px 16px; display: flex; flex-direction: column; gap: 5px; }
     .ub-label { display: flex; align-items: center; gap: 7px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); }
     .ub-value { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.2px; }
@@ -385,8 +408,7 @@
       transition: background .15s, color .15s, border-color .15s;
     }
     .ie-sec-btn:hover { background: rgba(255,255,255,0.06); color: var(--white); border-color: rgba(255,255,255,0.12); }
-    .ie-sec-btn.chev { transition: transform .18s, background .15s, color .15s; }
-    .ie-sec.zu .ie-sec-btn.chev { transform: rotate(-90deg); }
+    .ie-sec-btn.chev { transition: background .15s, color .15s; }
     .ie-sec-body { padding: 4px 0 8px; }
     .ie-sec.zu .ie-sec-body { display: none; }
     .ie-sec.aus { opacity: 0.55; border-style: dashed; }
@@ -587,6 +609,10 @@
     .nk-erg { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
       border: 1px solid rgba(255,255,255,0.125); border-radius: 10px; padding: 13px 16px; margin-top: 14px; }
     .nk-erg-l { font-size: 0.88rem; font-weight: 700; }
+    .nk-erg-r { display: inline-flex; align-items: center; gap: 12px; }
+    .nk-status-ok, .nk-status-x { font: 600 0.74rem/1 'Inter', sans-serif; padding: 5px 9px; border-radius: 50px; cursor: help; white-space: nowrap; }
+    .nk-status-ok { color: var(--green); background: rgba(92,201,138,0.12); border: 1px solid rgba(92,201,138,0.35); }
+    .nk-status-x  { color: var(--red);   background: rgba(239,107,107,0.10); border: 1px solid rgba(239,107,107,0.32); }
     .nk-erg-v { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.4px; font-variant-numeric: tabular-nums; }
     .nk-erg.pos { border-color: rgba(92,201,138,0.35); background: #16241c; }
     .nk-erg.neg { border-color: rgba(239,107,107,0.30); background: #241617; }
@@ -781,6 +807,10 @@
         <div class="k-label">Cashflow / Monat</div>
         <div class="k-value" id="kCf">–</div>
       </div>
+      <div class="kpi-stat">
+        <div class="k-label">Wohnfläche</div>
+        <div class="k-value" id="kFlaeche">–</div>
+      </div>
     </div>
 
     <div class="sec-bar">
@@ -913,7 +943,7 @@
       <div class="liq-modal" id="liqImportModal" onclick="if(event.target===this)liqCloseImport()">
         <div class="liq-modal-box">
           <h4>Tilgungsplan importieren</h4>
-          <p>PDF deiner Bank hierher ziehen oder klicken zum Auswählen.<br />Zins und Tilgung werden automatisch erkannt und nach Bestätigung übernommen.<br />Auch Scans/Fotos werden unterstützt (per Texterkennung, dauert etwas länger).</p>
+          <p>PDF deiner Bank hierher ziehen oder klicken zum Auswählen.<br />Zins und Tilgung werden automatisch erkannt und nach Bestätigung übernommen.<br /><strong>Scans müssen OCR-Scans sein</strong>, also durchsuchbare PDFs, in denen sich der Text markieren lässt.</p>
           <div class="liq-drop" id="liqDrop" onclick="document.getElementById('liqPdfInput').click()">
             <span id="liqDropText">📄 PDF hier ablegen oder klicken</span>
           </div>
@@ -936,37 +966,6 @@
 
       <textarea class="notes-area" id="notesArea"
                 placeholder="Notizen, Erinnerungen und wichtige Informationen zu dieser Immobilie …"></textarea>
-
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════
-       TAB 6: DATEIEN
-  ══════════════════════════════════════ -->
-  <div class="tab-pane" id="pane-dateien">
-    <div class="tab-content">
-
-      <div class="section-head sh-leer">
-        <div class="save-indicator" id="siDateien"></div>
-      </div>
-
-      <!-- Ordner-Ansicht -->
-      <div id="dokFolderView">
-        <div class="dok-grid" id="dokGrid"></div>
-        <button class="btn-add-row" id="dokAddBtn" onclick="dokAddFolder()">+ Eigenen Ordner hinzufügen</button>
-      </div>
-
-      <!-- Datei-Ansicht (innerhalb eines Ordners) -->
-      <div id="dokFileView" style="display:none;">
-        <a class="back-link" href="#" onclick="dokBack(event)" style="margin-bottom:14px;">← Alle Ordner</a>
-        <h3 id="dokFolderTitle" style="margin-bottom:14px;">📁</h3>
-        <div class="liq-drop" id="dokDrop" onclick="document.getElementById('dokFileInput').click()"
-             style="margin:0 0 14px; padding:26px 20px;">
-          <span id="dokDropText">📄 Dateien hier ablegen oder klicken (max. 50 MB pro Datei)</span>
-        </div>
-        <input type="file" id="dokFileInput" multiple style="display:none;" />
-        <div class="cl-table" id="dokFileList"></div>
-      </div>
 
     </div>
   </div>
@@ -1127,6 +1126,10 @@
           <span class="set-lbl">Kaufpreis (€)</span>
           <input type="text" id="setKaufpreis" inputmode="decimal" placeholder="z. B. 349000" />
         </label>
+        <label class="set-row">
+          <span class="set-lbl">Wohnfläche (m²)</span>
+          <input type="text" id="setWohnflaeche" inputmode="decimal" placeholder="z. B. 72" />
+        </label>
         <p class="set-note">
           <strong>Miete, Hausgeld und Bankrate</strong> tragen Sie nicht hier ein, sondern im Bereich
           <strong>Liquiditätsplanung</strong>.
@@ -1208,7 +1211,6 @@
       initLiquiditaet(data)
       initTodos(data.todos)
       initNotes(data.notes)
-      initDateien(data.dateien)
       initNk(data)
       if (typeof updateKpis === 'function') updateKpis()
       if (typeof hinweiseAktualisieren === 'function') hinweiseAktualisieren()
@@ -1682,7 +1684,7 @@
             <div></div>
           </div>`).join('')
         det.innerHTML = `
-          <summary>▸ ${esc(entry.mieter || 'Ohne Mieter')}${dat ? ' · archiviert am ' + dat : ''}</summary>
+          <summary>▾ ${esc(entry.mieter || 'Ohne Mieter')}${dat ? ' · archiviert am ' + dat : ''}</summary>
           <div class="cl-table" style="margin-top:10px;">${rows}</div>
           <button class="btn-delete miet-archiv-del" onclick="deleteMietArchiv(${idx})">Archiv-Eintrag löschen</button>`
         det.querySelectorAll('[data-archiv-key]').forEach(inp => {
@@ -2134,6 +2136,7 @@
         cell.addEventListener('blur',     () => liqRefreshCells())
         cell.addEventListener('keydown',  e  => liqKeyNav(e, cell))
         cell.addEventListener('dblclick', () => liqEditNote(cell))
+        cell.addEventListener('contextmenu', e => liqZellMenue(e, cell))
         cell.addEventListener('focus',    () => cell.select())
         cell.addEventListener('mouseup',  e  => e.preventDefault())
       })
@@ -2344,6 +2347,76 @@
       target.scrollIntoView({ block: 'nearest', inline: 'nearest' })
     }
 
+    // ── Rechtsklick auf eine Zelle: Haken, Kreuz oder Kommentar ──
+    // Jede Zahl in der Tabelle ist entweder Planung oder Buchung. Eine Buchung
+    // ist sie, wenn sie aus dem Kontoauszug stammt oder hier von Hand bestätigt
+    // wurde – beides zeigt denselben grünen Haken.
+    function liqMarke(row, month) {
+      return (liqData.marken || {})[row + '|' + month] || null
+    }
+    function liqMarkeSetzen(row, month, wert) {
+      if (!liqData.marken) liqData.marken = {}
+      const k = row + '|' + month
+      if (wert) liqData.marken[k] = wert
+      else delete liqData.marken[k]
+      liqRefreshCells()
+      scheduleSave('l')
+      if (typeof nkRender === 'function') nkRender()
+    }
+
+    // Gilt der Betrag dieser Zelle als Buchung (nicht als Planung)?
+    function liqIstBuchung(row, month) {
+      if (liqMarke(row, month) === 'ok') return true
+      const ic = (liqData.importedCells || {})
+      return !!ic[row + '|' + month]
+    }
+
+    function liqZellMenueZu() {
+      const m = document.getElementById('liqZellMenue')
+      if (m) m.remove()
+    }
+
+    function liqZellMenue(e, cell) {
+      e.preventDefault()
+      liqZellMenueZu()
+      const { row, month } = cell.dataset
+      const marke = liqMarke(row, month)
+      const hatNotiz = !!(liqData.notes?.[row]?.[month])
+      const menue = document.createElement('div')
+      menue.id = 'liqZellMenue'
+      menue.className = 'liq-menue'
+      menue.innerHTML =
+        `<button type="button" data-tun="ok" class="${marke === 'ok' ? 'aktiv' : ''}"><span class="lm-ok">✓</span> Als gebucht markieren</button>` +
+        `<button type="button" data-tun="x" class="${marke === 'x' ? 'aktiv' : ''}"><span class="lm-x">✕</span> Betrag stimmt nicht</button>` +
+        (marke ? '<button type="button" data-tun="weg">Markierung entfernen</button>' : '') +
+        `<button type="button" data-tun="notiz">${hatNotiz ? 'Kommentar bearbeiten' : 'Kommentar hinzufügen'}</button>` +
+        (hatNotiz ? '<button type="button" data-tun="notizweg">Kommentar löschen</button>' : '')
+      document.body.appendChild(menue)
+      const b = menue.getBoundingClientRect()
+      const x = Math.min(e.clientX, window.innerWidth - b.width - 10)
+      const y = Math.min(e.clientY, window.innerHeight - b.height - 10)
+      menue.style.left = Math.max(8, x) + 'px'
+      menue.style.top = Math.max(8, y) + 'px'
+      menue.addEventListener('click', ev => {
+        const btn = ev.target.closest('button')
+        if (!btn) return
+        const tun = btn.dataset.tun
+        liqZellMenueZu()
+        if (tun === 'ok')    liqMarkeSetzen(row, month, marke === 'ok' ? null : 'ok')
+        if (tun === 'x')     liqMarkeSetzen(row, month, marke === 'x' ? null : 'x')
+        if (tun === 'weg')   liqMarkeSetzen(row, month, null)
+        if (tun === 'notiz') liqEditNote(cell)
+        if (tun === 'notizweg') {
+          if (liqData.notes?.[row]) delete liqData.notes[row][month]
+          liqRefreshCells(); scheduleSave('l')
+        }
+      })
+      setTimeout(() => {
+        document.addEventListener('click', liqZellMenueZu, { once: true })
+        document.addEventListener('scroll', liqZellMenueZu, { once: true, capture: true })
+      }, 0)
+    }
+
     // ── Notizen pro Zelle (Doppelklick) ──
     function liqEditNote(cell) {
       const { row, month } = cell.dataset
@@ -2478,9 +2551,10 @@
         cell.classList.toggle('pos', val > 0.004)
         // Grün = mit einer echten Buchung abgeglichen oder nachweislich ohne Bewegung.
         // Warndreieck = geplanter Wert, der seit zwei Monaten unbestätigt ist.
-        const stand = liqStand(row, month, val, rec)
-        const gebucht = !!(rec && rec.ic[row + '|' + month])
-        const abw = liqAbweichung(row, month, val, rec)
+        const marke = liqMarke(row, month)
+        const stand = marke === 'ok' ? 'ok' : liqStand(row, month, val, rec)
+        const gebucht = marke === 'ok' || !!(rec && rec.ic[row + '|' + month])
+        const abw = marke === 'x' ? null : liqAbweichung(row, month, val, rec)
         const td = cell.parentElement
         // Eine echte Buchung bestätigt die Zelle immer – auch in Zeilen,
         // für die der laufende Abgleich (LIQ_TRACK_ROWS) nicht gilt.
@@ -2488,10 +2562,14 @@
         td.classList.toggle('liq-warn', stand === 'warn' && !gebucht)
         td.classList.toggle('liq-gebucht', gebucht && !abw)
         td.classList.toggle('liq-abw', !!abw)
-        td.classList.remove('liq-xmark')   // wird in liqRollupGroups neu gesetzt
+        td.classList.toggle('liq-xmark', marke === 'x')
 
         const note = liqData.notes?.[row]?.[month]
-        const hinweis = abw
+        const hinweis = marke === 'x'
+          ? 'Von Hand als „Betrag stimmt nicht" markiert.'
+          : marke === 'ok'
+            ? 'Von Hand als gebucht bestätigt.'
+          : abw
           ? `Gebucht ${liqFmt(val)} €, geplant waren ${liqFmt(abw.plan)} € `
             + `(${abw.diff > 0 ? '+' : ''}${liqFmt(abw.diff)} €).`
           : stand === 'warn'
@@ -2533,6 +2611,14 @@
           const td = cell.parentElement
           // Gibt es für diesen Monat eine echte Buchung vom Konto, entscheidet
           // der Vergleich mit der Summe der Einzelzeilen – sonst nichts.
+          const eigen = liqMarke(parent.key, m)
+          if (eigen) {
+            td.classList.remove('liq-warn', 'liq-abw', 'liq-ok', 'liq-gebucht', 'liq-xmark')
+            td.classList.add(eigen === 'ok' ? 'liq-ok' : 'liq-xmark')
+            if (eigen === 'ok') td.classList.add('liq-gebucht')
+            cell.title = eigen === 'ok' ? 'Von Hand als gebucht bestätigt.' : 'Von Hand als „Betrag stimmt nicht" markiert.'
+            return
+          }
           const bs = LIQ_SUMMEN[parent.key] ? liqSummeStand(parent.key, m, out) : null
           if (bs) {
             td.classList.remove('liq-warn', 'liq-abw', 'liq-ok', 'liq-gebucht', 'liq-xmark')
@@ -2550,8 +2636,9 @@
           const staende = kinder.map(k => liqStand(k.key, m, out[k.key]?.[m] ?? 0, rec))
           // Summenzeile (z. B. Miete): gebucht, sobald eine Kindzeile gebucht ist;
           // rotes ! , sobald eine gebuchte Kindzeile vom Plan abweicht.
-          const gebucht = kinder.some(k => rec.ic[k.key + '|' + m])
-          const abw = kinder.some(k => liqAbweichung(k.key, m, out[k.key]?.[m] ?? 0, rec))
+          const gebucht = kinder.some(k => rec.ic[k.key + '|' + m] || liqMarke(k.key, m) === 'ok')
+          const abw = kinder.some(k => liqMarke(k.key, m) === 'x'
+            || (liqMarke(k.key, m) !== 'ok' && liqAbweichung(k.key, m, out[k.key]?.[m] ?? 0, rec)))
           if (zu && staende.includes('warn') && !gebucht) {
             td.classList.add('liq-warn'); td.classList.remove('liq-ok', 'liq-gebucht', 'liq-abw')
             return
@@ -2586,190 +2673,6 @@
     }
 
 
-    // ════════════════════════════════════════
-    // DATEIEN (Supabase Storage)
-    // ════════════════════════════════════════
-    const DOK_BUCKET = 'dokumente'
-    const DOK_MAX = 15
-    const DOK_FIXED = [
-      '01 Kauf', '02 Liegenschaft', '03 Finanzierung', '04 Mietverhältnis',
-      '05 Wirtschaftspläne', '06 NK-Abrechnung', '07 WEG-Protokolle', '08 Weitere Unterlagen',
-    ]
-    let dokCustom = []      // eigene Ordnernamen
-    let dokCounts = {}      // Dateianzahl je Ordner
-    let dokFolder = null    // aktuell geöffneter Ordner
-
-    // Pfadsichere Namen (Umlaute transliterieren, Sonderzeichen entfernen)
-    function dokSlug(s) {
-      return String(s)
-        .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue')
-        .replace(/Ä/g, 'Ae').replace(/Ö/g, 'Oe').replace(/Ü/g, 'Ue').replace(/ß/g, 'ss')
-        .replace(/[^A-Za-z0-9 ._()+-]/g, '').replace(/\s+/g, ' ').trim()
-    }
-    const dokPath = (folder, file) =>
-      `${currentUserId}/${id}/${dokSlug(folder)}` + (file ? '/' + dokSlug(file) : '')
-
-    function initDateien(meta) {
-      dokCustom = (meta && meta.ordner) || []
-      renderDokFolders()
-      dokLoadCounts()
-      // Drag & Drop einmalig verdrahten
-      const drop = document.getElementById('dokDrop')
-      ;['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over') }))
-      ;['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over') }))
-      drop.addEventListener('drop', e => { if (e.dataTransfer?.files?.length) dokUpload(e.dataTransfer.files) })
-      const inp = document.getElementById('dokFileInput')
-      inp.addEventListener('change', () => { dokUpload(inp.files); inp.value = '' })
-    }
-
-    function dokAllFolders() { return [...DOK_FIXED, ...dokCustom] }
-
-    function renderDokFolders() {
-      const grid = document.getElementById('dokGrid')
-      grid.innerHTML = ''
-      dokAllFolders().forEach(name => {
-        const isCustom = !DOK_FIXED.includes(name)
-        const card = document.createElement('div')
-        card.className = 'dok-folder'
-        card.innerHTML = `
-          <div class="dok-ic">📁</div>
-          <div class="dok-name">${esc(name)}</div>
-          <div class="dok-cnt">${dokCounts[name] === undefined ? '…' : dokCounts[name] + (dokCounts[name] === 1 ? ' Datei' : ' Dateien')}</div>
-          ${isCustom ? '<button class="dok-del" title="Ordner löschen">✕</button>' : ''}`
-        card.addEventListener('click', e => {
-          if (e.target.classList.contains('dok-del')) { dokDeleteFolder(name); return }
-          dokOpen(name)
-        })
-        grid.appendChild(card)
-      })
-      document.getElementById('dokAddBtn').style.display =
-        dokAllFolders().length >= DOK_MAX ? 'none' : 'flex'
-    }
-
-    async function dokLoadCounts() {
-      await Promise.all(dokAllFolders().map(async name => {
-        const { data } = await sb.storage.from(DOK_BUCKET).list(dokPath(name), { limit: 100 })
-        dokCounts[name] = (data || []).filter(f => f.id && f.name !== '.emptyFolderPlaceholder').length
-      }))
-      renderDokFolders()
-    }
-
-    function dokOpen(name) {
-      dokFolder = name
-      document.getElementById('dokFolderView').style.display = 'none'
-      document.getElementById('dokFileView').style.display = 'block'
-      document.getElementById('dokFolderTitle').textContent = '📁 ' + name
-      dokRenderFiles()
-    }
-
-    function dokBack(e) {
-      e.preventDefault()
-      dokFolder = null
-      document.getElementById('dokFileView').style.display = 'none'
-      document.getElementById('dokFolderView').style.display = 'block'
-      dokLoadCounts()
-    }
-
-    function dokFmtSize(b) {
-      if (!b && b !== 0) return ''
-      if (b < 1024 * 1024) return (b / 1024).toFixed(0) + ' KB'
-      return (b / 1024 / 1024).toFixed(1) + ' MB'
-    }
-
-    async function dokRenderFiles() {
-      const listEl = document.getElementById('dokFileList')
-      listEl.innerHTML = '<div class="dok-empty">Lade …</div>'
-      const { data, error } = await sb.storage.from(DOK_BUCKET)
-        .list(dokPath(dokFolder), { limit: 100, sortBy: { column: 'name', order: 'asc' } })
-      if (error) { listEl.innerHTML = `<div class="dok-empty">Fehler beim Laden: ${esc(error.message)}</div>`; return }
-      const files = (data || []).filter(f => f.id && f.name !== '.emptyFolderPlaceholder')
-      if (!files.length) { listEl.innerHTML = '<div class="dok-empty">Noch keine Dateien in diesem Ordner.</div>'; return }
-      listEl.innerHTML = ''
-      files.forEach(f => {
-        const row = document.createElement('div')
-        row.className = 'dok-file'
-        const dat = f.created_at ? new Date(f.created_at).toLocaleDateString('de-DE') : ''
-        row.innerHTML = `
-          <span class="dok-fname" title="${esc(f.name)}">${esc(f.name)}</span>
-          <span class="dok-fmeta">${dokFmtSize(f.metadata?.size)}${dat ? ' · ' + dat : ''}</span>
-          <button title="Herunterladen">⬇</button>
-          <button class="dok-fdel" title="Löschen">✕</button>`
-        row.querySelector('button[title="Herunterladen"]').addEventListener('click', () => dokDownload(f.name))
-        row.querySelector('.dok-fdel').addEventListener('click', () => dokDeleteFile(f.name))
-        listEl.appendChild(row)
-      })
-    }
-
-    async function dokUpload(fileList) {
-      if (!dokFolder) return
-      const dropText = document.getElementById('dokDropText')
-      const files = Array.from(fileList)
-      let done = 0
-      for (const f of files) {
-        if (f.size > 50 * 1024 * 1024) { alert(`„${f.name}“ ist größer als 50 MB und wird übersprungen.`); continue }
-        dropText.textContent = `⏳ Lade hoch (${done + 1}/${files.length}) …`
-        const { error } = await sb.storage.from(DOK_BUCKET)
-          .upload(dokPath(dokFolder, f.name), f, { upsert: true })
-        if (error) alert(`Upload von „${f.name}“ fehlgeschlagen: ${error.message}`)
-        else done++
-      }
-      dropText.textContent = '📄 Dateien hier ablegen oder klicken (max. 50 MB pro Datei)'
-      dokRenderFiles()
-    }
-
-    async function dokDownload(name) {
-      const { data, error } = await sb.storage.from(DOK_BUCKET)
-        .createSignedUrl(dokPath(dokFolder, name), 60)
-      if (error || !data?.signedUrl) { alert('Download fehlgeschlagen.'); return }
-      window.open(data.signedUrl, '_blank')
-    }
-
-    async function dokDeleteFile(name) {
-      if (!confirm(`„${name}“ endgültig löschen?`)) return
-      const { error } = await sb.storage.from(DOK_BUCKET).remove([dokPath(dokFolder, name)])
-      if (error) { alert('Löschen fehlgeschlagen: ' + error.message); return }
-      dokRenderFiles()
-    }
-
-    function dokAddFolder() {
-      if (dokAllFolders().length >= DOK_MAX) { alert(`Maximal ${DOK_MAX} Ordner möglich.`); return }
-      let name = prompt('Name des neuen Ordners:')
-      if (name === null) return
-      name = dokSlug(name).slice(0, 40)
-      if (!name) { alert('Ungültiger Ordnername.'); return }
-      const exists = dokAllFolders().some(f => dokSlug(f).toLowerCase() === name.toLowerCase())
-      if (exists) { alert('Ein Ordner mit diesem Namen existiert bereits.'); return }
-      dokCustom.push(name)
-      dokCounts[name] = 0
-      renderDokFolders()
-      dokSaveMeta()
-    }
-
-    async function dokDeleteFolder(name) {
-      const cnt = dokCounts[name]
-      if (!confirm(`Ordner „${name}“ löschen?${cnt ? `\n\n${cnt} enthaltene Datei(en) werden endgültig gelöscht.` : ''}`)) return
-      const { data } = await sb.storage.from(DOK_BUCKET).list(dokPath(name), { limit: 100 })
-      const keys = (data || []).filter(f => f.id).map(f => dokPath(name) + '/' + f.name)
-      if (keys.length) await sb.storage.from(DOK_BUCKET).remove(keys)
-      dokCustom = dokCustom.filter(n => n !== name)
-      delete dokCounts[name]
-      renderDokFolders()
-      dokSaveMeta()
-    }
-
-    async function dokSaveMeta() {
-      const ind = document.getElementById('siDateien')
-      if (ind) { ind.textContent = 'Speichern …'; ind.className = 'save-indicator saving' }
-      const { error } = await sb.from('portfolio').update({ dateien: { ordner: dokCustom } }).eq('id', id)
-      if (!ind) return
-      if (!error) {
-        ind.textContent = '✓ Gespeichert'; ind.className = 'save-indicator saved'
-        setTimeout(() => { ind.textContent = ''; ind.className = 'save-indicator' }, 2500)
-      } else {
-        ind.textContent = '⚠ Fehler beim Speichern'; ind.className = 'save-indicator'; ind.style.color = 'var(--red)'
-        setTimeout(() => { ind.textContent = ''; ind.style.color = '' }, 4000)
-      }
-    }
 
     // ════════════════════════════════════════
     // TO-DOS
@@ -2893,6 +2796,7 @@
         const buf = await file.arrayBuffer()
         const pdf = await pdfjs.getDocument({ data: buf }).promise
         const rows = []
+        let textZeichen = 0
         for (let p = 1; p <= pdf.numPages; p++) {
           const page = await pdf.getPage(p)
           const tc = await page.getTextContent()
@@ -2900,6 +2804,7 @@
           tc.items.forEach(it => {
             const str = it.str || ''
             if (!str.trim()) return
+            textZeichen += str.trim().length
             const y = Math.round(it.transform[5])
             const x = it.transform[4]
             const w = it.width || 0
@@ -2917,22 +2822,20 @@
             rows.push({ items: byY[y].sort((a, b) => a.x - b.x) })
           })
         }
-        let { entries, headerFound, skipped } = liqParseTilgungsplan(rows)
-        let viaOcr = false
+        const { entries, headerFound, skipped } = liqParseTilgungsplan(rows)
 
-        // Kein verwertbarer Text (z. B. Scan/Foto) → OCR-Fallback im Browser
-        if (!headerFound || !entries.length) {
-          try {
-            const ocrRows = await liqOcrPdf(pdf, dropText)
-            const p2 = liqParseTilgungsplan(ocrRows)
-            if (p2.headerFound && p2.entries.length) {
-              entries = p2.entries; skipped = p2.skipped; headerFound = true; viaOcr = true
-            }
-          } catch (e) { /* OCR fehlgeschlagen → normale Fehlermeldung unten */ }
+        // Reines Bild ohne Textebene: wird nicht mehr per Bilderkennung gelesen
+        if (textZeichen < 40) {
+          resetDrop()
+          alert('Dieses PDF enthält keinen auslesbaren Text, sondern nur ein Bild.\n\n'
+            + 'Bitte laden Sie den Tilgungsplan als OCR-Scan hoch, also als durchsuchbares PDF, '
+            + 'in dem sich der Text markieren lässt. Viele Scanner und Scan-Apps bieten dafür '
+            + 'die Einstellung „Texterkennung“ oder „durchsuchbares PDF“ an.')
+          return
         }
         if (!headerFound || !entries.length) {
           resetDrop()
-          alert('Es konnte kein Tilgungsplan erkannt werden – weder als Text noch per Texterkennung (OCR).\n\nBitte prüfen, ob das PDF eine Tabelle mit den Spalten „Zins“ und „Tilgung“ enthält und der Scan gut lesbar ist.')
+          alert('Es konnte kein Tilgungsplan erkannt werden.\n\nBitte prüfen, ob das PDF eine Tabelle mit den Spalten „Zins“ und „Tilgung“ enthält. Bei einem Scan muss es ein OCR-Scan sein, in dem sich der Text markieren lässt.')
           return
         }
         liqCloseImport()
@@ -2943,7 +2846,6 @@
         const [ly, lm] = last.month.split('-').map(Number)
         const luecken = (ly - fy) * 12 + (lm - fm) + 1 - entries.length
         let warn = ''
-        if (viaOcr) warn += '\n🔍 Per Texterkennung (OCR) aus einem Scan gelesen – bitte Werte stichprobenartig prüfen.'
         if (luecken > 0) warn += `\n⚠ ${luecken} Monat(e) im Zeitraum wurden nicht erkannt und bleiben leer.`
         if (skipped > 0) warn += `\n⚠ ${skipped} Zeile(n) konnten nicht zugeordnet werden.`
         if (warn) warn += '\n'
@@ -2964,71 +2866,6 @@
       }
     }
 
-    // ── OCR-Fallback für Scans (Tesseract.js, komplett im Browser) ──
-    async function liqLoadTesseract() {
-      if (window.Tesseract) return window.Tesseract
-      await new Promise((res, rej) => {
-        const s = document.createElement('script')
-        s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'
-        s.onload = res; s.onerror = () => rej(new Error('Tesseract.js konnte nicht geladen werden'))
-        document.head.appendChild(s)
-      })
-      return window.Tesseract
-    }
-
-    async function liqOcrPdf(pdf, statusEl) {
-      if (statusEl) statusEl.textContent = '🔍 Kein Text gefunden – lade Texterkennung (einmalig ~10 MB) …'
-      const T = await liqLoadTesseract()
-      const worker = await T.createWorker('deu')
-      const rows = []
-      try {
-        for (let p = 1; p <= pdf.numPages; p++) {
-          if (statusEl) statusEl.textContent = `🔍 Texterkennung Seite ${p}/${pdf.numPages} … (kann etwas dauern)`
-          const page = await pdf.getPage(p)
-          const viewport = page.getViewport({ scale: 2 })
-          const canvas = document.createElement('canvas')
-          canvas.width = viewport.width
-          canvas.height = viewport.height
-          const ctx = canvas.getContext('2d')
-          await page.render({ canvasContext: ctx, viewport }).promise
-          // Vorverarbeitung für Foto-Scans: Graustufen + Kontrast spreizen (1%-Perzentile)
-          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-          const d = imgData.data
-          const hist = new Array(256).fill(0)
-          for (let i = 0; i < d.length; i += 4) {
-            const g = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2])
-            d[i] = g
-            hist[g]++
-          }
-          const total = d.length / 4
-          let lo = 0, hi = 255, acc = 0
-          for (let g = 0; g < 256; g++) { acc += hist[g]; if (acc >= total * 0.01) { lo = g; break } }
-          acc = 0
-          for (let g = 255; g >= 0; g--) { acc += hist[g]; if (acc >= total * 0.01) { hi = g; break } }
-          const range = Math.max(1, hi - lo)
-          for (let i = 0; i < d.length; i += 4) {
-            const v = Math.min(255, Math.max(0, Math.round((d[i] - lo) * 255 / range)))
-            d[i] = d[i + 1] = d[i + 2] = v
-          }
-          ctx.putImageData(imgData, 0, 0)
-          const { data } = await worker.recognize(canvas)
-          const words = (data.words || []).filter(w => w.text.trim() && w.confidence > 30)
-          // Wörter über ihre Y-Position zu Zeilen gruppieren
-          const lines = []
-          words.forEach(w => {
-            const y = (w.bbox.y0 + w.bbox.y1) / 2
-            const h = w.bbox.y1 - w.bbox.y0
-            let line = lines.find(l => Math.abs(l.y - y) < Math.max(8, h * 0.6))
-            if (!line) { line = { y, items: [] }; lines.push(line) }
-            line.items.push({ x: w.bbox.x0, str: w.text.trim() })
-          })
-          lines.sort((a, b) => a.y - b.y).forEach(l => rows.push({ items: l.items.sort((a, b) => a.x - b.x) }))
-        }
-      } finally {
-        await worker.terminate()
-      }
-      return rows
-    }
 
     // Erkennt Kopfzeile (Zins/Tilgung) und ordnet Zahlen den Spalten per X-Position zu
     function liqParseTilgungsplan(rows) {
@@ -3280,11 +3117,32 @@
       </div>`
     }
 
+    // Steht dieser Betrag schon als Buchung in der Liquiditätsplanung?
+    // Eine Buchung ist eine Zelle aus dem Kontoauszug oder von Hand mit dem
+    // grünen Haken bestätigt; alles andere gilt als Planung.
+    function nkGebucht(betrag) {
+      const soll = Math.abs(Number(betrag) || 0)
+      if (!liqData || soll < 0.005) return null
+      const zellen = (liqData.cells && liqData.cells.nebenkostenabrechnung) || {}
+      let treffer = null
+      Object.keys(zellen).forEach(m => {
+        const v = Math.abs(Number(zellen[m]) || 0)
+        if (!v || !liqIstBuchung('nebenkostenabrechnung', m)) return
+        if (Math.abs(v - soll) <= 1) treffer = m
+      })
+      return treffer
+    }
+
     function nkErgebnis(betrag, plusText, minusText) {
       const gut = betrag >= 0
+      const m = nkGebucht(betrag)
+      const monat = m ? m.slice(5, 7) + '/' + m.slice(0, 4) : ''
+      const status = Math.abs(Number(betrag) || 0) < 0.005 ? '' : (m
+        ? `<span class="nk-status-ok" title="In der Liquiditätsplanung als Buchung erfasst (${monat}).">✓ gebucht</span>`
+        : `<span class="nk-status-x" title="In der Liquiditätsplanung noch nicht als Buchung erfasst. Betrag dort in der Zeile „Nebenkostenabrechnung" eintragen oder die Zelle per Rechtsklick als gebucht markieren.">✕ nicht gebucht</span>`)
       return `<div class="nk-erg ${gut ? 'pos' : 'neg'}">
         <span class="nk-erg-l">${gut ? plusText : minusText}</span>
-        <span class="nk-erg-v">${nkEur(Math.abs(betrag))}</span>
+        <span class="nk-erg-r">${status}<span class="nk-erg-v">${nkEur(Math.abs(betrag))}</span></span>
       </div>`
     }
 
@@ -3763,7 +3621,6 @@
       { key: 'nebenkosten',     ico: '🧾', titel: 'Nebenkostenabrechnung', panes: ['nebenkosten'] },
       { key: 'checkliste',      ico: '✅', titel: 'Checkliste Kauf',       panes: ['checkliste'] },
       { key: 'notizen',         ico: '📝', titel: 'Notizen',               panes: ['notes'] },
-      { key: 'dateien',         ico: '📁', titel: 'Dateien',               panes: ['dateien'] },
     ]
     // Auge (sichtbar) und durchgestrichenes Auge (ausgeblendet)
     const ICON_EIN = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12S5 5.5 12 5.5 22.5 12 22.5 12 19 18.5 12 18.5 1.5 12 1.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>'
@@ -3963,6 +3820,12 @@
     // ════════════════════════════════════════
     // KENNZAHLEN IM KOPFBEREICH
     // ════════════════════════════════════════
+    // Wohnfläche steht im JSON „einstellungen", damit die Tabelle unverändert bleibt
+    function wohnflaeche(p) {
+      const v = Number((p && p.einstellungen && p.einstellungen.wohnflaeche) || 0)
+      return v > 0 ? v : null
+    }
+
     function propFuerCalc() {
       const p = Object.assign({}, propData || {})
       if (liqData) p.liquiditaet = liqData
@@ -4016,6 +3879,8 @@
       }
 
       setzen('kCf', formatEur(cf), cf < -0.004 ? 'red' : 'green')
+      const wfl = wohnflaeche(propData)
+      setzen('kFlaeche', wfl ? wfl.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' m²' : '–', '')
 
       clearTimeout(ubTimer)
       ubTimer = setTimeout(renderUebersicht, 250)
@@ -4050,15 +3915,24 @@
       const info = txt => `<span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">${esc(txt)}</span></span>`
       const kachel = (l, v, c, i) => `<div class="ub-tile"><span class="ub-label">${esc(l)}${i ? ' ' + info(i) : ''}</span><span class="ub-value ${c || ''}">${v}</span></div>`
 
+      const wfl = wohnflaeche(propData)
+      const ekWert = Math.max(0, wert - fk)
       kpiEl.innerHTML =
-        kachel('Fremdkapital', formatEur(fk), '', 'Restschuld heute: valutiertes Darlehen abzüglich geleisteter Tilgung.' + (wert > 0 ? ' Beleihung ' + Math.round(fk / wert * 100) + ' %.' : '')) +
-        kachel('Eigenkapital', formatEur(ek), '', ekEinzahlung ? 'Investiertes Eigenkapital: eingezahlt laut Liquiditätsplanung.' : 'Geschätzt: Kaufpreis abzüglich Darlehen.') +
-        kachel('Kaufpreis', kaufpreis ? formatEur(kaufpreis) : '–', '', nebenkosten ? 'Zzgl. Kaufnebenkosten ' + formatEur(nebenkosten) + '.' : '') +
+        // Was die Immobilie heute wert ist und wie sie finanziert ist
+        kachel('Aktueller Wert', wert ? formatEur(wert) : '–', 'gold', 'Wert laut Einstellung im Kopfbereich – Kaufpreis, Kaufpreis mit Wertsteigerung oder eigener Wert.') +
+        kachel('Fremdkapital', formatEur(fk), '', 'Restschuld heute: valutiertes Darlehen abzüglich geleisteter Tilgung.') +
+        kachel('Eigenkapitalwert', formatEur(ekWert), 'green', 'Aktueller Wert abzüglich Fremdkapital.') +
         kachel('Finanzierungsquote', wert > 0 ? pctF(fk / wert * 100) : '–', '', 'Restschuld ÷ aktueller Wert') +
-        kachel('Kaltmiete / Monat', nkm ? formatEur(nkm) : '–', 'green') +
-        kachel('Mietrendite', kaufpreis > 0 && nkm ? pctF(nkm * 12 / kaufpreis * 100) : '–', 'gold', 'Jahreskaltmiete ÷ Kaufpreis') +
-        kachel('Bankrate / Monat', formatEur(Math.abs(t.bankrate)), '', t.bankrateFix ? 'Übersteuerte Bankrate aus der Liquiditätsplanung.' : 'Zins ' + formatEur(Math.abs(t.zins)) + ' + Tilgung ' + formatEur(Math.abs(t.tilgung))) +
-        kachel('Getilgt bis heute', formatEur(tilgBis), '', 'Summe der Tilgung seit Übernahme – so viel Eigenkapital ist über die Bankrate entstanden.')
+        '<div class="ub-trenner"></div>' +
+        // Was beim Kauf eingesetzt wurde
+        kachel('Kaufpreis', kaufpreis ? formatEur(kaufpreis) : '–', '', nebenkosten ? 'Zzgl. Kaufnebenkosten ' + formatEur(nebenkosten) + '.' : '') +
+        kachel('Kaufpreis pro m²', (kaufpreis > 0 && wfl) ? formatEur(kaufpreis / wfl) : '–', '',
+               wfl ? 'Kaufpreis ÷ Wohnfläche (' + wfl.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' m²)'
+                   : 'Wohnfläche in den Einstellungen der Immobilie ergänzen.') +
+        kachel('Eigenkapital investiert', formatEur(ekEinzahlung), '',
+               ekEinzahlung ? 'Summe der Zeile „Einzahlung Eigenkapital" aus der Liquiditätsplanung.'
+                            : 'Noch keine Einzahlung Eigenkapital in der Liquiditätsplanung erfasst.') +
+        kachel('Mietrendite', kaufpreis > 0 && nkm ? pctF(nkm * 12 / kaufpreis * 100) : '–', 'gold', 'Jahreskaltmiete ÷ Kaufpreis')
 
       const jahre = X.zehnJahre([p])
       const daten = X.jahresDaten([pw], jahre)
@@ -4070,8 +3944,7 @@
           info: 'Wert der Immobilie zum Jahresende, aufgeteilt in Eigenkapital und Restschuld. Spätere Jahre sind eine Prognose aus der Werteinstellung.',
           legende: [{ c: F.GOLD, t: 'Eigenkapital' }, { c: F.BLAU, t: 'Restschuld' }] }) +
         K.karte({ id: 'ubCf', titel: 'Cashflow im ' + X.monatName(m, true),
-          info: 'Von der Miete zum Überschuss: jede Säule zieht eine Zahlung des laufenden Monats ab.',
-          hero: { wert: formatEur(cfr.cf), label: cfr.cf < -0.004 ? 'Unterdeckung pro Monat' : 'Überschuss pro Monat', klasse: cfr.cf < -0.004 ? 'red' : 'green' } })
+          hero: { wert: formatEur(cfr.cf), klasse: cfr.cf < -0.004 ? 'red' : 'green' } })
 
       K.saeulen(chEl.querySelector('#ubWert .pc-plot'), {
         aria: 'Wert und Finanzierung je Jahr', gestapelt: true,
@@ -4082,7 +3955,10 @@
         tipTitel: i => daten[i].jahr + (daten[i].prognose ? ' · Prognose' : ''),
         tipExtra: i => [{ c: F.INK2, t: 'Wert', v: formatEur(daten[i].wert) }],
       })
-      K.wasserfall(chEl.querySelector('#ubCf .pc-plot'), { aria: 'Cashflow im laufenden Monat', schritte: cfr.schritte, leerText: 'Für diesen Monat ist nichts geplant.' })
+      K.wasserfall(chEl.querySelector('#ubCf .pc-plot'), { aria: 'Cashflow im laufenden Monat', schritte: cfr.schritte,
+        leerText: 'Für diesen Monat ist nichts geplant.',
+        // ausgeschrieben mit Tausenderpunkt statt „2k", wie in der Portfolioübersicht
+        achseFormat: function (v) { return Math.round(v).toLocaleString('de-DE') } })
     }
     let ubResize = null
     window.addEventListener('resize', () => { clearTimeout(ubResize); ubResize = setTimeout(renderUebersicht, 180) })
@@ -4194,6 +4070,7 @@
       v('setObjektart',   propData.objektart || 'Eigentumswohnung')
       v('setAdresse',     propData.adresse || '')
       v('setKaufpreis',   propData.kaufpreis ? zahlEin(propData.kaufpreis) : '')
+      v('setWohnflaeche', wohnflaeche(propData) ? String(wohnflaeche(propData)).replace('.', ',') : '')
       v('setStichtag',    (window.IECalc && IECalc.stichtag(propData)) || '')
       document.getElementById('siSet').textContent = ''
       document.getElementById('setModal').classList.add('open')
@@ -4223,7 +4100,9 @@
         return
       }
       // im JSON „einstellungen" – dort liegen auch die Wert-Einstellungen, also zusammenführen
-      patch.einstellungen = Object.assign({}, propData.einstellungen || {}, { uebernahmestichtag: stichtag || null })
+      const wfl = zahlAus(wert('setWohnflaeche'))
+      patch.einstellungen = Object.assign({}, propData.einstellungen || {},
+        { uebernahmestichtag: stichtag || null, wohnflaeche: wfl || null })
       ind.style.color = ''
       ind.textContent = 'Speichert …'
       const { error } = await sb.from('portfolio').update(patch).eq('id', id)

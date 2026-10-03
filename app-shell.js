@@ -292,6 +292,7 @@
     ;[['planung', 'Liquiditätsplanung'],
       ['szenario', 'Szenarienrechner'],
       ['jahr', 'Jahresübersicht'],
+      ['benachrichtigungen', 'Benachrichtigungen'],
       ['notizen', 'Notizen']].forEach(function (v) {
       addSimple(nav, P.global, v[0], v[1])
     })

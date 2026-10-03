@@ -106,7 +106,8 @@
         }).join('') + '</div>'
       : ''
     return '<div class="pc-card' + (o.klasse ? ' ' + o.klasse : '') + '"' + (o.id ? ' id="' + o.id + '"' : '') + '>' +
-      '<div class="pc-head"><div class="pc-title">' + esc(o.titel) + info + '</div></div>' +
+      '<div class="pc-head"><div class="pc-title">' + esc(o.titel) + info + '</div>' +
+        (o.werkzeug || '') + '</div>' +
       hero +
       '<div class="pc-plot"><div class="pc-tip" hidden></div></div>' +
       leg +
@@ -274,11 +275,12 @@
       html += '<text x="' + xm(aktuell) + '" y="' + (y(summe) - 7) + '" text-anchor="middle" fill="' + F.INK + '" font-size="11" font-weight="600">' + kurz(summe) + '</text>'
     }
 
-    // x-Beschriftung, bei vielen Kategorien nur jede n-te
-    var jede = Math.max(1, Math.ceil(n / Math.max(4, Math.floor(iw / 58))))
+    // x-Beschriftung: gleichmäßiger Abstand, verankert am laufenden Eintrag
+    var ziel = Math.max(4, Math.min(6, Math.floor(iw / 80)))
+    var jede = Math.max(1, Math.ceil(n / ziel))
+    var anker = aktuell >= 0 && aktuell < n ? aktuell : 0
     o.labels.forEach(function (l, k3) {
-      if (k3 % jede !== 0 && k3 !== aktuell) return
-      if (k3 !== aktuell && aktuell >= 0 && Math.abs(k3 - aktuell) < jede && k3 % jede === 0 && jede > 1) return
+      if (Math.abs(k3 - anker) % jede !== 0) return
       html += '<text x="' + xm(k3) + '" y="' + (H - 9) + '" text-anchor="middle" fill="' + (k3 === aktuell ? F.INK : F.INK2) + '" font-size="11"' + (k3 === aktuell ? ' font-weight="600"' : '') + '>' + esc(l) + '</text>'
     })
 
