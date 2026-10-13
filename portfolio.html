@@ -69,7 +69,8 @@
       border-radius: 12px; padding: 18px 24px;
       display: flex; flex-direction: column; justify-content: center;
     }
-    .summary-stat .s-label-row { display: flex; align-items: center; gap: 7px; }
+    .summary-stat .s-label-row { display: flex; align-items: flex-start; gap: 10px; }
+    .summary-stat .s-label-row .ie-info { margin-left: auto; flex: 0 0 16px; }
     .summary-stat .s-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 6px; }
     .summary-stat .s-value { font-size: 1.35rem; font-weight: 700; }
     .summary-stat .s-value.gold { color: var(--gold); }
@@ -169,45 +170,77 @@
     .add-sub { font-size: 0.78rem; color: var(--muted); text-align: center; }
 
     /* ── MODAL ── */
-    #addModal {
-      display: none; position: fixed; inset: 0; z-index: 300;
-      background: rgba(255,255,255,0.4); backdrop-filter: blur(6px);
-      align-items: center; justify-content: center; padding: 20px;
+    /* Dialoge im selben Aufbau wie die Einstellungen in der Immobilie */
+    .ie-modal {
+      display: none; position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,0.66); padding: 24px;
+      align-items: flex-start; justify-content: center; overflow-y: auto;
     }
-    #addModal.visible { display: flex; }
-    .modal-box {
-      background: var(--navy2); border: 1px solid rgba(255,255,255,0.125);
-      border-radius: 18px; width: 100%; max-width: 520px;
-      max-height: 90vh; overflow-y: auto;
-      padding: 40px;
+    .ie-modal.visible { display: flex; }
+    .ie-modal-box {
+      background: var(--navy2); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px; width: 100%; max-width: 520px; margin-top: 6vh;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6);
     }
-    .modal-box h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 6px; }
-    .modal-box h2 span { color: var(--gold); }
-    .modal-sub { color: var(--muted); font-size: 0.88rem; margin-bottom: 32px; }
-
-    .form-group { margin-bottom: 20px; }
-    .form-group label { display: block; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 8px; }
-    .form-group input, .form-group select {
-      width: 100%; background: var(--navy); border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 10px; color: var(--white); font-family: inherit; font-size: 0.95rem;
-      padding: 13px 16px; outline: none; transition: border-color 0.2s;
+    .ie-modal-head {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+      padding: 20px 22px 14px; border-bottom: 1px solid rgba(255,255,255,0.07);
     }
-    .form-group input:focus, .form-group select:focus { border-color: rgba(211,172,95,0.5); }
-    .form-group select option { background: var(--navy2); }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-
-    .modal-actions { display: flex; gap: 12px; margin-top: 32px; }
+    .ie-modal-title { font-size: 1.1rem; font-weight: 700; }
+    .ie-modal-sub { font-size: 0.82rem; color: var(--muted); margin-top: 3px; }
+    .ie-modal-x {
+      background: none; border: none; color: var(--muted); font-size: 1rem; cursor: pointer;
+      width: 30px; height: 30px; border-radius: 8px;
+    }
+    .ie-modal-x:hover { background: rgba(255,255,255,0.07); color: var(--white); }
+    .set-body { padding: 18px 22px 6px; }
+    .set-row { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+    .set-lbl { flex: 0 0 190px; font-size: 0.86rem; color: var(--muted); }
+    .set-row input, .set-row select {
+      flex: 1; background: var(--navy); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 9px; padding: 10px 12px; color: var(--white);
+      font: 500 0.9rem 'Inter', sans-serif; color-scheme: dark;
+    }
+    .set-row input:focus, .set-row select:focus { outline: none; border-color: rgba(211,172,95,0.5); }
+    .set-note {
+      font-size: 0.8rem; color: var(--muted); line-height: 1.6;
+      background: rgba(211,172,95,0.08); border: 1px solid rgba(211,172,95,0.22);
+      border-radius: 10px; padding: 12px 14px; margin: 6px 0 4px;
+    }
+    .set-note strong { color: var(--white); font-weight: 600; }
+    .set-note.set-note-klein { margin: -4px 0 14px; font-size: 0.76rem; background: none; border: none; padding: 0; }
+    .set-actions {
+      display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+      padding: 14px 22px 20px; border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .set-actions-right { display: flex; align-items: center; gap: 12px; }
+    /* Bildauswahl im Dialog */
+    .set-bild { flex: 1; display: flex; align-items: center; gap: 12px; }
+    .set-bild-vorschau {
+      width: 84px; height: 58px; border-radius: 9px; flex: 0 0 84px;
+      background: var(--navy) center/cover no-repeat; border: 1px solid rgba(255,255,255,0.12);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.68rem; color: var(--muted); text-align: center;
+    }
+    .set-bild-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .set-bild-btn {
+      background: transparent; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px;
+      color: var(--muted); font: 500 0.8rem 'Inter', sans-serif; padding: 7px 12px; cursor: pointer;
+    }
+    .set-bild-btn:hover { border-color: rgba(211,172,95,0.45); color: var(--gold); }
+    .set-bild-btn.weg:hover { border-color: rgba(239,107,107,0.5); color: var(--red); }
     .btn-cancel {
-      flex: 1; background: transparent; border: 1px solid rgba(255,255,255,0.188);
-      color: var(--white); border-radius: 10px; padding: 13px; font-family: inherit;
-      font-size: 0.9rem; cursor: pointer; transition: background 0.2s;
+      background: transparent; border: 1px solid rgba(255,255,255,0.188);
+      color: var(--muted); border-radius: 9px; padding: 10px 18px; font-family: inherit;
+      font-size: 0.88rem; cursor: pointer; transition: background 0.2s, color .2s;
     }
-    .btn-cancel:hover { background: rgba(255,255,255,0.043); }
+    .btn-cancel:hover { background: rgba(255,255,255,0.043); color: var(--white); }
     .btn-save {
-      flex: 2; background: var(--gold); color: var(--navy); border: none;
-      border-radius: 10px; padding: 13px; font-family: inherit;
-      font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: background 0.2s;
+      background: var(--gold); color: var(--navy); border: none;
+      border-radius: 9px; padding: 10px 20px; font-family: inherit;
+      font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: background 0.2s;
     }
+    .save-indicator { font-size: 0.8rem; color: var(--muted); }
     .btn-save:hover { background: var(--gold2); }
     .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
 
@@ -259,7 +292,8 @@
     .kpi-value.gold { color: var(--gold); }
     .kpi-value.green { color: var(--green); }
     .kpi-value.red { color: var(--red); }
-    .kpi-label-row { display: flex; align-items: center; gap: 7px; }
+    .kpi-label-row { display: flex; align-items: flex-start; gap: 10px; }
+    .kpi-label-row .ie-info { margin-left: auto; flex: 0 0 16px; }
     .ov-empty { padding: 30px 20px; color: var(--muted); font-size: 0.9rem; text-align: center; }
 
     /* ── Einklappbare Bereiche (wie auf der Immobilienseite) ── */
@@ -365,54 +399,75 @@
   </div>
 
   <!-- Immobilie hinzufügen Modal -->
-  <div id="addModal" onclick="handleModalBg(event)">
-    <div class="modal-box">
-      <h2>Immobilie <span>hinzufügen</span></h2>
-      <p class="modal-sub">Tragen Sie die Stammdaten Ihrer Immobilie ein. Diese können später noch angepasst werden.</p>
-
-      <div class="form-group">
-        <label>Bezeichnung</label>
-        <input type="text" id="fBezeichnung" placeholder="z.B. Wohnung Hamburg-Eimsbüttel" />
-      </div>
-      <div class="form-group">
-        <label>Objektart</label>
-        <select id="fObjektart">
-          <option value="Eigentumswohnung" selected>Eigentumswohnung</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Adresse</label>
-        <input type="text" id="fAdresse" placeholder="Straße, PLZ Stadt" />
-      </div>
-      <div class="form-group">
-        <label>Übernahmestichtag</label>
-        <input type="date" id="fStichtag" />
-        <p class="form-hint">Tag, an dem Nutzen und Lasten auf Sie übergehen. Ab diesem Tag zählt die Zehnjahresfrist
-          für einen steuerfreien Verkauf. Die Werte der Immobilie werden trotzdem sofort angezeigt.</p>
-      </div>
-      <div class="form-group">
-        <label>Kaufpreis (€)</label>
-        <input type="number" id="fKaufpreis" placeholder="z.B. 349000" min="0" />
-      </div>
-      <div class="form-group">
-        <label>Wohnfläche (m²) <span class="opt">optional</span></label>
-        <input type="number" id="fWohnflaeche" placeholder="z.B. 72" min="0" step="0.1" />
-        <p class="form-hint">Kann später in den Einstellungen der Immobilie ergänzt oder geändert werden.</p>
-      </div>
-      <div class="form-group">
-        <label>Festgelegter Wert (€) <span class="opt">optional</span></label>
-        <input type="number" id="fWert" placeholder="z.B. 380000" min="0" />
-        <p class="form-hint">Kann in der Portfolioübersicht statt des Kaufpreises als Portfoliowert gelten.</p>
+  <!-- Immobilie hinzufügen – gleicher Aufbau wie die Einstellungen in der Immobilie -->
+  <div class="ie-modal" id="addModal" onclick="handleModalBg(event)">
+    <div class="ie-modal-box">
+      <div class="ie-modal-head">
+        <div>
+          <div class="ie-modal-title">Immobilie hinzufügen</div>
+          <div class="ie-modal-sub">Stammdaten – später jederzeit änderbar</div>
+        </div>
+        <button class="ie-modal-x" type="button" onclick="closeModal()" aria-label="Schließen">✕</button>
       </div>
 
-      <p class="form-note">
-        <strong>Miete, Hausgeld und Bankrate</strong> tragen Sie nicht hier ein, sondern im Bereich
-        <strong>Liquiditätsplanung</strong> der Immobilie.
-      </p>
+      <div class="set-body">
+        <label class="set-row">
+          <span class="set-lbl">Bezeichnung</span>
+          <input type="text" id="fBezeichnung" placeholder="z. B. Wohnung Hamburg-Eimsbüttel" />
+        </label>
+        <label class="set-row">
+          <span class="set-lbl">Objektart</span>
+          <select id="fObjektart">
+            <option value="Eigentumswohnung" selected>Eigentumswohnung</option>
+          </select>
+        </label>
+        <label class="set-row">
+          <span class="set-lbl">Adresse</span>
+          <input type="text" id="fAdresse" placeholder="Straße, PLZ Stadt" />
+        </label>
+        <label class="set-row">
+          <span class="set-lbl">Übernahmestichtag</span>
+          <input type="date" id="fStichtag" />
+        </label>
+        <p class="set-note set-note-klein">
+          Tag, an dem Nutzen und Lasten übergehen. Ab hier zählt die Zehnjahresfrist für einen
+          steuerfreien Verkauf. Werte und Liquiditätsplanung werden unabhängig davon sofort angezeigt.
+        </p>
+        <label class="set-row">
+          <span class="set-lbl">Kaufpreis (€)</span>
+          <input type="text" id="fKaufpreis" inputmode="decimal" placeholder="z. B. 349000" />
+        </label>
+        <label class="set-row">
+          <span class="set-lbl">Wohnfläche (m²)</span>
+          <input type="text" id="fWohnflaeche" inputmode="decimal" placeholder="z. B. 72" />
+        </label>
+        <label class="set-row">
+          <span class="set-lbl">Festgelegter Wert (€)</span>
+          <input type="text" id="fWert" inputmode="decimal" placeholder="optional, z. B. 380000" />
+        </label>
+        <div class="set-row">
+          <span class="set-lbl">Bild</span>
+          <div class="set-bild">
+            <div class="set-bild-vorschau" id="fBildVorschau"><span>kein Bild</span></div>
+            <div class="set-bild-btns">
+              <button type="button" class="set-bild-btn" onclick="document.getElementById('fBild').click()">Bild wählen</button>
+              <button type="button" class="set-bild-btn weg" id="fBildWeg" hidden onclick="addBildEntfernen()">entfernen</button>
+            </div>
+            <input type="file" id="fBild" accept="image/*" style="display:none" onchange="addBildGewaehlt(event)" />
+          </div>
+        </div>
+        <p class="set-note">
+          <strong>Miete, Hausgeld und Bankrate</strong> tragen Sie nicht hier ein, sondern im Bereich
+          <strong>Liquiditätsplanung</strong>.
+        </p>
+      </div>
 
-      <div class="modal-actions">
-        <button class="btn-cancel" onclick="closeModal()">Abbrechen</button>
-        <button class="btn-save" id="btnSave" onclick="saveImmobilie()">Immobilie speichern</button>
+      <div class="set-actions">
+        <button class="btn-cancel" type="button" onclick="closeModal()">Abbrechen</button>
+        <div class="set-actions-right">
+          <span class="save-indicator" id="siAdd"></span>
+          <button class="btn-save" type="button" id="btnSave" onclick="saveImmobilie()">Immobilie speichern</button>
+        </div>
       </div>
     </div>
   </div>
@@ -431,6 +486,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="portfolio-calc.js"></script>
+  <script src="ie-benachrichtigungen.js"></script>
   <script src="ie-charts.js"></script>
   <script src="portfolio-charts.js"></script>
   <script>
@@ -519,6 +575,10 @@
         PW_DATA = { rows: data || [], stats: [] }
       }
 
+      // Roter Punkt am Menüpunkt „Benachrichtigungen", wenn etwas offen ist.
+      // Das Menü wird vom App-Shell aufgebaut – notfalls kurz warten.
+      bnPunkt(data || [])
+
       const anz = document.getElementById('secImmoAnzahl')
       if (anz) anz.textContent = (data || []).length === 1 ? '1 Immobilie' : (data || []).length + ' Immobilien'
       renderKennzahlen()
@@ -593,15 +653,11 @@
 
       el.innerHTML =
         gruppe('Vermögen & Finanzierung', [
-          { l: 'Portfoliowert', v: formatEur(aum), c: 'gold',
-            s: [zaehler.kaufpreis ? zaehler.kaufpreis + '× Kaufpreis' : '',
-                zaehler.steigerung ? zaehler.steigerung + '× mit Wertsteigerung' : '',
-                zaehler.eigen ? zaehler.eigen + '× eigener Wert' : ''].filter(Boolean).join(' · ') },
-          { l: 'Restschuld',    v: formatEur(fk),  s: 'Darlehen abzüglich Tilgung' },
-          { l: 'Eigenkapitalwert',  v: formatEur(ek),  c: 'green', s: 'Wert abzüglich Restschuld' },
-          { l: 'Eigenkapital investiert', v: formatEur(ekEingesetzt),
-            s: 'Summe der Einzahlungen Eigenkapital aus den Liquiditätsplanungen' },
-          { l: 'Finanzierungsquote', v: pct(ltv), s: 'Restschuld ÷ Portfoliowert' },
+          { l: 'Portfoliowert', v: formatEur(aum), c: 'gold' },
+          { l: 'Restschuld',    v: formatEur(fk) },
+          { l: 'Eigenkapitalwert',  v: formatEur(ek),  c: 'green' },
+          { l: 'Eigenkapital investiert', v: formatEur(ekEingesetzt) },
+          { l: 'Finanzierungsquote', v: pct(ltv) },
         ], 'kcVermoegen') +
         gruppe('Monatliche Einnahmen und Ausgaben', [
           { l: 'Mieteinnahmen', v: formatEur(miete), c: 'green' },
@@ -610,10 +666,9 @@
           { l: 'Cashflow',      v: formatEur(cf), c: cf < -0.004 ? 'red' : 'green' },
         ], 'kcMonat') +
         gruppe('Rendite', [
-          { l: 'Brutto-Mietrendite', v: pct(brutto), s: 'Jahreskaltmiete ÷ Kaufpreis' },
-          { l: 'Nettomietrendite', v: pct(netto),
-            s: 'Jahreskaltmiete abzüglich Hausgeld ÷ Kaufpreis' },
-          { l: 'Kaufpreisfaktor', v: fak(faktor), s: 'Kaufpreis ÷ Jahreskaltmiete' },
+          { l: 'Brutto-Mietrendite', v: pct(brutto) },
+          { l: 'Nettomietrendite', v: pct(netto) },
+          { l: 'Kaufpreisfaktor', v: fak(faktor) },
         ], 'kcRendite')
 
       zeichneKennzahlenCharts()
@@ -699,7 +754,6 @@
         }).filter(r => r.kp > 0).sort((a, b) => b.brutto - a.brutto)
         const pct = v => v.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %'
         hR.innerHTML = K.karte({ titel: 'Rendite je Immobilie',
-          info: 'Brutto-Mietrendite (Jahreskaltmiete ÷ Kaufpreis) und Nettomietrendite (Jahreskaltmiete abzüglich Hausgeld ÷ Kaufpreis) je Immobilie.',
           legende: [{ c: F.GOLD, t: 'Brutto-Mietrendite' }, { c: F.BLAU, t: 'Nettomietrendite' }] })
         K.balken(hR.querySelector('.pc-plot'), {
           aria: 'Rendite je Immobilie',
@@ -814,17 +868,29 @@
       // Zeile als Index-Zugriff auf den String darüber)
       ;['fBezeichnung','fAdresse','fKaufpreis','fWohnflaeche','fWert','fStichtag']
         .forEach(id => { const el = document.getElementById(id); if(el) el.value = '' })
+      addBildEntfernen()
     }
 
     function handleModalBg(e) {
       if (e.target === document.getElementById('addModal')) closeModal()
     }
 
+    // „349.000" oder „349000,50" → Zahl
+    function zahlAus(txt) {
+      if (txt === null || txt === undefined) return null
+      let t = String(txt).replace(/[\s€]/g, '')
+      if (!t) return null
+      if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.')
+      else if (/^-?\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '')
+      const n = parseFloat(t)
+      return isNaN(n) ? null : n
+    }
+
     async function saveImmobilie() {
       const bezeichnung = document.getElementById('fBezeichnung').value.trim()
       const objektart   = document.getElementById('fObjektart').value
       const adresse     = document.getElementById('fAdresse').value.trim()
-      const kaufpreis   = parseFloat(document.getElementById('fKaufpreis').value) || null
+      const kaufpreis   = zahlAus(document.getElementById('fKaufpreis').value)
       // Übernahmedatum wird nicht mehr abgefragt: der Vortag der Eintragung.
       // So liegt der Beginn garantiert nicht in der Zukunft — sonst rechnen
       // Wert, Cashflow und Restschuld die Immobilie als „noch nicht im Bestand".
@@ -832,8 +898,8 @@
       const kaufdatum   = gestern.getFullYear() + '-' +
                           String(gestern.getMonth() + 1).padStart(2, '0') + '-' +
                           String(gestern.getDate()).padStart(2, '0')
-      const wert        = parseFloat(document.getElementById('fWert').value) || null
-      const wohnflaeche = parseFloat((document.getElementById('fWohnflaeche') || {}).value) || null
+      const wert        = zahlAus(document.getElementById('fWert').value)
+      const wohnflaeche = zahlAus((document.getElementById('fWohnflaeche') || {}).value)
       const stichtag    = (document.getElementById('fStichtag') || {}).value || ''
 
       if (!bezeichnung) {
@@ -851,11 +917,23 @@
       btn.disabled = true
       btn.textContent = 'Speichern…'
 
-      const { error } = await sb.from('portfolio').insert({
+      const { data: neu, error } = await sb.from('portfolio').insert({
         user_id:     session.user.id,
         bezeichnung, objektart, adresse, kaufpreis, kaufdatum, wert,
         einstellungen: { uebernahmestichtag: stichtag, wohnflaeche: wohnflaeche }
-      })
+      }).select('id').single()
+
+      // Bild gehört zur neuen Immobilie, kann also erst jetzt hochgeladen werden
+      if (!error && addBildDatei && neu && neu.id) {
+        const ind = document.getElementById('siAdd')
+        if (ind) ind.textContent = 'Bild wird hochgeladen …'
+        const ext  = (addBildDatei.name.split('.').pop() || 'jpg').toLowerCase()
+        const pfad = `${session.user.id}/objektbilder/${neu.id}.${ext}`
+        const { error: upErr } = await sb.storage.from('dokumente')
+          .upload(pfad, addBildDatei, { upsert: true, contentType: addBildDatei.type })
+        if (!upErr) await sb.from('portfolio').update({ bild: pfad }).eq('id', neu.id)
+        if (ind) ind.textContent = ''
+      }
 
       btn.disabled = false
       btn.textContent = 'Immobilie speichern'
@@ -865,7 +943,31 @@
       } else {
         closeModal()
         await loadPortfolio()
+        // Die neue Immobilie soll sofort im Menü links stehen
+        if (window.IEShell && window.IEShell.immobilienNeuLaden) window.IEShell.immobilienNeuLaden()
       }
+    }
+
+    // ── Bild im Hinzufügen-Dialog ───────────────────
+    let addBildDatei = null
+    function addBildGewaehlt(e) {
+      const f = e.target.files && e.target.files[0]
+      e.target.value = ''
+      if (!f) return
+      if (!f.type.startsWith('image/')) { alert('Bitte eine Bilddatei auswählen.'); return }
+      if (f.size > 8 * 1024 * 1024) { alert('Das Bild darf höchstens 8 MB groß sein.'); return }
+      addBildDatei = f
+      const v = document.getElementById('fBildVorschau')
+      v.innerHTML = ''
+      v.style.backgroundImage = `url('${URL.createObjectURL(f)}')`
+      document.getElementById('fBildWeg').hidden = false
+    }
+    function addBildEntfernen() {
+      addBildDatei = null
+      const v = document.getElementById('fBildVorschau')
+      v.style.backgroundImage = ''
+      v.innerHTML = '<span>kein Bild</span>'
+      document.getElementById('fBildWeg').hidden = true
     }
 
 
@@ -911,6 +1013,17 @@
     }
 
     // ── HELPERS ─────────────────────────────────────
+    // Setzt den roten Punkt am Menüpunkt; wartet, bis das Menü steht
+    function bnPunkt(rows, versuch) {
+      if (!window.IEBenachrichtigungen) return
+      if (!window.IEShell || !window.IEShell.menuePunkt) {
+        if ((versuch || 0) < 10) setTimeout(() => bnPunkt(rows, (versuch || 0) + 1), 300)
+        return
+      }
+      window.IEShell.menuePunkt('benachrichtigungen',
+        window.IEBenachrichtigungen.sammeln(rows).length > 0)
+    }
+
     function formatEur(n) {
       return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
     }

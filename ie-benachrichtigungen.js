@@ -30,6 +30,8 @@
         hausgeld:     e.buchungen && e.buchungen.hausgeld !== undefined ? !!e.buchungen.hausgeld : true,
         darlehen:     e.buchungen && e.buchungen.darlehen !== undefined ? !!e.buchungen.darlehen : true,
       },
+      // weggeklickte Benachrichtigungen (Kennungen)
+      weg: Array.isArray(e.weg) ? e.weg : [],
     }
   }
 
@@ -115,6 +117,9 @@
       var name = p.bezeichnung || 'Immobilie'
       var lq = p.liquiditaet || {}
 
+      var weg = {}
+      e.weg.forEach(function (k) { weg[k] = true })
+
       // 1) Mieterhöhung liegt zwölf Monate zurück
       if (e.mieterhoehung) {
         var mv = (p.mietverhaeltnis && (p.mietverhaeltnis.aktuell || p.mietverhaeltnis)) || {}
@@ -122,9 +127,10 @@
         if (basis) {
           var faellig = new Date(basis)
           faellig.setMonth(faellig.getMonth() + 12)
-          if (faellig <= heute) {
+          var idM = 'mieterhoehung|' + p.id + '|' + faellig.toISOString().slice(0, 10)
+          if (faellig <= heute && !weg[idM]) {
             items.push({
-              typ: 'mieterhoehung', propId: p.id, titel: '📈 Mieterhöhung prüfen',
+              id: idM, typ: 'mieterhoehung', propId: p.id, titel: '📈 Mieterhöhung prüfen',
               sub: name + ' · letzte Erhöhung am ' + datumSchreiben(basis),
               datum: faellig, href: 'immobilie.html?id=' + p.id + '&tab=mietverhaeltnis',
             })
@@ -137,9 +143,10 @@
         var teile = e.nkStichtag.split('-').map(Number)
         var stichtag = new Date(heute.getFullYear(), teile[0] - 1, teile[1])
         var jahr = heute.getFullYear() - 1
-        if (heute >= stichtag && !nkErledigt(p, jahr)) {
+        var idN = 'nk|' + p.id + '|' + jahr
+        if (heute >= stichtag && !nkErledigt(p, jahr) && !weg[idN]) {
           items.push({
-            typ: 'nk', propId: p.id, titel: '🧾 Nebenkostenabrechnung ' + jahr + ' erstellen',
+            id: idN, typ: 'nk', propId: p.id, titel: '🧾 Nebenkostenabrechnung ' + jahr + ' erstellen',
             sub: name + ' · fällig seit ' + datumSchreiben(stichtag),
             datum: stichtag, href: 'immobilie.html?id=' + p.id + '&tab=nebenkosten',
           })
@@ -162,9 +169,11 @@
           Object.keys(erwartet).forEach(function (art) {
             if (!erwartet[art] || !e.buchungen[art]) return
             if (artGebucht(lq, art, m)) return
+            var idB = 'buchung|' + p.id + '|' + art + '|' + m
+            if (weg[idB]) return
             var ende = new Date(Number(m.slice(0, 4)), Number(m.slice(5, 7)), 0)
             items.push({
-              typ: 'buchung', propId: p.id, art: art,
+              id: idB, typ: 'buchung', propId: p.id, art: art,
               titel: '🏦 ' + ART_LABEL[art] + ' nicht gebucht',
               sub: name + ' · ' + monatName(m),
               datum: ende, href: 'portfolio-uebersicht.html?tab=planung',

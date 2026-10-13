@@ -169,9 +169,18 @@
     .icon-ok  { background: rgba(92,201,138,0.12); color: var(--green); border: 1px solid rgba(92,201,138,0.35); }
     .icon-bad { background: rgba(239,107,107,0.1); color: var(--red);  border: 1px solid rgba(239,107,107,0.35); }
 
-    footer { border-top: 1px solid rgba(255,255,255,0.088); padding: 24px 60px; display: flex; justify-content: center; gap: 28px; flex-wrap: wrap; }
-    footer a { color: var(--muted); text-decoration: none; font-size: 0.82rem; }
-    footer a:hover { color: var(--white); }
+    /* ── FOOTER (einheitlich wie auf der Startseite) ── */
+    footer {
+      border-top: 1px solid rgba(255,255,255,0.088);
+      padding: 36px 60px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 16px;
+    }
+    footer .logo { font-size: 1.1rem; }
+    .footer-links { display: flex; gap: 28px; list-style: none; margin: 0; padding: 0; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--white); }
+    .footer-copy { color: var(--muted); font-size: 0.82rem; }
 
     @media (max-width: 500px) {
       nav { padding: 18px 24px; }
@@ -263,9 +272,13 @@
   </main>
 
   <footer>
-    <a href="impressum.html">Impressum</a>
-    <a href="datenschutz.html">Datenschutz</a>
-    <a href="index.html">Zurück zur Startseite</a>
+    <a href="index.html" class="logo">Immo<span>.Expert</span></a>
+    <ul class="footer-links">
+      <li><a href="impressum.html">Impressum</a></li>
+      <li><a href="datenschutz.html">Datenschutz</a></li>
+      <li><a href="kontakt.html">Kontakt</a></li>
+    </ul>
+    <span class="footer-copy">© 2026 Immo.Expert</span>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>

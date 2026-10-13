@@ -366,7 +366,8 @@
     @media (max-width: 1100px) { .ub-kpis { grid-template-columns: repeat(2, 1fr); } }
     .ub-trenner { grid-column: 1 / -1; height: 1px; background: rgba(255,255,255,0.16); margin: 6px 0; }
     .ub-tile { background: #1f1f23; border: 1px solid rgba(255,255,255,0.09); border-radius: 12px; padding: 13px 16px; display: flex; flex-direction: column; gap: 5px; }
-    .ub-label { display: flex; align-items: center; gap: 7px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); }
+    .ub-label { display: flex; align-items: flex-start; gap: 10px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); }
+    .ub-label .ie-info { margin-left: auto; flex: 0 0 16px; }
     .ub-value { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.2px; }
     .ub-value.gold { color: var(--gold); } .ub-value.green { color: var(--green); } .ub-value.red { color: var(--red); }
     .ie-sec .pc-card { background: #1f1f23; border-color: rgba(255,255,255,0.09); }
@@ -467,17 +468,16 @@
 
     /* ── Wert-Einstellung an der Kachel ── */
     .kpi-stat.has-gear { position: relative; }
+    /* schlicht: nur das Symbol, kein Kasten */
     .kpi-gear {
-      position: absolute; top: 8px; right: 8px;
-      width: 26px; height: 26px; border-radius: 7px;
-      background: none; border: 1px solid transparent; color: var(--muted);
-      cursor: pointer; font-size: 0.85rem; line-height: 1;
+      position: absolute; top: 10px; right: 10px;
+      width: 18px; height: 18px; padding: 0;
+      background: none; border: none; color: var(--muted);
+      cursor: pointer; font-size: 0.82rem; line-height: 1; opacity: 0.65;
       display: flex; align-items: center; justify-content: center;
-      transition: background .15s, color .15s, border-color .15s;
+      transition: color .15s, opacity .15s;
     }
-    .kpi-gear:hover, .kpi-gear[aria-expanded="true"] {
-      background: rgba(211,172,95,0.12); color: var(--gold); border-color: rgba(211,172,95,0.3);
-    }
+    .kpi-gear:hover, .kpi-gear[aria-expanded="true"] { color: var(--gold); opacity: 1; }
     .wert-pop {
       display: none; position: absolute; top: 40px; left: 0; z-index: 70;
       width: 330px; text-align: left;
@@ -610,7 +610,8 @@
       border: 1px solid rgba(255,255,255,0.125); border-radius: 10px; padding: 13px 16px; margin-top: 14px; }
     .nk-erg-l { font-size: 0.88rem; font-weight: 700; }
     .nk-erg-r { display: inline-flex; align-items: center; gap: 12px; }
-    .nk-status-ok, .nk-status-x { font: 600 0.74rem/1 'Inter', sans-serif; padding: 5px 9px; border-radius: 50px; cursor: help; white-space: nowrap; }
+    .nk-status-ok, .nk-status-x { font: 600 0.74rem/1 'Inter', sans-serif; padding: 6px 10px; border-radius: 50px; cursor: pointer; white-space: nowrap; }
+    .nk-status-ok:hover, .nk-status-x:hover { filter: brightness(1.25); }
     .nk-status-ok { color: var(--green); background: rgba(92,201,138,0.12); border: 1px solid rgba(92,201,138,0.35); }
     .nk-status-x  { color: var(--red);   background: rgba(239,107,107,0.10); border: 1px solid rgba(239,107,107,0.32); }
     .nk-erg-v { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.4px; font-variant-numeric: tabular-nums; }
@@ -657,6 +658,20 @@
       border-radius: 9px; padding: 10px 12px; color: var(--white);
       font: 500 0.9rem 'Inter', sans-serif; color-scheme: dark;
     }
+    .set-bild { flex: 1; display: flex; align-items: center; gap: 12px; }
+    .set-bild-vorschau {
+      width: 84px; height: 58px; border-radius: 9px; flex: 0 0 84px;
+      background: var(--navy) center/cover no-repeat; border: 1px solid rgba(255,255,255,0.12);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.68rem; color: var(--muted); text-align: center;
+    }
+    .set-bild-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .set-bild-btn {
+      background: transparent; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px;
+      color: var(--muted); font: 500 0.8rem 'Inter', sans-serif; padding: 7px 12px; cursor: pointer;
+    }
+    .set-bild-btn:hover { border-color: rgba(211,172,95,0.45); color: var(--gold); }
+    .set-bild-btn.weg:hover { border-color: rgba(239,107,107,0.5); color: var(--red); }
     .set-hint { font-size: 0.78rem; color: var(--muted); line-height: 1.55; margin: 4px 0 18px; }
     .set-actions {
       display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
@@ -976,8 +991,8 @@
 
       <div class="nk-kopf">
         <label for="nkJahr">Abrechnungsjahr</label>
-        <select id="nkJahr" onchange="nkWechsleJahr(this.value)"></select>
-        <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Die Abrechnung gilt immer für das gesamte Kalenderjahr. Werte aus der Liquiditätsplanung und aus hochgeladenen Abrechnungen werden automatisch eingesetzt und lassen sich überschreiben.</span></span>
+        <select id="nkJahr" onchange="nkWechsleJahr(this.value)"
+                title="Die Abrechnung gilt immer für das gesamte Kalenderjahr. Werte aus der Liquiditätsplanung und aus hochgeladenen Abrechnungen werden automatisch eingesetzt und lassen sich überschreiben."></select>
         <div class="save-indicator" id="siNk"></div>
       </div>
 
@@ -1130,6 +1145,17 @@
           <span class="set-lbl">Wohnfläche (m²)</span>
           <input type="text" id="setWohnflaeche" inputmode="decimal" placeholder="z. B. 72" />
         </label>
+        <div class="set-row">
+          <span class="set-lbl">Bild</span>
+          <div class="set-bild">
+            <div class="set-bild-vorschau" id="setBildVorschau"><span>kein Bild</span></div>
+            <div class="set-bild-btns">
+              <button type="button" class="set-bild-btn" onclick="document.getElementById('setBild').click()">Bild wählen</button>
+              <button type="button" class="set-bild-btn weg" id="setBildWeg" hidden onclick="setBildEntfernen()">entfernen</button>
+            </div>
+            <input type="file" id="setBild" accept="image/*" style="display:none" onchange="setBildGewaehlt(event)" />
+          </div>
+        </div>
         <p class="set-note">
           <strong>Miete, Hausgeld und Bankrate</strong> tragen Sie nicht hier ein, sondern im Bereich
           <strong>Liquiditätsplanung</strong>.
@@ -1158,6 +1184,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="portfolio-calc.js"></script>
+  <script src="ie-benachrichtigungen.js"></script>
   <script src="ie-charts.js"></script>
   <script src="portfolio-charts.js"></script>
   <script>
@@ -1832,8 +1859,11 @@
         const x = a.split('-').map(Number), y = b.split('-').map(Number)
         return (x[0] * 12 + x[1]) - (y[0] * 12 + y[1])
       }
-      const kaufMonat = (data.kaufdatum || new Date().toISOString()).slice(0, 7)
-      const start  = plus(kaufMonat, -6)
+      // Sechs Monate vor dem Übernahmestichtag. Nur wenn kein Stichtag
+      // erfasst ist, gilt ersatzweise das Eintragungsdatum.
+      const stichtag = (window.IECalc && window.IECalc.stichtag(data)) || ''
+      const basis = (stichtag || data.kaufdatum || new Date().toISOString()).slice(0, 7)
+      const start  = plus(basis, -6)
       const heute  = new Date().toISOString().slice(0, 7)
       const zehn   = plus(start, 119)      // 10 Jahre ab Start
       const fuenf  = plus(heute, 59)       // mindestens 5 Jahre voraus
@@ -1923,8 +1953,9 @@
         d.cells[row][month] = val
       }
       const cl = data.checkliste || {}
-      const kp = liqParse(cl.kaufpreisDetail) ?? data.kaufpreis
-      if (kp) set('kaufpreis', kaufMonat, -Math.abs(kp))
+      // Der Kaufpreis wird bewusst NICHT automatisch eingetragen – er gehört
+      // in den Monat, in dem er tatsächlich gezahlt wurde, und wird von Hand
+      // oder über den Kontoauszug erfasst.
       const fk = liqParse(cl.darlehenssumme)
       if (fk) set('einzahlungFk', kaufMonat, Math.abs(fk))
       // Wiederkehrende Positionen ab dem Folgemonat des Kaufs
@@ -2137,6 +2168,7 @@
         cell.addEventListener('keydown',  e  => liqKeyNav(e, cell))
         cell.addEventListener('dblclick', () => liqEditNote(cell))
         cell.addEventListener('contextmenu', e => liqZellMenue(e, cell))
+        liqLangdruck(cell)
         cell.addEventListener('focus',    () => cell.select())
         cell.addEventListener('mouseup',  e  => e.preventDefault())
       })
@@ -2369,6 +2401,29 @@
       if (liqMarke(row, month) === 'ok') return true
       const ic = (liqData.importedCells || {})
       return !!ic[row + '|' + month]
+    }
+
+    // Auf dem Handy gibt es keinen Rechtsklick: Gedrückthalten öffnet dasselbe Menü.
+    function liqLangdruck(cell) {
+      let timer = null, start = null
+      const abbrechen = () => { clearTimeout(timer); timer = null }
+      cell.addEventListener('touchstart', e => {
+        if (e.touches.length !== 1) return
+        const t = e.touches[0]
+        start = { x: t.clientX, y: t.clientY }
+        timer = setTimeout(() => {
+          timer = null
+          cell.blur()
+          if (navigator.vibrate) { try { navigator.vibrate(12) } catch (er) {} }
+          liqZellMenue({ preventDefault() {}, clientX: start.x, clientY: start.y }, cell)
+        }, 500)
+      }, { passive: true })
+      cell.addEventListener('touchmove', e => {
+        if (!timer || !start) return
+        const t = e.touches[0]
+        if (Math.abs(t.clientX - start.x) > 10 || Math.abs(t.clientY - start.y) > 10) abbrechen()
+      }, { passive: true })
+      ;['touchend', 'touchcancel'].forEach(ev => cell.addEventListener(ev, abbrechen, { passive: true }))
     }
 
     function liqZellMenueZu() {
@@ -3090,9 +3145,9 @@
     }
 
     // ── Bausteine der Oberfläche ────────────────────────────────
-    function nkInfo(text) {
-      return `<span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">${esc(text)}</span></span>`
-    }
+    // Die Erklärungen in der Nebenkostenabrechnung stehen nicht mehr hinter
+    // einem (i), sondern als Hinweis am Mauszeiger an der Beschriftung.
+    function nkInfo() { return '' }
 
     // Eine Eingabezeile: Beschriftung, Betrag, Rücksetzer
     function nkZeile(bereich, feld, label, opt) {
@@ -3100,7 +3155,7 @@
       const w = nkWert(bereich, feld)
       const v = nkFeldText(w.wert)
       return `<div class="nk-zeile${opt.sub ? ' sub' : ''}">
-        <span class="nk-lbl">${esc(label)}${opt.info ? nkInfo(opt.info) : ''}${opt.warn || ''}</span>
+        <span class="nk-lbl"${opt.info ? ` title="${esc(opt.info)}"` : ''}>${esc(label)}${opt.warn || ''}</span>
         <input class="nk-in${w.vonHand ? '' : ' auto'}" type="text" inputmode="decimal" placeholder="0,00"
                value="${v}" onchange="nkSetzen('${bereich}', '${feld}', this.value)" />
         <span>${w.vonHand
@@ -3112,7 +3167,7 @@
     // Eine Rechenzeile ohne Eingabefeld
     function nkSummeZeile(label, wert, info) {
       return `<div class="nk-zeile summe">
-        <span class="nk-lbl">${esc(label)}${info ? nkInfo(info) : ''}</span>
+        <span class="nk-lbl"${info ? ` title="${esc(info)}"` : ''}>${esc(label)}</span>
         <span class="nk-fest">${nkEur(wert)}</span><span></span>
       </div>`
     }
@@ -3133,13 +3188,41 @@
       return treffer
     }
 
-    function nkErgebnis(betrag, plusText, minusText) {
+    // Von Hand gesetzter Status je Abrechnungsseite (hv = Hausverwaltung, mieter)
+    function nkHandStatus(bereich) {
+      const g = nkJ().gebucht || {}
+      return g[bereich]
+    }
+    function nkBuchungUmschalten(bereich) {
+      const j = nkJ()
+      if (!j.gebucht) j.gebucht = {}
+      const auto = !!nkGebucht(bereich === 'hv' ? nkLetzterBetrag.hv : nkLetzterBetrag.mieter)
+      const jetzt = j.gebucht[bereich] !== undefined ? j.gebucht[bereich] : auto
+      const neu = !jetzt
+      if (neu === auto) delete j.gebucht[bereich]   // zurück zum automatischen Stand
+      else j.gebucht[bereich] = neu
+      scheduleSave('x')
+      nkRender()
+    }
+    // Die zuletzt gezeigten Beträge, damit das Umschalten den Automatikwert kennt
+    const nkLetzterBetrag = { hv: 0, mieter: 0 }
+
+    function nkErgebnis(betrag, plusText, minusText, bereich) {
       const gut = betrag >= 0
+      if (bereich) nkLetzterBetrag[bereich] = betrag
       const m = nkGebucht(betrag)
+      const hand = bereich ? nkHandStatus(bereich) : undefined
+      const gebucht = hand !== undefined ? hand : !!m
       const monat = m ? m.slice(5, 7) + '/' + m.slice(0, 4) : ''
-      const status = Math.abs(Number(betrag) || 0) < 0.005 ? '' : (m
-        ? `<span class="nk-status-ok" title="In der Liquiditätsplanung als Buchung erfasst (${monat}).">✓ gebucht</span>`
-        : `<span class="nk-status-x" title="In der Liquiditätsplanung noch nicht als Buchung erfasst. Betrag dort in der Zeile „Nebenkostenabrechnung" eintragen oder die Zelle per Rechtsklick als gebucht markieren.">✕ nicht gebucht</span>`)
+      const titelOk = hand !== undefined
+        ? 'Von Hand als gebucht markiert – klicken für „nicht gebucht".'
+        : `In der Liquiditätsplanung als Buchung erfasst (${monat}) – klicken, um es von Hand zu ändern.`
+      const titelX = hand !== undefined
+        ? 'Von Hand als „nicht gebucht" markiert – klicken für „gebucht".'
+        : 'In der Liquiditätsplanung noch nicht als Buchung erfasst. Betrag dort in der Zeile „Nebenkostenabrechnung" eintragen, die Zelle per Rechtsklick (am Handy: gedrückt halten) als gebucht markieren – oder hier klicken.'
+      const status = Math.abs(Number(betrag) || 0) < 0.005 ? '' : (gebucht
+        ? `<button type="button" class="nk-status-ok" title="${esc(titelOk)}" onclick="nkBuchungUmschalten('${bereich || ''}')">✓ gebucht</button>`
+        : `<button type="button" class="nk-status-x" title="${esc(titelX)}" onclick="nkBuchungUmschalten('${bereich || ''}')">✕ nicht gebucht</button>`)
       return `<div class="nk-erg ${gut ? 'pos' : 'neg'}">
         <span class="nk-erg-l">${gut ? plusText : minusText}</span>
         <span class="nk-erg-r">${status}<span class="nk-erg-v">${nkEur(Math.abs(betrag))}</span></span>
@@ -3318,7 +3401,7 @@
           info: 'Aus den hochgeladenen Abrechnungen, zum Beispiel Verwaltergebühr, Instandhaltung und Rücklage.' }) +
         nkZeile('hv', 'einnahmen', 'Einnahmen', { sub: true,
           info: 'Erträge, die Ihrer Einheit zugerechnet werden, zum Beispiel Zinsen oder Mieten aus dem Gemeinschaftseigentum.' }) +
-        nkErgebnis(erg, 'Erstattung von der Hausverwaltung', 'Nachzahlung an die Hausverwaltung')
+        nkErgebnis(erg, 'Erstattung von der Hausverwaltung', 'Nachzahlung an die Hausverwaltung', 'hv')
     }
 
     // ── Abrechnung mit dem Mieter ───────────────────────────────
@@ -3353,7 +3436,7 @@
         nkZeile('mieter', 'nkVoraus', 'NK-Vorauszahlung vom Mieter', {
           info: 'Summe der Nebenkostenvorauszahlungen des Jahres aus der Liquiditätsplanung dieser Immobilie.' }) +
         `<div class="nk-zeile">
-          <span class="nk-lbl">Umlagefähige Bewirtschaftungskosten${nkInfo('Dieselbe Position wie in der Abrechnung mit der Hausverwaltung.')}</span>
+          <span class="nk-lbl" title="Dieselbe Position wie in der Abrechnung mit der Hausverwaltung.">Umlagefähige Bewirtschaftungskosten</span>
           <input class="nk-in${umlageVonHand ? '' : ' auto'}" type="text" inputmode="decimal" placeholder="0,00"
                  value="${nkFeldText(umlage)}"
                  onchange="nkSetzen('mieter', 'umlagefaehig', this.value)" />
@@ -3365,7 +3448,7 @@
           info: 'Im Jahr gezahlte Grundsteuer aus der Liquiditätsplanung dieser Immobilie.' }) +
         zeilenWeitere +
         `<button type="button" class="nk-add" onclick="nkWeitereNeu()">+ Weitere Umlage</button>` +
-        nkErgebnis(-erg, 'Nachzahlung durch den Mieter', 'Erstattung an den Mieter')
+        nkErgebnis(-erg, 'Nachzahlung durch den Mieter', 'Erstattung an den Mieter', 'mieter')
     }
 
     function nkWeitereNeu() {
@@ -3913,7 +3996,8 @@
       const nebenkosten = Math.abs(C.summeAlle(p, 'ausgabe'))
       const pctF = v => v === null ? '–' : v.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %'
       const info = txt => `<span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">${esc(txt)}</span></span>`
-      const kachel = (l, v, c, i) => `<div class="ub-tile"><span class="ub-label">${esc(l)}${i ? ' ' + info(i) : ''}</span><span class="ub-value ${c || ''}">${v}</span></div>`
+      // Ohne (i): die Erklärung bleibt als Hinweis am Mauszeiger erhalten
+      const kachel = (l, v, c, i) => `<div class="ub-tile"${i ? ` title="${esc(i)}"` : ''}><span class="ub-label">${esc(l)}</span><span class="ub-value ${c || ''}">${v}</span></div>`
 
       const wfl = wohnflaeche(propData)
       const ekWert = Math.max(0, wert - fk)
@@ -4072,8 +4156,49 @@
       v('setKaufpreis',   propData.kaufpreis ? zahlEin(propData.kaufpreis) : '')
       v('setWohnflaeche', wohnflaeche(propData) ? String(wohnflaeche(propData)).replace('.', ',') : '')
       v('setStichtag',    (window.IECalc && IECalc.stichtag(propData)) || '')
+      setBildZeigen()
       document.getElementById('siSet').textContent = ''
       document.getElementById('setModal').classList.add('open')
+    }
+
+    // ── Bild der Immobilie im Einstellungen-Dialog ──
+    let setBildDatei = null
+    let setBildLoeschen = false
+    async function setBildZeigen() {
+      setBildDatei = null; setBildLoeschen = false
+      const v = document.getElementById('setBildVorschau')
+      const weg = document.getElementById('setBildWeg')
+      if (!v) return
+      v.style.backgroundImage = ''
+      v.innerHTML = '<span>kein Bild</span>'
+      if (weg) weg.hidden = true
+      if (!propData.bild) return
+      const { data } = await sb.storage.from('dokumente').createSignedUrl(propData.bild, 3600)
+      if (data && data.signedUrl) {
+        v.innerHTML = ''
+        v.style.backgroundImage = `url('${data.signedUrl}')`
+        if (weg) weg.hidden = false
+      }
+    }
+    function setBildGewaehlt(e) {
+      const f = e.target.files && e.target.files[0]
+      e.target.value = ''
+      if (!f) return
+      if (!f.type.startsWith('image/')) { alert('Bitte eine Bilddatei auswählen.'); return }
+      if (f.size > 8 * 1024 * 1024) { alert('Das Bild darf höchstens 8 MB groß sein.'); return }
+      setBildDatei = f; setBildLoeschen = false
+      const v = document.getElementById('setBildVorschau')
+      v.innerHTML = ''
+      v.style.backgroundImage = `url('${URL.createObjectURL(f)}')`
+      document.getElementById('setBildWeg').hidden = false
+    }
+    function setBildEntfernen() {
+      setBildDatei = null
+      setBildLoeschen = !!propData.bild
+      const v = document.getElementById('setBildVorschau')
+      v.style.backgroundImage = ''
+      v.innerHTML = '<span>kein Bild</span>'
+      document.getElementById('setBildWeg').hidden = true
     }
 
     function closeSettings() { document.getElementById('setModal').classList.remove('open') }
@@ -4103,6 +4228,26 @@
       const wfl = zahlAus(wert('setWohnflaeche'))
       patch.einstellungen = Object.assign({}, propData.einstellungen || {},
         { uebernahmestichtag: stichtag || null, wohnflaeche: wfl || null })
+
+      // Bild: neu hochladen oder entfernen
+      if (setBildDatei) {
+        ind.textContent = 'Bild wird hochgeladen …'
+        const ext  = (setBildDatei.name.split('.').pop() || 'jpg').toLowerCase()
+        const pfad = `${currentUserId}/objektbilder/${id}.${ext}`
+        const { error: upErr } = await sb.storage.from('dokumente')
+          .upload(pfad, setBildDatei, { upsert: true, contentType: setBildDatei.type })
+        if (upErr) {
+          ind.textContent = '⚠ Bild konnte nicht hochgeladen werden'
+          ind.style.color = 'var(--red)'
+          return
+        }
+        patch.bild = pfad
+        setBildDatei = null
+      } else if (setBildLoeschen) {
+        if (propData.bild) await sb.storage.from('dokumente').remove([propData.bild])
+        patch.bild = null
+        setBildLoeschen = false
+      }
       ind.style.color = ''
       ind.textContent = 'Speichert …'
       const { error } = await sb.from('portfolio').update(patch).eq('id', id)

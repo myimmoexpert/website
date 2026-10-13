@@ -39,11 +39,16 @@ table.lt-tab th{color:var(--lt-muted);font-weight:600;white-space:nowrap}
 .lt-scroll table.lt-tab{margin:0}
 .lt-todo{background:rgba(211,172,95,.10);border-left:3px solid var(--lt-gold);
   padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;font-size:14.5px}
-.lt-foot{border-top:1px solid var(--lt-line);padding:24px;text-align:center;
-  color:var(--lt-muted);font-size:14px}
-.lt-foot a{color:var(--lt-muted);text-decoration:none;margin:0 10px}
+.lt-foot{border-top:1px solid var(--lt-line);padding:36px 60px;color:var(--lt-muted);font-size:14px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.lt-foot .lt-foot-logo{font-size:1.1rem;font-weight:600;letter-spacing:-.01em;text-decoration:none;color:var(--lt-text)}
+.lt-foot .lt-foot-logo span{color:var(--lt-gold)}
+.lt-foot ul{display:flex;gap:28px;list-style:none;margin:0;padding:0}
+.lt-foot a{color:var(--lt-muted);text-decoration:none;font-size:.85rem}
 .lt-foot a:hover{color:var(--lt-gold)}
+.lt-foot .lt-foot-copy{font-size:.82rem}
 @media(max-width:640px){
+  .lt-foot{padding:28px 24px;flex-direction:column;align-items:flex-start}
   .lt-wrap{padding:32px 18px 64px}
   .lt-wrap h1{font-size:27px}
   .lt-top{padding:14px 18px}

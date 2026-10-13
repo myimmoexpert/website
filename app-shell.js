@@ -322,12 +322,23 @@
 
     client.auth.getSession().then(function (r) {
       if (!r.data || !r.data.session) { fail('Bitte anmelden'); return }
+      // Auf der Immobilienseite kennt die Seite selbst nur eine Immobilie –
+      // für den roten Punkt am Menüpunkt „Benachrichtigungen" holen wir die
+      // nötigen Felder hier mit.
+      var fuerPunkt = currentFile() === P.immobilie && window.IEBenachrichtigungen && window.IECalc
+      var felder = fuerPunkt
+        ? 'id, bezeichnung, objektart, mietverhaeltnis, einstellungen, nebenkosten, liquiditaet, kaufdatum, kaufpreis, wert'
+        : 'id, bezeichnung, objektart, mietverhaeltnis'
       return client.from('portfolio')
-        .select('id, bezeichnung, objektart, mietverhaeltnis')
+        .select(felder)
         .order('created_at', { ascending: true })
         .then(function (res) {
           if (res.error) { fail('nicht ladbar'); return }
           var rows = res.data || []
+          if (fuerPunkt && window.IEShell && window.IEShell.menuePunkt) {
+            window.IEShell.menuePunkt('benachrichtigungen',
+              window.IEBenachrichtigungen.sammeln(rows).length > 0)
+          }
           if (!rows.length) { fail('Noch keine Immobilie'); return }
           holder.innerHTML = ''
           rows.forEach(function (p) { holder.appendChild(buildPropGroup(p)) })
@@ -384,13 +395,32 @@
      normales Scrollen und das seitliche Wischen in Tabellen nichts auslöst. */
   function wischgeste () {
     var x0 = 0, y0 = 0, aktiv = false, ausRand = false
+    // Auf dem iPhone gehört der äußerste linke Rand dem System („zurück").
+    // Deshalb beginnt die Wischgeste dort erst neben diesem Streifen.
+    var ios = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+    var zoneVon = ios ? 32 : 0
+    var zoneBis = ios ? 120 : 28
+
+    // Innerhalb seitlich scrollbarer Bereiche (Liquiditätstabelle) nicht greifen
+    function inScrollbereich (el) {
+      for (var n = el; n && n !== document.body; n = n.parentElement) {
+        if (n.scrollWidth - n.clientWidth > 8) {
+          var ov = getComputedStyle(n).overflowX
+          if (ov === 'auto' || ov === 'scroll') return true
+        }
+      }
+      return false
+    }
+
     document.addEventListener('touchstart', function (e) {
       if (window.innerWidth > 700 || e.touches.length !== 1) { aktiv = false; return }
       var t = e.touches[0]
       x0 = t.clientX; y0 = t.clientY
       var offen = document.body.classList.contains('ie-sb-open')
-      ausRand = x0 <= 28
-      // Zum Öffnen nur vom linken Rand; zum Schließen überall auf dem Menü
+      ausRand = x0 >= zoneVon && x0 <= zoneBis
+      if (ausRand && e.target && inScrollbereich(e.target)) ausRand = false
+      // Zum Öffnen nur aus dem Randstreifen; zum Schließen überall auf dem Menü
       aktiv = offen ? !!(e.target.closest && e.target.closest('.ie-sidebar, .ie-scrim')) : ausRand
     }, { passive: true })
     document.addEventListener('touchmove', function (e) {
@@ -454,7 +484,31 @@
     window.IEShell = {
       setActive: setActive,
       paths: P,
-      icons: OBJEKTART_ICONS
+      icons: OBJEKTART_ICONS,
+      // Nach dem Anlegen oder Löschen einer Immobilie: Liste im Menü neu laden,
+      // damit der Eintrag sofort erscheint und kein Neuladen nötig ist
+      // Roter Punkt an einem Menüpunkt (z. B. offene Benachrichtigungen)
+      menuePunkt: function (key, an) {
+        var item = document.querySelector('.ie-sb-item[data-key="' + key + '"]')
+        // Das Menü wird erst beim DOM-Aufbau gebaut: notfalls kurz später erneut
+        if (!item) {
+          var self = this
+          setTimeout(function () {
+            var n = document.querySelector('.ie-sb-item[data-key="' + key + '"]')
+            if (n) self.menuePunkt(key, an)
+          }, 400)
+          return
+        }
+        var punkt = item.querySelector('.ie-sb-alert')
+        if (an && !punkt) item.appendChild(el('span', 'ie-sb-alert'))
+        else if (!an && punkt) punkt.remove()
+      },
+      immobilienNeuLaden: function () {
+        var holder = document.getElementById('ieSbProps')
+        if (!holder) return
+        holder.innerHTML = '<div class="ie-sb-empty">lädt …</div>'
+        loadProperties(holder)
+      }
     }
   }
 

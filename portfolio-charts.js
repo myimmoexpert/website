@@ -212,7 +212,7 @@
         legende: vorschauCf.schritte.filter(function (x) { return gibt[x.name] })
           .map(function (x) { return { c: x.farbe, t: x.name } }) }) +
       K.karte({ id: 'pcRd', titel: 'Mietrendite je Immobilie',
-        info: 'Jahresmiete bezogen auf den aktuellen Wert der Immobilie · Stand heute.',
+        info: 'Jahresmiete bezogen auf den aktuellen Wert der Immobilie',
         hero: { wert: pct(sb > 0 ? sm / sb * 100 : 0), label: 'Portfolio im Schnitt' },
         legende: [{ c: F.GOLD, t: 'Mietrendite' }, { c: F.INK, t: 'Portfolioschnitt', linie: true }] })
 

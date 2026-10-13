@@ -276,6 +276,16 @@
       padding-right: 48px;   /* Platz für den Schließen-Knopf des Pop-ups */
     }
 
+    .result-title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .miet-badge {
+      font: 700 0.7rem/1 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 0.5px;
+      padding: 6px 12px; border-radius: 50px; white-space: nowrap;
+    }
+    .miet-badge.ja   { color: var(--green); background: rgba(92,201,138,0.14); border: 1px solid rgba(92,201,138,0.4); }
+    .miet-badge.nein { color: var(--red);   background: rgba(239,107,107,0.12); border: 1px solid rgba(239,107,107,0.4); }
+    .kpi-quelle { font-size: 0.72rem; font-weight: 600; }
+    .kpi-quelle.ok   { color: var(--green); }
+    .kpi-quelle.schaetz { color: var(--muted); }
     .result-title {
       font-size: 1.3rem;
       font-weight: 700;
@@ -838,7 +848,10 @@
     <div class="result" id="result">
     <div class="result-header">
       <div>
-        <div class="result-title" id="resultTitle">–</div>
+        <div class="result-title-row">
+          <span class="result-title" id="resultTitle">–</span>
+          <span class="miet-badge" id="mietBadge" hidden></span>
+        </div>
         <div class="result-subtitle" id="resultSubtitle">–</div>
       </div>
       <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
@@ -868,7 +881,7 @@
       <div class="kpi-card">
         <div class="kpi-label">Nettokaltmiete</div>
         <div class="kpi-value" id="kpiNettokaltmiete">–</div>
-        <div class="kpi-sub">pro Monat</div>
+        <div class="kpi-sub">pro Monat · <span id="kpiMieteQuelle" class="kpi-quelle">–</span></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Mietrendite</div>
@@ -909,7 +922,7 @@
           <span class="cf-amt minus" id="cfHausgeldJahr">–</span>
         </div>
         <div class="cf-row">
-          <span class="cf-lbl">Voraussichtliche Bankrate <span style="font-size:0.78rem;">(Kaufpreis × 5 % p. a.)</span></span>
+          <span class="cf-lbl">Voraussichtliche Bankrate</span>
           <span class="cf-amt minus" id="cfBankrateJahr">–</span>
         </div>
       </div>
@@ -1273,16 +1286,50 @@
       await loadSavedSteckbriefe()
     }
 
+    // Vermietet, nicht vermietet oder unbekannt – aus der Angabe der Analyse
+    function mietStatus(data) {
+      const t = String(data.dVermietet || '').trim().toLowerCase()
+      if (!t || t === '–' || /unbekannt|keine angabe|k\.a\./.test(t)) return null
+      if (/^(nein|nicht|frei|unvermietet|leer|bezugsfrei|eigennutzung)/.test(t)) return false
+      if (/^(ja|vermietet)/.test(t)) return true
+      return /nicht vermietet|unvermietet|bezugsfrei|leerstand/.test(t) ? false
+           : /vermietet/.test(t) ? true : null
+    }
+
     function fillResult(data, url) {
-      document.getElementById('resultTitle').textContent        = data.title
-      document.getElementById('resultSubtitle').textContent     = data.subtitle
+      document.getElementById('resultTitle').textContent        = data.title || '–'
+      document.getElementById('resultSubtitle').textContent     = data.subtitle || ''
       document.getElementById('resultLink').href                = url
+
+      // Vermietungsstatus neben dem Titel
+      const badge = document.getElementById('mietBadge')
+      const verm = mietStatus(data)
+      if (verm === null) { badge.hidden = true; badge.className = 'miet-badge' }
+      else {
+        badge.hidden = false
+        badge.className = 'miet-badge ' + (verm ? 'ja' : 'nein')
+        badge.textContent = verm ? 'vermietet' : 'nicht vermietet'
+      }
+
       // KPIs
-      document.getElementById('kpiInvestmentNote').textContent  = data.kpiInvestmentNote
-      document.getElementById('kpiKaufpreis').textContent       = data.kpiKaufpreis
+      document.getElementById('kpiInvestmentNote').textContent  = data.kpiInvestmentNote || '–'
+      document.getElementById('kpiKaufpreis').textContent       = data.kpiKaufpreis || '–'
       document.getElementById('kpiKaufpreisProQm').textContent  = data.kpiKaufpreisProQm || '–'
       document.getElementById('kpiInvestFaktor').textContent    = data.kpiInvestFaktor   || '–'
       document.getElementById('kpiNettokaltmiete').textContent  = data.kpiNettokaltmiete || '–'
+
+      // Steht die Miete so im Inserat (verifiziert) oder ist sie geschätzt?
+      // Die Analyse kann das selbst angeben; sonst gilt: bei vermieteten
+      // Objekten steht die Miete im Inserat, sonst ist sie eine Schätzung.
+      const qEl = document.getElementById('kpiMieteQuelle')
+      const q = String(data.kpiNettokaltmieteQuelle || '').toLowerCase()
+      const verifiziert = q ? /verifiz|inserat|angegeben/.test(q)
+                            : (verm === true && !!data.kpiNettokaltmiete)
+      if (!data.kpiNettokaltmiete) { qEl.textContent = ''; qEl.className = 'kpi-quelle' }
+      else {
+        qEl.textContent = verifiziert ? 'verifiziert' : 'Schätzung'
+        qEl.className = 'kpi-quelle ' + (verifiziert ? 'ok' : 'schaetz')
+      }
       // Objektdetails
       document.getElementById('dObjektart').textContent         = data.dObjektart   || '–'
       document.getElementById('dWohnflaeche').textContent       = data.dWohnflaeche  || '–'
