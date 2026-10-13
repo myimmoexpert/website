@@ -122,7 +122,12 @@
     .liq-yr { border-left: 2px solid rgba(211,172,95,0.25) !important; }
     .liq-table th.liq-now { color: var(--gold); background: rgba(211,172,95,0.12); }
     .liq-table td.liq-now { background: rgba(211,172,95,0.05); }
-    .liq-cell { width: 100px; color: #475569; font-family: inherit; font-size: 0.8rem; text-align: right; padding: 8px 12px; }
+    /* Eingabefelder sehen genauso aus wie in der Immobilie: kein Rahmen, kein Hintergrund */
+    .liq-cell { width: 100px; background: transparent; border: none; outline: none; color: var(--white);
+                font-family: inherit; font-size: 0.8rem; text-align: right; padding: 8px 12px; }
+    .liq-cell:focus { background: rgba(211,172,95,0.08); }
+    .liq-cell.calc { color: #475569; }
+    .liq-cell::placeholder { color: rgba(155,150,140,0.25); }
     .liq-cell.neg { color: var(--red); }
     .liq-cell.pos { color: var(--green); }
     .liq-row-sub .liq-cell { font-size: 0.72rem; font-style: italic; }
@@ -179,7 +184,7 @@
     .bn-item-datum { font-size: 0.78rem; color: var(--red); white-space: nowrap; font-weight: 600; }
 
     .bn-tab-wrap { overflow-x: auto; border: 1px solid rgba(255,255,255,0.088); border-radius: 12px; background: var(--navy2); }
-    .bn-tab { width: 100%; border-collapse: collapse; font-size: 0.86rem; min-width: 720px; }
+    .bn-tab { width: 100%; border-collapse: collapse; font-size: 0.86rem; min-width: 1120px; }
     .bn-tab th {
       font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted);
       font-weight: 600; background: #26262b; padding: 10px 12px; text-align: center; line-height: 1.5;
@@ -189,11 +194,18 @@
     .bn-tab td { padding: 10px 12px; border-top: 1px solid rgba(255,255,255,0.075); text-align: center; }
     .bn-tab tr.bn-alle td { background: rgba(211,172,95,0.05); font-weight: 600; }
     .bn-tab input[type=checkbox] { width: 17px; height: 17px; accent-color: var(--gold); cursor: pointer; }
-    .bn-tab .bn-datum-sp input {
-      width: 76px; background: var(--navy); border: 1px solid rgba(255,255,255,0.175);
-      border-radius: 7px; padding: 6px 8px; color: var(--white); font: 500 0.82rem 'Inter', sans-serif;
+    /* Haken und der Zeitpunkt, zu dem erinnert wird, stehen nebeneinander */
+    .bn-zelle { display: inline-flex; align-items: center; gap: 9px; }
+    .bn-zeit { display: inline-flex; align-items: baseline; gap: 5px; }
+    .bn-zeit-feld {
+      width: 42px; background: var(--navy); border: 1px solid rgba(255,255,255,0.175);
+      border-radius: 7px; padding: 5px 6px; color: var(--white); font: 500 0.8rem 'Inter', sans-serif;
       text-align: center;
     }
+    .bn-zeit-feld.bn-zeit-breit { width: 68px; }
+    .bn-zeit-feld:focus { outline: none; border-color: rgba(211,172,95,0.55); }
+    .bn-zeit-su { font-size: 0.68rem; color: var(--muted); white-space: nowrap; }
+    .bn-tab tr.bn-alle .bn-zelle { gap: 0; }
 
     /* ── FOOTER ── */
     footer { border-top: 1px solid rgba(255,255,255,0.088); padding: 36px 60px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-top: auto; }
@@ -416,24 +428,25 @@
     }
     /* Gesamtportfolio: gleiche Tabelle wie in der Immobilie (immobilie.html) */
     .lp-body { padding: 16px 18px 18px; }
-    #liqGesamt .liq-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+    #liqGesamt .liq-controls, #liqAdm .liq-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
     .liq-btn { background: transparent; border: 1px dashed rgba(255,255,255,0.188); border-radius: 8px; color: var(--muted); font-family: inherit; font-size: 0.82rem; padding: 8px 14px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
     .liq-btn:hover { border-color: rgba(211,172,95,0.4); color: var(--gold); }
     .liq-btn-xls { margin-left: auto; }
-    #liqGesamt .liq-scroll { overflow-x: auto; border: 1px solid rgba(255,255,255,0.088); border-radius: var(--radius); background: var(--navy2); max-height: none; }
-    #liqGesamt .liq-table td.liq-label, #liqGesamt .liq-table th.liq-label { padding: 9px 20px 9px 22px; min-width: 160px; }
+    #liqGesamt .liq-scroll, #liqAdm .liq-scroll { overflow-x: auto; border: 1px solid rgba(255,255,255,0.088); border-radius: var(--radius); background: var(--navy2); max-height: none; }
+    #liqGesamt .liq-table td.liq-label, #liqGesamt .liq-table th.liq-label, #liqAdm .liq-table td.liq-label, #liqAdm .liq-table th.liq-label { padding: 9px 20px 9px 22px; min-width: 160px; }
     @media (max-width: 700px) {
-      #liqGesamt .liq-table td.liq-label, #liqGesamt .liq-table th.liq-label { padding: 8px 8px 8px 10px; min-width: 118px; }
+      #liqGesamt .liq-table td.liq-label, #liqGesamt .liq-table th.liq-label, #liqAdm .liq-table td.liq-label, #liqAdm .liq-table th.liq-label { padding: 8px 8px 8px 10px; min-width: 118px; }
     }
-    #liqGesamt .liq-table thead th.liq-label { text-align: center; padding-left: 12px; padding-right: 12px; }
-    #liqGesamt .liq-row-sub .liq-label { padding-left: 30px; }
-    #liqGesamt .liq-row-header .liq-label { font-weight: 600; color: var(--white); background: #26262b; }
-    #liqGesamt .liq-row-header td { background: rgba(255,255,255,0.025); }
-    #liqGesamt .liq-spacer td { height: 14px; border-bottom: none; background: transparent; }
-    #liqGesamt .liq-spacer .liq-label { background: var(--navy2); }
-    #liqGesamt .liq-cell { width: 100px; font-size: 0.8rem; text-align: right; padding: 8px 12px; }
-    #liqGesamt .liq-cell.neg { color: var(--red); } #liqGesamt .liq-cell.pos { color: var(--green); }
-    #liqGesamt .liq-row-sub .liq-cell { font-size: 0.72rem; font-style: italic; }
+    #liqGesamt .liq-table thead th.liq-label, #liqAdm .liq-table thead th.liq-label { text-align: center; padding-left: 12px; padding-right: 12px; }
+    #liqGesamt .liq-row-sub .liq-label, #liqAdm .liq-row-sub .liq-label { padding-left: 30px; }
+    #liqGesamt .liq-row-header .liq-label, #liqAdm .liq-row-header .liq-label { font-weight: 600; color: var(--white); background: #26262b; }
+    #liqGesamt .liq-row-header td, #liqAdm .liq-row-header td { background: rgba(255,255,255,0.025); }
+    #liqGesamt .liq-spacer td, #liqAdm .liq-spacer td { height: 14px; border-bottom: none; background: transparent; }
+    #liqGesamt .liq-spacer .liq-label, #liqAdm .liq-spacer .liq-label { background: var(--navy2); }
+    #liqGesamt .liq-cell, #liqAdm .liq-cell { width: 100px; font-size: 0.8rem; text-align: right; padding: 8px 12px; }
+    #liqGesamt .liq-cell.neg, #liqAdm .liq-cell.neg { color: var(--red); }
+    #liqGesamt .liq-cell.pos, #liqAdm .liq-cell.pos { color: var(--green); }
+    #liqGesamt .liq-row-sub .liq-cell, #liqAdm .liq-row-sub .liq-cell { font-size: 0.72rem; font-style: italic; }
     .liq-toggle {
       display: inline-flex; align-items: center; justify-content: center;
       width: 17px; height: 17px; margin-right: 9px; vertical-align: -3px;
@@ -573,9 +586,9 @@
             <span class="lp-cf" id="admSumme"></span>
           </summary>
           <div class="lp-frame-wrap">
-            <div class="lp-body">
+            <div class="lp-body" id="liqAdm">
               <div class="liq-controls">
-                <span class="liq-hinweis">Fließt in das Gesamtportfolio ein: Einzahlung Eigenkapital in „Einzahlung Eigenkapital", Ausgaben in „Weitere Ausgaben".</span>
+                <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Fließt in das Gesamtportfolio ein: Einzahlung Eigenkapital in „Einzahlung Eigenkapital", Ausgaben in „Weitere Ausgaben".</span></span>
                 <span class="save-indicator" id="siAdm" style="margin-left:auto;"></span>
               </div>
               <div class="liq-scroll" id="admScroll"></div>
@@ -585,7 +598,7 @@
       </div>
 
       <div class="kpi-group">
-        <div class="kpi-group-title">Je Immobilie
+        <div class="kpi-group-title">Immobilien
           <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Die vollständige, bearbeitbare Liquiditätsplanung jeder Immobilie: Zellen überschreiben, Tilgungsplan importieren, Excel herunterladen. Änderungen werden automatisch gespeichert.</span></span>
         </div>
         <div id="liqProps"></div>
@@ -625,9 +638,7 @@
   <div class="tab-pane" id="pane-benachrichtigungen">
     <div class="tab-content">
 
-      <div class="kpi-group-title">Wann möchten Sie benachrichtigt werden?
-        <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Je Immobilie einstellbar. „Alle Immobilien" schaltet eine Spalte für alle auf einmal um. Buchungen werden geprüft, sobald ein Monat vorbei ist: erwartet wird, was in der Liquiditätsplanung dieser Immobilie für den Monat steht.</span></span>
-      </div>
+      <div class="kpi-group-title">Wann möchten Sie benachrichtigt werden?</div>
       <div class="bn-tab-wrap">
         <table class="bn-tab" id="bnTabelle"></table>
       </div>
@@ -2010,18 +2021,43 @@
       window.IEShell.menuePunkt('benachrichtigungen', anzahl > 0)
     }
 
+    // Jede Spalte hat einen Haken und daneben den Zeitpunkt, zu dem erinnert wird.
     const BN_SPALTEN = [
-      { key: 'mieterhoehung', label: 'Mieterhöhung<br><span>12 Monate her</span>' },
-      { key: 'nk',            label: 'Nebenkosten-<br>abrechnung' },
-      { key: 'b_miete',       label: 'Miete<br><span>nicht gebucht</span>' },
-      { key: 'b_weitereMiete', label: 'Weitere Miete<br><span>nicht gebucht</span>' },
-      { key: 'b_hausgeld',    label: 'Hausgeld<br><span>nicht gebucht</span>' },
-      { key: 'b_darlehen',    label: 'Darlehen<br><span>nicht gebucht</span>' },
+      { key: 'mieterhoehung',  label: 'Mieterhöhung',          art: 'monate' },
+      { key: 'nk',             label: 'Nebenkosten-<br>abrechnung', art: 'datum' },
+      { key: 'b_miete',        label: 'Miete<br><span>nicht gebucht</span>',         art: 'tag' },
+      { key: 'b_weitereMiete', label: 'Weitere Miete<br><span>nicht gebucht</span>', art: 'tag' },
+      { key: 'b_hausgeld',     label: 'Hausgeld<br><span>nicht gebucht</span>',      art: 'tag' },
+      { key: 'b_darlehen',     label: 'Darlehen<br><span>nicht gebucht</span>',      art: 'tag' },
     ]
 
     function bnWert(e, key) {
       if (key.startsWith('b_')) return e.buchungen[key.slice(2)]
       return e[key]
+    }
+
+    // Der eingestellte Zeitpunkt als Text für das Eingabefeld
+    function bnZeitWert(e, c) {
+      if (c.art === 'monate') return String(e.mieterhoehungMonate)
+      if (c.art === 'datum') { const t = e.nkStichtag.split('-'); return t[1] + '.' + t[0] + '.' }
+      return String(e.buchungenTag[c.key.slice(2)])
+    }
+
+    const BN_ZEIT_TITEL = {
+      monate: 'Nach wie vielen Monaten seit der letzten Mieterhöhung erinnert wird',
+      datum:  'Tag und Monat, ab dem an die Abrechnung des Vorjahres erinnert wird',
+      tag:    'Ab dem wievielten eines Monats an eine fehlende Buchung erinnert wird',
+    }
+    const BN_ZEIT_SUFFIX = { monate: 'Mon.', datum: '', tag: 'des Monats' }
+
+    function bnZeitFeld(i, c, e) {
+      const w = bnZeitWert(e, c)
+      const breit = c.art === 'datum' ? ' bn-zeit-breit' : ''
+      return `<span class="bn-zeit" title="${esc(BN_ZEIT_TITEL[c.art])}">
+          <input type="text" class="bn-zeit-feld${breit}" value="${esc(w)}" inputmode="numeric"
+                 onchange="bnZeitSetzen(${i}, '${c.key}', this.value, this)" />
+          ${BN_ZEIT_SUFFIX[c.art] ? `<span class="bn-zeit-su">${BN_ZEIT_SUFFIX[c.art]}</span>` : ''}
+        </span>`
     }
 
     function bnRenderTabelle() {
@@ -2032,23 +2068,22 @@
         return
       }
       const kopf = '<tr><th class="bn-name">Immobilie</th>' +
-        BN_SPALTEN.map(c => `<th>${c.label}</th>`).join('') +
-        '<th class="bn-datum-sp">Stichtag NK</th></tr>'
+        BN_SPALTEN.map(c => `<th>${c.label}</th>`).join('') + '</tr>'
 
       const alle = '<tr class="bn-alle"><td class="bn-name">Alle Immobilien</td>' +
         BN_SPALTEN.map(c => {
           const an = properties.every(p => bnWert(bnEinst(p), c.key))
-          return `<td><input type="checkbox" ${an ? 'checked' : ''} onchange="bnAlleUmschalten('${c.key}', this.checked)"></td>`
-        }).join('') + '<td></td></tr>'
+          return `<td><label class="bn-zelle"><input type="checkbox" ${an ? 'checked' : ''} onchange="bnAlleUmschalten('${c.key}', this.checked)"></label></td>`
+        }).join('') + '</tr>'
 
       const zeilen = properties.map((p, i) => {
         const e = bnEinst(p)
         const felder = BN_SPALTEN.map(c =>
-          `<td><input type="checkbox" ${bnWert(e, c.key) ? 'checked' : ''} onchange="bnSetzen(${i}, '${c.key}', this.checked)"></td>`).join('')
-        const [mm, tt] = e.nkStichtag.split('-')
-        return `<tr><td class="bn-name">${esc(p.bezeichnung || 'Immobilie')}</td>${felder}` +
-          `<td class="bn-datum-sp"><input type="text" value="${tt}.${mm}." inputmode="numeric" placeholder="30.06."
-             onchange="bnStichtag(${i}, this.value, this)" title="Tag und Monat, ab dem an die Abrechnung des Vorjahres erinnert wird"></td></tr>`
+          `<td><span class="bn-zelle">
+             <input type="checkbox" ${bnWert(e, c.key) ? 'checked' : ''} onchange="bnSetzen(${i}, '${c.key}', this.checked)">
+             ${bnZeitFeld(i, c, e)}
+           </span></td>`).join('')
+        return `<tr><td class="bn-name">${esc(p.bezeichnung || 'Immobilie')}</td>${felder}</tr>`
       }).join('')
 
       tab.innerHTML = kopf + alle + zeilen
@@ -2069,16 +2104,29 @@
       bnRenderTabelle()
     }
 
-    function bnStichtag(index, wert, feld) {
+    // Zeitpunkt einer Spalte ändern – je Immobilie
+    function bnZeitSetzen(index, key, wert, feld) {
       const p = properties[index]
       if (!p) return
-      const m = String(wert).match(/^\s*(\d{1,2})\.\s*(\d{1,2})\.?\s*$/)
+      const c = BN_SPALTEN.find(x => x.key === key)
       const e = bnEinst(p)
-      if (!m) { feld.value = e.nkStichtag.split('-')[1] + '.' + e.nkStichtag.split('-')[0] + '.'; return }
-      const tag = Math.min(31, Math.max(1, Number(m[1])))
-      const monat = Math.min(12, Math.max(1, Number(m[2])))
-      e.nkStichtag = String(monat).padStart(2, '0') + '-' + String(tag).padStart(2, '0')
-      feld.value = String(tag).padStart(2, '0') + '.' + String(monat).padStart(2, '0') + '.'
+      if (c.art === 'datum') {
+        const m = String(wert).match(/^\s*(\d{1,2})\.\s*(\d{1,2})\.?\s*$/)
+        if (m) {
+          const tag = Math.min(31, Math.max(1, Number(m[1])))
+          const monat = Math.min(12, Math.max(1, Number(m[2])))
+          e.nkStichtag = String(monat).padStart(2, '0') + '-' + String(tag).padStart(2, '0')
+        }
+      } else {
+        const n = parseInt(String(wert).replace(/\D/g, ''), 10)
+        if (!isNaN(n)) {
+          if (c.art === 'monate') e.mieterhoehungMonate = Math.min(120, Math.max(1, n))
+          else e.buchungenTag[key.slice(2)] = Math.min(28, Math.max(1, n))
+        }
+      }
+      // Einstellungen normalisieren und zurückschreiben
+      p.einstellungen = Object.assign({}, p.einstellungen || {}, { benachrichtigungen: e })
+      feld.value = bnZeitWert(bnEinst(p), c)
       bnSpeichern(p, e)
       bnRenderListe()
     }

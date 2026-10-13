@@ -12,16 +12,28 @@
   'use strict'
 
   var STANDARD = {
-    mieterhoehung: true,            // 12 Monate nach der letzten Mieterhöhung
+    mieterhoehung: true,            // Erinnerung, wenn die letzte Erhöhung lange her ist
+    mieterhoehungMonate: 12,        // nach wie vielen Monaten erinnert wird
     nk: true,                       // Nebenkostenabrechnung erstellen
     nkStichtag: '06-30',            // Tag im Jahr, ab dem erinnert wird
     buchungen: { miete: true, weitereMiete: true, hausgeld: true, darlehen: true },
+    // Ab welchem Tag im Monat eine fehlende Buchung gemeldet wird.
+    // Die Miete kommt oft erst am fünften – vorher ist nichts auffällig.
+    buchungenTag: { miete: 5, weitereMiete: 5, hausgeld: 5, darlehen: 5 },
+  }
+
+  function ganzzahl (v, standard, min, max) {
+    var n = Math.round(Number(v))
+    if (!isFinite(n)) return standard
+    return Math.min(max, Math.max(min, n))
   }
 
   function einstellungen (p) {
     var e = (p && p.einstellungen && p.einstellungen.benachrichtigungen) || {}
+    var bt = e.buchungenTag || {}
     return {
       mieterhoehung: e.mieterhoehung !== undefined ? !!e.mieterhoehung : STANDARD.mieterhoehung,
+      mieterhoehungMonate: ganzzahl(e.mieterhoehungMonate, STANDARD.mieterhoehungMonate, 1, 120),
       nk:            e.nk !== undefined ? !!e.nk : STANDARD.nk,
       nkStichtag:    /^\d{2}-\d{2}$/.test(e.nkStichtag || '') ? e.nkStichtag : STANDARD.nkStichtag,
       buchungen: {
@@ -29,6 +41,12 @@
         weitereMiete: e.buchungen && e.buchungen.weitereMiete !== undefined ? !!e.buchungen.weitereMiete : true,
         hausgeld:     e.buchungen && e.buchungen.hausgeld !== undefined ? !!e.buchungen.hausgeld : true,
         darlehen:     e.buchungen && e.buchungen.darlehen !== undefined ? !!e.buchungen.darlehen : true,
+      },
+      buchungenTag: {
+        miete:        ganzzahl(bt.miete, STANDARD.buchungenTag.miete, 1, 28),
+        weitereMiete: ganzzahl(bt.weitereMiete, STANDARD.buchungenTag.weitereMiete, 1, 28),
+        hausgeld:     ganzzahl(bt.hausgeld, STANDARD.buchungenTag.hausgeld, 1, 28),
+        darlehen:     ganzzahl(bt.darlehen, STANDARD.buchungenTag.darlehen, 1, 28),
       },
       // weggeklickte Benachrichtigungen (Kennungen)
       weg: Array.isArray(e.weg) ? e.weg : [],
@@ -126,7 +144,7 @@
         var basis = datumLesen(mv.letzteMieterhoehung)
         if (basis) {
           var faellig = new Date(basis)
-          faellig.setMonth(faellig.getMonth() + 12)
+          faellig.setMonth(faellig.getMonth() + e.mieterhoehungMonate)
           var idM = 'mieterhoehung|' + p.id + '|' + faellig.toISOString().slice(0, 10)
           if (faellig <= heute && !weg[idM]) {
             items.push({
@@ -155,8 +173,11 @@
 
       // 3) Abgelaufener Monat ohne alle erwarteten Buchungen
       if (C && lq.cells) {
+        // Der laufende Monat zählt mit: ob eine Buchung fehlt, entscheidet
+        // der je Art eingestellte Tag im Monat.
+        var jetztM = heute.getFullYear() + '-' + String(heute.getMonth() + 1).padStart(2, '0')
         var monate = []
-        for (var i = 0; i < (opt.monate || 3); i++) monate.push(monatPlus(letzterVollerMonat(), -i))
+        for (var i = 0; i <= (opt.monate || 3); i++) monate.push(monatPlus(jetztM, -i))
         monate.forEach(function (m) {
           if (C.uebernahme(p) > m) return
           var t = C.cfTeile(p, m)
@@ -169,14 +190,17 @@
           Object.keys(erwartet).forEach(function (art) {
             if (!erwartet[art] || !e.buchungen[art]) return
             if (artGebucht(lq, art, m)) return
+            // Erst ab dem eingestellten Tag des jeweiligen Monats erinnern
+            var tag = e.buchungenTag[art]
+            var faelligB = new Date(Number(m.slice(0, 4)), Number(m.slice(5, 7)) - 1, tag)
+            if (faelligB > heute) return
             var idB = 'buchung|' + p.id + '|' + art + '|' + m
             if (weg[idB]) return
-            var ende = new Date(Number(m.slice(0, 4)), Number(m.slice(5, 7)), 0)
             items.push({
               id: idB, typ: 'buchung', propId: p.id, art: art,
               titel: '🏦 ' + ART_LABEL[art] + ' nicht gebucht',
               sub: name + ' · ' + monatName(m),
-              datum: ende, href: 'portfolio-uebersicht.html?tab=planung',
+              datum: faelligB, href: 'portfolio-uebersicht.html?tab=planung',
             })
           })
         })

@@ -99,16 +99,24 @@
       if (t.bankrateFix) s.fix = true
       s.cf += t.cf
     })
-    // weicht der gebuchte Cashflow von der Summe ab (Übersteuerung), als eigenen Schritt zeigen
-    var bank = s.fix
-      ? [{ name: 'Darlehen', wert: -Math.abs(s.bankrate), farbe: F.TERRA }]
-      : [{ name: 'Zins', wert: -Math.abs(s.zins), farbe: F.TERRA },
-         { name: 'Tilgung', wert: -Math.abs(s.tilgung), farbe: F.TEAL, hinweis: 'baut Eigenkapital auf' }]
+    // Immer derselbe Aufbau: Einnahmen und laufende Kosten bis zum Zins,
+    // dann ein Zwischenstand, danach die Tilgung und der Cashflow.
+    // Nur wenn gar keine Aufteilung in Zins und Tilgung erfasst ist,
+    // steht das Darlehen als ein Schritt.
+    var aufgeteilt = Math.abs(s.zins) + Math.abs(s.tilgung) > 0.004
     var schritte = [{ name: 'Miete', wert: s.miete, farbe: F.GOLD },
-                    { name: 'Hausgeld', wert: -Math.abs(s.hausgeld), farbe: F.BLAU }]
-      .concat(bank)
-      .concat([{ name: 'Grundsteuer', wert: -Math.abs(s.grundsteuer), farbe: '#7d786f' }])
-    var summe = schritte.reduce(function (a, x) { return a + x.wert }, 0)
+                    { name: 'Hausgeld', wert: -Math.abs(s.hausgeld), farbe: F.BLAU },
+                    { name: 'Grundsteuer', wert: -Math.abs(s.grundsteuer), farbe: '#7d786f' }]
+    if (aufgeteilt) {
+      schritte.push({ name: 'Zins', wert: -Math.abs(s.zins), farbe: F.TERRA })
+      schritte.push({ name: 'vor Tilgung', summe: true, farbe: '#8d867a',
+                      hinweis: 'Miete abzüglich laufender Kosten und Zins' })
+      schritte.push({ name: 'Tilgung', wert: -Math.abs(s.tilgung), farbe: F.TEAL, hinweis: 'baut Eigenkapital auf' })
+    } else {
+      schritte.push({ name: 'Darlehen', wert: -Math.abs(s.bankrate), farbe: F.TERRA })
+    }
+    // weicht der gebuchte Cashflow von der Summe ab (Übersteuerung), als eigenen Schritt zeigen
+    var summe = schritte.reduce(function (a, x) { return a + (x.summe ? 0 : (Number(x.wert) || 0)) }, 0)
     if (Math.abs(summe - s.cf) > 0.5) schritte.push({ name: 'Sonstiges', wert: s.cf - summe, farbe: '#7d786f' })
     schritte.push({ name: 'Cashflow', summe: true, farbe: '#e9e4d8' })
     return { schritte: schritte, cf: s.cf, teile: s }

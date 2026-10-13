@@ -284,6 +284,12 @@
     .kpi-group-title::before { content: ''; display: inline-block; width: 3px; height: 13px;
       border-radius: 2px; background: var(--gold); }
     .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+    /* Vier feste Spalten – wie die Übersicht innerhalb einer Immobilie */
+    .kpi-row.vier { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    @media (max-width: 1100px) { .kpi-row.vier { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 560px) { .kpi-row.vier { grid-template-columns: minmax(0, 1fr); } }
+    .kpi-row.vier .kpi-label { overflow-wrap: anywhere; }
+    .kpi-trenner { grid-column: 1 / -1; height: 1px; background: rgba(255,255,255,0.16); margin: 6px 0; }
     .kpi-tile { background: var(--navy2); border: 1px solid rgba(255,255,255,0.112); border-radius: 12px;
       padding: 15px 18px; display: flex; flex-direction: column; gap: 5px; }
     .kpi-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
@@ -602,7 +608,7 @@
       }
 
       const m = window.IECalc.jetztMonat()
-      let aum = 0, fk = 0, kaufpreis = 0, ekEingesetzt = 0
+      let aum = 0, fk = 0, kaufpreis = 0, ekEingesetzt = 0, wflSumme = 0
       let miete = 0, hausgeld = 0, bankrate = 0, cf = 0, nkmJahr = 0
 
       // Der Wert je Immobilie kommt aus deren eigener Einstellung
@@ -615,6 +621,7 @@
         fk  += window.IECalc.restschuld(p, m)
         kaufpreis += window.IECalc.kaufpreis(p)
         ekEingesetzt += Math.abs(window.IECalc.summeAlle(p, 'einzahlungEk'))
+        wflSumme += Number((p.einstellungen && p.einstellungen.wohnflaeche) || 0) || 0
         const t = window.IECalc.cfTeile(p, m)
         miete += t.miete + t.weitereMiete
         hausgeld += t.hausgeld
@@ -635,12 +642,12 @@
       const pct = v => v === null ? '–' : (v * 100).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' %'
       const fak = v => v === null ? '–' : v.toLocaleString('de-DE', { maximumFractionDigits: 1 })
 
-      const gruppe = (titel, kacheln, chartId) => `
+      const gruppe = (titel, kacheln, chartId, vier) => `
         <div class="kpi-group">
           <div class="kpi-group-title">${esc(titel)}</div>
-          <div class="kpi-row">
-            ${kacheln.map(k => `
-              <div class="kpi-tile">
+          <div class="kpi-row${vier ? ' vier' : ''}">
+            ${kacheln.map(k => k.trenner ? '<div class="kpi-trenner"></div>' : `
+              <div class="kpi-tile"${k.t ? ` title="${esc(k.t)}"` : ''}>
                 <span class="kpi-label-row">
                   <span class="kpi-label">${esc(k.l)}</span>
                   ${k.s ? `<span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">${esc(k.s)}</span></span>` : ''}
@@ -652,13 +659,21 @@
         </div>`
 
       el.innerHTML =
+        // Gleicher Aufbau wie die Übersicht innerhalb einer Immobilie:
+        // oben Wert und Finanzierung, darunter der Kauf
         gruppe('Vermögen & Finanzierung', [
-          { l: 'Portfoliowert', v: formatEur(aum), c: 'gold' },
-          { l: 'Restschuld',    v: formatEur(fk) },
-          { l: 'Eigenkapitalwert',  v: formatEur(ek),  c: 'green' },
-          { l: 'Eigenkapital investiert', v: formatEur(ekEingesetzt) },
-          { l: 'Finanzierungsquote', v: pct(ltv) },
-        ], 'kcVermoegen') +
+          { l: 'Portfoliowert', v: formatEur(aum), c: 'gold', t: 'Summe der aktuellen Werte aller Immobilien.' },
+          { l: 'Fremdkapital',  v: formatEur(fk), t: 'Restschuld heute über alle Immobilien.' },
+          { l: 'Eigenkapitalwert',  v: formatEur(ek),  c: 'green', t: 'Portfoliowert abzüglich Fremdkapital.' },
+          { l: 'Finanzierungsquote', v: pct(ltv), t: 'Fremdkapital ÷ Portfoliowert' },
+          { trenner: true },
+          { l: 'Kaufpreis', v: kaufpreis ? formatEur(kaufpreis) : '–', t: 'Summe aller Kaufpreise.' },
+          { l: 'Kaufpreis pro m²', v: (kaufpreis > 0 && wflSumme) ? formatEur(kaufpreis / wflSumme) : '–',
+            t: wflSumme ? 'Summe der Kaufpreise ÷ Summe der Wohnflächen (' + wflSumme.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' m²)'
+                        : 'Wohnfläche in den Einstellungen der Immobilien ergänzen.' },
+          { l: 'Eigenkapital investiert', v: formatEur(ekEingesetzt), t: 'Summe der Zeilen „Einzahlung Eigenkapital" aus der Liquiditätsplanung.' },
+          { l: 'Mietrendite', v: pct(brutto), c: 'gold', t: 'Jahreskaltmiete ÷ Kaufpreis über das gesamte Portfolio.' },
+        ], 'kcVermoegen', true) +
         gruppe('Monatliche Einnahmen und Ausgaben', [
           { l: 'Mieteinnahmen', v: formatEur(miete), c: 'green' },
           { l: 'Hausgeld',      v: formatEur(hausgeld) },
