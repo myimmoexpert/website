@@ -95,7 +95,8 @@
       s.hausgeld += t.hausgeld
       s.grundsteuer += t.grundsteuer
       s.bankrate += t.bankrate
-      s.zins += t.zins + (t.zins2 || 0); s.tilgung += t.tilgung + (t.tilgung2 || 0)
+      s.zins += (t.zinsAlle !== undefined ? t.zinsAlle : t.zins + (t.zins2 || 0))
+      s.tilgung += (t.tilgungAlle !== undefined ? t.tilgungAlle : t.tilgung + (t.tilgung2 || 0))
       if (t.bankrateFix) s.fix = true
       s.cf += t.cf
     })
@@ -104,9 +105,9 @@
     // Nur wenn gar keine Aufteilung in Zins und Tilgung erfasst ist,
     // steht das Darlehen als ein Schritt.
     var aufgeteilt = Math.abs(s.zins) + Math.abs(s.tilgung) > 0.004
+    // Die Grundsteuer gehört nicht zum CF Wohnung und steht deshalb nicht im Wasserfall
     var schritte = [{ name: 'Miete', wert: s.miete, farbe: F.GOLD },
-                    { name: 'Hausgeld', wert: -Math.abs(s.hausgeld), farbe: F.BLAU },
-                    { name: 'Grundsteuer', wert: -Math.abs(s.grundsteuer), farbe: '#7d786f' }]
+                    { name: 'Hausgeld', wert: -Math.abs(s.hausgeld), farbe: F.BLAU }]
     if (aufgeteilt) {
       schritte.push({ name: 'Zins', wert: -Math.abs(s.zins), farbe: F.TERRA })
       schritte.push({ name: 'vor Tilgung', summe: true, farbe: '#8d867a',

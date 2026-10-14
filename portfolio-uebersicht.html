@@ -707,15 +707,27 @@
       { key: 'bankrate',     label: 'Darlehen',          type: 'calc' },
       { key: 'zins',         label: 'Zins',              type: 'input', sub: true },
       { key: 'tilgung',      label: 'Tilgung',           type: 'input', sub: true },
-      { key: 'bankrate2',    label: 'Darlehen 2',        type: 'calc' },
-      { key: 'zins2',        label: 'Zins',              type: 'input', sub: true },
-      { key: 'tilgung2',     label: 'Tilgung',           type: 'input', sub: true },
-      { key: 'grundsteuer',  label: 'Grundsteuer',       type: 'input' },
+      { key: '_darlehen',    type: 'platzhalter' },
       { key: 'cf',           label: 'CF Wohnung',        type: 'calc',  strong: true, sep: true },
+      { key: 'grundsteuer',  label: 'Grundsteuer',       type: 'input' },
       { key: 'weitereAusgaben',       label: 'Weitere Ausgaben',      type: 'input' },
       { key: 'nebenkostenabrechnung', label: 'Nebenkostenabrechnung', type: 'input' },
       { key: 'guthaben',     label: 'Guthaben',          type: 'calc',  total: true, sep: true },
     ]
+
+    // Bis zu fünf Darlehen je Immobilie – dieselben Zeilen wie in der Immobilie
+    const DMAX = (window.IECalc && window.IECalc.DARLEHEN_MAX) || 5
+    const dK = (b, n) => (window.IECalc ? window.IECalc.dKey(b, n) : (n === 1 ? b : b + n))
+    ;(() => {
+      const i = LIQ_ROWS.findIndex(r => r.key === '_darlehen')
+      const extra = []
+      for (let n = 2; n <= DMAX; n++) {
+        extra.push({ key: dK('bankrate', n), label: 'Darlehen ' + n, type: 'calc', dn: n })
+        extra.push({ key: dK('zins', n),    label: 'Zins',    type: 'input', sub: true, dn: n })
+        extra.push({ key: dK('tilgung', n), label: 'Tilgung', type: 'input', sub: true, dn: n })
+      }
+      LIQ_ROWS.splice(i, 1, ...extra)
+    })()
 
     let currentUserId = null
     let properties = []
@@ -776,9 +788,12 @@
       const ov  = k => { const v = ovs[k]?.[nowM]; return (v === undefined || v === null || v === '') ? null : Number(v) }
       const kaufpreis = Math.abs(sum('kaufpreis')) || p.kaufpreis || 0
       const miete    = ov('miete') ?? c('nkm') + c('nk')
-      const bankrate = (ov('bankrate') ?? c('zins') + c('tilgung'))
-                     + (ov('bankrate2') ?? c('zins2') + c('tilgung2'))
-      const cf  = ov('cf') ?? miete + c('weitereMiete') + c('grundsteuer') + c('hausgeld') + bankrate
+      let bankrate = 0
+      for (let n = 1; n <= DMAX; n++) {
+        bankrate += ov(dK('bankrate', n)) ?? c(dK('zins', n)) + c(dK('tilgung', n))
+      }
+      // CF Wohnung ohne Grundsteuer – die steht unterhalb davon
+      const cf  = ov('cf') ?? miete + c('weitereMiete') + c('hausgeld') + bankrate
       const liq = Math.abs(c('hausgeld') + bankrate)
       return { kaufpreis, nkm: c('nkm') || p.kaltmiete || 0, cf, liq,
                hausgeld: c('hausgeld'), bankrate, grundsteuer: c('grundsteuer'), miete }
@@ -938,14 +953,21 @@
       months.forEach(m => {
         LIQ_ROWS.forEach(r => { if (r.type === 'input') out[r.key][m] = inp(r.key, m) })
         const miete    = ov('miete', m) ?? out.nkm[m] + out.nk[m]
-        const bankrate  = ov('bankrate', m)  ?? out.zins[m] + out.tilgung[m]
-        const bankrate2 = ov('bankrate2', m) ?? out.zins2[m] + out.tilgung2[m]
-        const cf = ov('cf', m) ?? miete + out.weitereMiete[m] + out.grundsteuer[m]
-                                  + out.hausgeld[m] + bankrate + bankrate2
+        const bankrate = ov('bankrate', m) ?? out.zins[m] + out.tilgung[m]
+        out.miete[m] = miete; out.bankrate[m] = bankrate
+        let bankAlle = bankrate
+        for (let n = 2; n <= DMAX; n++) {
+          const k = dK('bankrate', n)
+          const r = ov(k, m) ?? out[dK('zins', n)][m] + out[dK('tilgung', n)][m]
+          out[k][m] = r
+          bankAlle += r
+        }
+        // CF Wohnung ohne Grundsteuer – die zählt erst beim Guthaben mit
+        const cf = ov('cf', m) ?? miete + out.weitereMiete[m] + out.hausgeld[m] + bankAlle
         guthaben = ov('guthaben', m) ?? guthaben + out.einzahlungEk[m] + out.einzahlungFk[m]
-                                        + out.kaufpreis[m] + out.ausgabe[m] + out.weitereAusgaben[m]
+                                        + out.kaufpreis[m] + out.ausgabe[m] + out.grundsteuer[m]
+                                        + out.weitereAusgaben[m]
                                         + out.nebenkostenabrechnung[m] + cf
-        out.miete[m] = miete; out.bankrate[m] = bankrate; out.bankrate2[m] = bankrate2
         out.cf[m] = cf; out.guthaben[m] = guthaben
       })
       return { months, out }
@@ -1010,15 +1032,23 @@
       { key: 'bankrate',     label: 'Darlehen',                   type: 'calc',  toggle: 'bankrate' },
       { key: 'zins',         label: 'Zins',                       type: 'input', sub: true, group: 'bankrate' },
       { key: 'tilgung',      label: 'Tilgung',                    type: 'input', sub: true, group: 'bankrate' },
-      { key: 'bankrate2',    label: 'Darlehen 2',                 type: 'calc',  toggle: 'bankrate2', d2: true },
-      { key: 'zins2',        label: 'Zins',                       type: 'input', sub: true, group: 'bankrate2', d2: true },
-      { key: 'tilgung2',     label: 'Tilgung',                    type: 'input', sub: true, group: 'bankrate2', d2: true },
-      { key: 'grundsteuer',  label: 'Grundsteuer',                type: 'input' },
+      { key: '_darlehen',    type: 'platzhalter' },
       { key: 'cf',           label: 'CF Wohnung',                 type: 'calc',  strong: true, sep: true },
-      { key: 'weitereAusgaben',       label: 'Weitere Ausgaben',      type: 'input', gap: true },
+      { key: 'grundsteuer',  label: 'Grundsteuer',                type: 'input', gap: true },
+      { key: 'weitereAusgaben',       label: 'Weitere Ausgaben',      type: 'input' },
       { key: 'nebenkostenabrechnung', label: 'Nebenkostenabrechnung', type: 'input' },
       { key: 'guthaben',     label: 'Guthaben',                   type: 'calc',  total: true, sep: true, gap: true },
     ]
+    ;(() => {
+      const i = LIQ_ANZEIGE.findIndex(r => r.key === '_darlehen')
+      const extra = []
+      for (let n = 2; n <= DMAX; n++) {
+        extra.push({ key: dK('bankrate', n), label: 'Darlehen ' + n, type: 'calc', toggle: dK('bankrate', n), dn: n })
+        extra.push({ key: dK('zins', n),    label: 'Zins',    type: 'input', sub: true, group: dK('bankrate', n), dn: n })
+        extra.push({ key: dK('tilgung', n), label: 'Tilgung', type: 'input', sub: true, group: dK('bankrate', n), dn: n })
+      }
+      LIQ_ANZEIGE.splice(i, 1, ...extra)
+    })()
     let liqOffeneGruppen = (() => {
       try { return new Set(JSON.parse(localStorage.getItem('ie_liq_groups') || '[]')) } catch (e) { return new Set() }
     })()
@@ -1153,9 +1183,10 @@
 
       const spacer = `<tr class="liq-spacer"><td class="liq-label"></td>${months.map(() => '<td></td>').join('')}</tr>`
       // Zeilen des zweiten Darlehens nur, wenn mindestens eine Immobilie eines hat
-      const hatD2 = properties.some(p => p.liquiditaet && (p.liquiditaet.darlehen2 ||
-        ['zins2', 'tilgung2'].some(k => Object.values((p.liquiditaet.cells || {})[k] || {}).some(v => Number(v)))))
-      const rows = LIQ_ANZEIGE.filter(r => (!r.d2 || hatD2) && (!r.group || liqOffeneGruppen.has(r.group))).map(r => {
+      // Wie viele Darlehen hat die Immobilie mit den meisten?
+      const maxD = properties.reduce((n, p) => Math.max(n,
+        window.IECalc ? window.IECalc.darlehenAnzahl(p) : 1), 1)
+      const rows = LIQ_ANZEIGE.filter(r => (!r.dn || r.dn <= maxD) && (!r.group || liqOffeneGruppen.has(r.group))).map(r => {
         const cls = ['liq-row-' + r.type,
           r.sub ? 'liq-row-sub' : '', r.sep ? 'liq-sep' : '',
           r.strong ? 'liq-row-strong' : '', r.total ? 'liq-row-total' : ''].filter(Boolean).join(' ')
@@ -1376,8 +1407,7 @@
       miete: 'Miete (gesamte Buchung)', nkm: 'Nettokaltmiete', nk: 'Nebenkostenvorauszahlungen',
       weitereMiete: 'Weitere Miete',
       grundsteuer: 'Grundsteuer', hausgeld: 'Hausgeld', bankrate: 'Darlehen (gesamte Rate)',
-      zins: 'Zins', tilgung: 'Tilgung', bankrate2: 'Darlehen 2 (gesamte Rate)',
-      zins2: 'Zins (Darlehen 2)', tilgung2: 'Tilgung (Darlehen 2)',
+      zins: 'Zins', tilgung: 'Tilgung',
       nebenkostenabrechnung: 'Nebenkostenabrechnung',
       weitereAusgaben: 'Weitere Ausgaben', einzahlungEk: 'Einzahlung Eigenkapital',
       einzahlungFk: 'Valutierung Fremdkapital', kaufpreis: 'Zahlung Kaufpreis',
@@ -1393,7 +1423,12 @@
     const SUMMEN_ROWS = {
       miete:     ['nkm', 'nk'],
       bankrate:  ['zins', 'tilgung'],
-      bankrate2: ['zins2', 'tilgung2'],
+    }
+    for (let n = 2; n <= DMAX; n++) {
+      ROW_LABELS[dK('bankrate', n)] = 'Darlehen ' + n + ' (gesamte Rate)'
+      ROW_LABELS[dK('zins', n)]     = 'Zins (Darlehen ' + n + ')'
+      ROW_LABELS[dK('tilgung', n)]  = 'Tilgung (Darlehen ' + n + ')'
+      SUMMEN_ROWS[dK('bankrate', n)] = [dK('zins', n), dK('tilgung', n)]
     }
 
     let bkBuchungen = []
@@ -2161,8 +2196,9 @@
     const BS_ARTEN = [
       { key: 'miete',    label: 'Miete',    zeilen: ['miete', 'nkm', 'nk', 'weitereMiete'], summen: ['miete'] },
       { key: 'hausgeld', label: 'Hausgeld', zeilen: ['hausgeld'], summen: [] },
-      { key: 'bank',     label: 'Darlehen', zeilen: ['bankrate', 'zins', 'tilgung', 'bankrate2', 'zins2', 'tilgung2'],
-        summen: ['bankrate', 'bankrate2'] },
+      { key: 'bank',     label: 'Darlehen',
+        zeilen: Array.from({ length: DMAX }, (_, i) => [dK('bankrate', i + 1), dK('zins', i + 1), dK('tilgung', i + 1)]).flat(),
+        summen: Array.from({ length: DMAX }, (_, i) => dK('bankrate', i + 1)) },
     ]
     let bsMonat = null
     const bsTimer = {}
@@ -2194,7 +2230,8 @@
       // Miete = Nettokaltmiete + Nebenkostenvorauszahlung,
       // Darlehen = Zins + Tilgung.
       const bb = (lq.bankBuchungen || {})[monat] || {}
-      const soll = { miete: t.miete, bankrate: t.bankrate1, bankrate2: t.bankrate2 }
+      const soll = { miete: t.miete }
+      ;(t.bankrateN || [t.bankrate1]).forEach((r, i) => { soll[dK('bankrate', i + 1)] = r })
       let abw = null
       ;(art.summen || []).forEach(k => {
         const g = bb[k]

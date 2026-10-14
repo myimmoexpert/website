@@ -239,6 +239,14 @@
     .liq-table td:not(.liq-label) { position: relative; }
     /* Notizmarke unten rechts – oben rechts sitzt jetzt der Buchungshaken */
     .liq-table td.has-note::after { content: ''; position: absolute; bottom: 0; right: 0; border-bottom: 7px solid var(--gold); border-left: 7px solid transparent; pointer-events: none; }
+    /* Kommentar erscheint sofort beim Überfahren der Zelle */
+    .liq-note-float {
+      position: fixed; z-index: 700; max-width: 280px; display: none;
+      background: #202024; border: 1px solid rgba(211,172,95,0.45); border-radius: 10px;
+      padding: 9px 12px; font-size: 0.8rem; line-height: 1.45; color: var(--white);
+      box-shadow: 0 14px 36px rgba(0,0,0,0.55); white-space: pre-wrap; pointer-events: none;
+    }
+    .liq-note-float.an { display: block; }
     .liq-modal { position: fixed; inset: 0; background: rgba(255,255,255,0.4); display: none; align-items: center; justify-content: center; z-index: 400; }
     .liq-modal.open { display: flex; }
     .liq-modal-box { background: var(--navy2); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius); padding: 30px; width: min(460px, 92vw); text-align: center; }
@@ -791,9 +799,19 @@
             <input type="radio" name="wertModus" value="steigerung" />
             <span>
               <span class="t">Kaufpreis mit Wertsteigerung</span>
-              <span class="d">Der Kaufpreis wächst ab der Übernahme jährlich um den angegebenen Satz.</span>
+              <span class="d">Der Kaufpreis wächst ab dem Übernahmestichtag jährlich um den angegebenen Satz.</span>
               <span class="wert-in">
                 <input type="text" id="wertProzent" inputmode="decimal" placeholder="2,0" /> % pro Jahr
+              </span>
+            </span>
+          </label>
+          <label class="wert-opt" data-modus="faktor">
+            <input type="radio" name="wertModus" value="faktor" />
+            <span>
+              <span class="t">Faktor auf die aktuelle Miete</span>
+              <span class="d">Das X-fache der aktuellen Jahresnettokaltmiete. Voreingestellt ist der Faktor beim Kauf.</span>
+              <span class="wert-in">
+                <input type="text" id="wertFaktor" inputmode="decimal" placeholder="25,0" /> × Jahresnettokaltmiete
               </span>
             </span>
           </label>
@@ -916,7 +934,8 @@
       <div class="liq-controls">
         <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Alle Werte in € · Zelle leeren = zurück zur Formel · Doppelklick = Notiz</span></span>
         <button class="liq-btn" onclick="liqOpenImport()">⤒ Tilgungsplan importieren</button>
-        <button class="liq-btn" id="liqD2Btn" onclick="liqDarlehen2Umschalten()">+ Zweites Darlehen</button>
+        <button class="liq-btn" id="liqD2Btn" onclick="liqDarlehenHinzufuegen()">+ Weiteres Darlehen</button>
+        <button class="liq-btn" id="liqD2Weg" onclick="liqDarlehenEntfernen()" hidden>− Darlehen entfernen</button>
         <input type="file" id="liqPdfInput" accept="application/pdf" style="display:none" onchange="liqImportPdf(this.files[0])" />
         <div class="save-indicator" id="siLiq" style="margin-left:auto;"></div>
         <button class="liq-btn" onclick="liqExportExcel()" id="liqXlsBtn">⤓ Als Excel herunterladen</button>
@@ -1753,24 +1772,37 @@
       { key: 'bankrate',     label: 'Darlehen',          type: 'calc',  toggle: 'bankrate' },
       { key: 'zins',         label: 'Zins',              type: 'input', sub: true, group: 'bankrate' },
       { key: 'tilgung',      label: 'Tilgung',           type: 'input', sub: true, group: 'bankrate' },
-      // Zweites Darlehen – nur sichtbar, wenn für diese Immobilie angelegt
-      { key: 'bankrate2',    label: 'Darlehen 2',        type: 'calc',  toggle: 'bankrate2', d2: true },
-      { key: 'zins2',        label: 'Zins',              type: 'input', sub: true, group: 'bankrate2', d2: true },
-      { key: 'tilgung2',     label: 'Tilgung',           type: 'input', sub: true, group: 'bankrate2', d2: true },
-      { key: 'grundsteuer',  label: 'Grundsteuer',       type: 'input' },
+      // Weitere Darlehen (2 bis 5) werden unten eingefügt
+      { key: '_darlehen',    type: 'platzhalter' },
       { key: 'cf',           label: 'CF Wohnung',        type: 'calc',  strong: true, sep: true },
 
       // Unregelmäßiges, das erst nach dem laufenden Cashflow wirkt
-      { key: 'weitereAusgaben',       label: 'Weitere Ausgaben',      type: 'input', gap: true },
+      { key: 'grundsteuer',           label: 'Grundsteuer',           type: 'input', gap: true },
+      { key: 'weitereAusgaben',       label: 'Weitere Ausgaben',      type: 'input' },
       { key: 'nebenkostenabrechnung', label: 'Nebenkostenabrechnung', type: 'input' },
 
       { key: 'guthaben',     label: 'Guthaben',          type: 'calc',  total: true, sep: true, gap: true },
     ]
 
+    // Darlehen 2 bis 5 an der Stelle des Platzhalters einsetzen
+    const DMAX = (window.IECalc && window.IECalc.DARLEHEN_MAX) || 5
+    const dK = (b, n) => (window.IECalc ? window.IECalc.dKey(b, n) : (n === 1 ? b : b + n))
+    ;(() => {
+      const i = LIQ_ROWS.findIndex(r => r.key === '_darlehen')
+      const extra = []
+      for (let n = 2; n <= DMAX; n++) {
+        extra.push({ key: dK('bankrate', n), label: 'Darlehen ' + n, type: 'calc', toggle: dK('bankrate', n), dn: n })
+        extra.push({ key: dK('zins', n),    label: 'Zins',    type: 'input', sub: true, group: dK('bankrate', n), dn: n })
+        extra.push({ key: dK('tilgung', n), label: 'Tilgung', type: 'input', sub: true, group: dK('bankrate', n), dn: n })
+      }
+      LIQ_ROWS.splice(i, 1, ...extra)
+    })()
+
     // Zeilen, für die der Abgleich mit den Kontoumsätzen gilt
     const LIQ_TRACK_ROWS = ['nkm', 'nk', 'weitereMiete', 'hausgeld', 'bankrate',
-                            'zins', 'tilgung', 'zins2', 'tilgung2', 'grundsteuer',
+                            'zins', 'tilgung', 'grundsteuer',
                             'weitereAusgaben', 'nebenkostenabrechnung']
+      .concat(Array.from({ length: DMAX - 1 }, (_, i) => [dK('zins', i + 2), dK('tilgung', i + 2)]).flat())
 
     // Zeilen, deren Wert auf dem Bankkonto als EINE Buchung erscheint, in der
     // Tabelle aber aus mehreren Zeilen besteht. Für sie wird die Buchung mit
@@ -1778,7 +1810,9 @@
     const LIQ_SUMMEN = {
       miete:     { label: 'Miete',      teile: ['nkm', 'nk'] },
       bankrate:  { label: 'Darlehen',   teile: ['zins', 'tilgung'] },
-      bankrate2: { label: 'Darlehen 2', teile: ['zins2', 'tilgung2'] },
+    }
+    for (let n = 2; n <= DMAX; n++) {
+      LIQ_SUMMEN[dK('bankrate', n)] = { label: 'Darlehen ' + n, teile: [dK('zins', n), dK('tilgung', n)] }
     }
 
     // Aufgeklappte Detailgruppen (Miete, Bankrate) – Einstellung bleibt im Browser
@@ -1794,34 +1828,64 @@
       liqRender()
     }
 
-    // Zeilen, die gerade sichtbar sind (für Rendering und Tastaturnavigation)
-    function liqVisibleRows() {
-      const d2 = !!(liqData && liqData.darlehen2)
-      return LIQ_ROWS.filter(r => (!r.d2 || d2) && (!r.group || liqOpenGroups.has(r.group)))
+    // Wie viele Darlehen hat diese Immobilie? Mindestens eins, höchstens fünf.
+    function liqDarlehenAnzahl() {
+      if (!liqData) return 1
+      let n = Number(liqData.darlehen) || 0
+      if (!n && liqData.darlehen2) n = 2      // alter Stand mit genau zwei Darlehen
+      return Math.min(DMAX, Math.max(1, n || 1))
     }
 
-    // Zweites Darlehen an- oder abmelden
-    function liqDarlehen2Umschalten() {
+    // Zeilen, die gerade sichtbar sind (für Rendering und Tastaturnavigation)
+    function liqVisibleRows() {
+      const anz = liqDarlehenAnzahl()
+      return LIQ_ROWS.filter(r => (!r.dn || r.dn <= anz) && (!r.group || liqOpenGroups.has(r.group)))
+    }
+
+    // Ein weiteres Darlehen anlegen
+    function liqDarlehenHinzufuegen() {
       if (!liqData) return
-      if (liqData.darlehen2) {
-        const belegt = ['zins2', 'tilgung2'].some(k =>
-          Object.values(liqData.cells[k] || {}).some(v => Number(v)))
-        if (belegt && !confirm('Das zweite Darlehen enthält Werte. Wirklich entfernen? Die Beträge werden gelöscht.')) return
-        delete liqData.cells.zins2; delete liqData.cells.tilgung2
-        if (liqData.overrides) delete liqData.overrides.bankrate2
-        liqData.darlehen2 = false
-      } else {
-        liqData.darlehen2 = true
-        liqOpenGroups.add('bankrate2')
-        try { localStorage.setItem('ie_liq_groups', JSON.stringify([...liqOpenGroups])) } catch (e) {}
-      }
+      const anz = liqDarlehenAnzahl()
+      if (anz >= DMAX) return
+      const neu = anz + 1
+      liqData.darlehen = neu
+      liqData.darlehen2 = neu >= 2            // Altfeld mitführen
+      liqOpenGroups.add(dK('bankrate', neu))
+      try { localStorage.setItem('ie_liq_groups', JSON.stringify([...liqOpenGroups])) } catch (e) {}
       liqRender()
       scheduleSave('l')
       liqD2BtnText()
     }
+
+    // Das zuletzt angelegte Darlehen wieder entfernen
+    function liqDarlehenEntfernen() {
+      if (!liqData) return
+      const anz = liqDarlehenAnzahl()
+      if (anz <= 1) return
+      const belegt = [dK('zins', anz), dK('tilgung', anz)].some(k =>
+        Object.values((liqData.cells || {})[k] || {}).some(v => Number(v)))
+      if (belegt && !confirm('Darlehen ' + anz + ' enthält Werte. Wirklich entfernen? Die Beträge werden gelöscht.')) return
+      delete liqData.cells[dK('zins', anz)]
+      delete liqData.cells[dK('tilgung', anz)]
+      if (liqData.overrides) delete liqData.overrides[dK('bankrate', anz)]
+      liqData.darlehen = anz - 1
+      liqData.darlehen2 = anz - 1 >= 2
+      liqRender()
+      scheduleSave('l')
+      liqD2BtnText()
+    }
+
     function liqD2BtnText() {
+      const anz = liqDarlehenAnzahl()
       const b = document.getElementById('liqD2Btn')
-      if (b) b.textContent = liqData && liqData.darlehen2 ? '− Zweites Darlehen entfernen' : '+ Zweites Darlehen'
+      if (b) {
+        b.textContent = '+ Weiteres Darlehen'
+        b.disabled = anz >= DMAX
+        b.title = anz >= DMAX ? 'Mehr als ' + DMAX + ' Darlehen sind nicht vorgesehen.' : ''
+      }
+      const w = document.getElementById('liqD2Weg')
+      if (w) w.hidden = anz <= 1
+      if (w) w.textContent = '− Darlehen ' + anz + ' entfernen'
     }
 
     let liqData = null
@@ -2093,13 +2157,23 @@
         LIQ_ROWS.forEach(r => { if (r.type === 'input') out[r.key][m] = inp(r.key, m) })
         const miete    = ov('miete', m)      ?? out.nkm[m] + out.nk[m]                       // Miete = NKM + NK
         const bankrate = ov('bankrate', m)   ?? out.zins[m] + out.tilgung[m]                 // Darlehen = Zins + Tilgung
-        const bankrate2 = ov('bankrate2', m) ?? out.zins2[m] + out.tilgung2[m]               // Darlehen 2
-        const cf       = ov('cf', m)         ?? miete + out.weitereMiete[m] + out.grundsteuer[m]
-                                               + out.hausgeld[m] + bankrate + bankrate2      // CF Wohnung
+        out.miete[m] = miete; out.bankrate[m] = bankrate
+        // Weitere Darlehen
+        let bankAlle = bankrate
+        for (let n = 2; n <= DMAX; n++) {
+          const k = dK('bankrate', n)
+          const r = ov(k, m) ?? out[dK('zins', n)][m] + out[dK('tilgung', n)][m]
+          out[k][m] = r
+          bankAlle += r
+        }
+        // CF Wohnung – ohne Grundsteuer, die steht unterhalb bei den
+        // unregelmäßigen Posten und geht erst ins Guthaben ein.
+        const cf       = ov('cf', m)         ?? miete + out.weitereMiete[m]
+                                               + out.hausgeld[m] + bankAlle
         guthaben       = ov('guthaben', m)   ?? guthaben + out.einzahlungEk[m] + out.einzahlungFk[m]
-                                               + out.kaufpreis[m] + out.ausgabe[m] + out.weitereAusgaben[m]
+                                               + out.kaufpreis[m] + out.ausgabe[m] + out.grundsteuer[m]
+                                               + out.weitereAusgaben[m]
                                                + out.nebenkostenabrechnung[m] + cf            // Guthaben kumuliert
-        out.miete[m] = miete; out.bankrate[m] = bankrate; out.bankrate2[m] = bankrate2
         out.cf[m] = cf; out.guthaben[m] = guthaben
       })
       return { months, out }
@@ -2358,6 +2432,52 @@
       scroll.scrollLeft = Math.max(0, th.offsetLeft - labelW - visible / 2 + th.offsetWidth / 2)
     }
 
+    // ── Kommentar beim Überfahren einer Zelle zeigen ──
+    // Der Text steht zwar auch im title, aber der Browser braucht dafür
+    // eine Sekunde. Hier erscheint er sofort.
+    let liqNoteEl = null
+    function liqNoteFloat() {
+      if (!liqNoteEl) {
+        liqNoteEl = document.createElement('div')
+        liqNoteEl.className = 'liq-note-float'
+        document.body.appendChild(liqNoteEl)
+      }
+      return liqNoteEl
+    }
+    function liqNoteZeigen(td) {
+      const cell = td.querySelector('.liq-cell')
+      const note = cell && liqData && liqData.notes?.[cell.dataset.row]?.[cell.dataset.month]
+      if (!note) return liqNoteVerbergen()
+      const el = liqNoteFloat()
+      el.textContent = note
+      el.classList.add('an')
+      const r = td.getBoundingClientRect()
+      const b = el.getBoundingClientRect()
+      let left = r.left + r.width / 2 - b.width / 2
+      left = Math.max(8, Math.min(left, window.innerWidth - b.width - 8))
+      let top = r.top - b.height - 8
+      if (top < 8) top = r.bottom + 8
+      el.style.left = left + 'px'
+      el.style.top = top + 'px'
+    }
+    function liqNoteVerbergen() {
+      if (liqNoteEl) liqNoteEl.classList.remove('an')
+    }
+    ;(function initLiqNoteHover() {
+      const scroll = document.getElementById('liqScroll')
+      if (!scroll) return
+      scroll.addEventListener('mouseover', e => {
+        const td = e.target.closest && e.target.closest('td.has-note')
+        if (td) liqNoteZeigen(td)
+      })
+      scroll.addEventListener('mouseout', e => {
+        const td = e.target.closest && e.target.closest('td.has-note')
+        if (td && !td.contains(e.relatedTarget)) liqNoteVerbergen()
+      })
+      scroll.addEventListener('scroll', liqNoteVerbergen, { passive: true })
+      window.addEventListener('scroll', liqNoteVerbergen, { passive: true })
+    })()
+
     // ── Pfeiltasten-Navigation zwischen Zellen ──
     function liqKeyNav(e, cell) {
       if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter'].includes(e.key)) return
@@ -2606,9 +2726,10 @@
         cell.classList.toggle('pos', val > 0.004)
         // Grün = mit einer echten Buchung abgeglichen oder nachweislich ohne Bewegung.
         // Warndreieck = geplanter Wert, der seit zwei Monaten unbestätigt ist.
+        const abgeleitet = liqSummeGebucht(row, month, rec, out)
         const marke = liqMarke(row, month)
-        const stand = marke === 'ok' ? 'ok' : liqStand(row, month, val, rec)
-        const gebucht = marke === 'ok' || !!(rec && rec.ic[row + '|' + month])
+        const stand = (marke === 'ok' || abgeleitet) ? 'ok' : liqStand(row, month, val, rec)
+        const gebucht = marke === 'ok' || abgeleitet || !!(rec && rec.ic[row + '|' + month])
         const abw = marke === 'x' ? null : liqAbweichung(row, month, val, rec)
         const td = cell.parentElement
         // Eine echte Buchung bestätigt die Zelle immer – auch in Zeilen,
@@ -2638,6 +2759,20 @@
       })
       liqRollupGroups(rec)
       updateFinanzWerte()
+    }
+
+    // Eine Summenzeile gilt als gebucht, sobald ihre Teilzeilen gebucht sind:
+    // sind Nettokaltmiete und Nebenkostenvorauszahlung bestätigt, ist auch
+    // „Miete" bestätigt – genauso „Darlehen" aus Zins und Tilgung.
+    // Teilzeilen ohne Betrag bleiben dabei außen vor.
+    function liqZelleGebucht(row, month, rec) {
+      return liqMarke(row, month) === 'ok' || !!(rec && rec.ic[row + '|' + month])
+    }
+    function liqSummeGebucht(row, month, rec, out) {
+      const s = LIQ_SUMMEN[row]
+      if (!s) return false
+      const teile = s.teile.filter(k => Math.abs(out?.[k]?.[month] ?? 0) > 0.004)
+      return teile.length > 0 && teile.every(k => liqZelleGebucht(k, month, rec))
     }
 
     // Eine Buchung vom Bankkonto gegen die Summe der Einzelzeilen halten.
@@ -2689,9 +2824,13 @@
             return
           }
           const staende = kinder.map(k => liqStand(k.key, m, out[k.key]?.[m] ?? 0, rec))
-          // Summenzeile (z. B. Miete): gebucht, sobald eine Kindzeile gebucht ist;
-          // rotes ! , sobald eine gebuchte Kindzeile vom Plan abweicht.
-          const gebucht = kinder.some(k => rec.ic[k.key + '|' + m] || liqMarke(k.key, m) === 'ok')
+          // Summenzeile (z. B. Miete): gebucht, sobald ALLE Teilzeilen mit Betrag
+          // gebucht sind – also Nettokaltmiete und Nebenkostenvorauszahlung,
+          // bzw. Zins und Tilgung. Rotes ! , sobald eine gebuchte Kindzeile
+          // vom Plan abweicht.
+          const gebucht = LIQ_SUMMEN[parent.key]
+            ? liqSummeGebucht(parent.key, m, rec, out)
+            : kinder.every(k => rec.ic[k.key + '|' + m] || liqMarke(k.key, m) === 'ok')
           const abw = kinder.some(k => liqMarke(k.key, m) === 'x'
             || (liqMarke(k.key, m) !== 'ok' && liqAbweichung(k.key, m, out[k.key]?.[m] ?? 0, rec)))
           if (zu && staende.includes('warn') && !gebucht) {
@@ -2703,7 +2842,9 @@
             cell.title = 'Eine gebuchte Zeile weicht vom geplanten Wert ab – Gruppe aufklappen.'
           } else if (gebucht) {
             td.classList.add('liq-ok', 'liq-gebucht'); td.classList.remove('liq-warn')
-            cell.title = 'Mit einer Buchung aus dem Kontoauszug abgeglichen.'
+            cell.title = 'Gebucht, weil ' + (LIQ_SUMMEN[parent.key] || { teile: kinder.map(k => k.key) }).teile
+              .map(k => (LIQ_ROWS.find(r => r.key === k) || {}).label || k).join(' und ')
+              + ' gebucht sind.'
           } else if (zu && staende.length && staende.every(x => x === 'ok')) td.classList.add('liq-ok')
         })
       })
@@ -4009,7 +4150,7 @@
       const ekWert = Math.max(0, wert - fk)
       kpiEl.innerHTML =
         // Was die Immobilie heute wert ist und wie sie finanziert ist
-        kachel('Aktueller Wert', wert ? formatEur(wert) : '–', 'gold', 'Wert laut Einstellung im Kopfbereich – Kaufpreis, Kaufpreis mit Wertsteigerung oder eigener Wert.') +
+        kachel('Aktueller Wert', wert ? formatEur(wert) : '–', 'gold', 'Wert laut Einstellung im Kopfbereich – Kaufpreis, Kaufpreis mit Wertsteigerung, Faktor auf die aktuelle Miete oder eigener Wert.') +
         kachel('Fremdkapital', formatEur(fk), '', 'Restschuld heute: valutiertes Darlehen abzüglich geleisteter Tilgung.') +
         kachel('Eigenkapitalwert', formatEur(ekWert), 'green', 'Aktueller Wert abzüglich Fremdkapital.') +
         kachel('Finanzierungsquote', wert > 0 ? pctF(fk / wert * 100) : '–', '', 'Restschuld ÷ aktueller Wert') +
@@ -4022,7 +4163,7 @@
         kachel('Eigenkapital investiert', formatEur(ekEinzahlung), '',
                ekEinzahlung ? 'Summe der Zeile „Einzahlung Eigenkapital" aus der Liquiditätsplanung.'
                             : 'Noch keine Einzahlung Eigenkapital in der Liquiditätsplanung erfasst.') +
-        kachel('Mietrendite', kaufpreis > 0 && nkm ? pctF(nkm * 12 / kaufpreis * 100) : '–', 'gold', 'Jahreskaltmiete ÷ Kaufpreis')
+        kachel('Mietrendite bei Kauf', kaufpreis > 0 && nkm ? pctF(nkm * 12 / kaufpreis * 100) : '–', 'gold', 'Jahreskaltmiete ÷ Kaufpreis')
 
       const jahre = X.zehnJahre([p])
       const daten = X.jahresDaten([pw], jahre)
@@ -4059,9 +4200,14 @@
     // ════════════════════════════════════════
     function wertEinstellungLesen() {
       const e = (propData && propData.einstellungen) || {}
+      // Ohne eigene Angabe gilt der Faktor, zu dem gekauft wurde
+      const kf = window.IECalc && propData ? window.IECalc.kaufFaktor(propFuerCalc()) : 0
       return {
         modus: e.wertModus || 'kaufpreis',
         prozent: e.wertSteigerungPa != null ? e.wertSteigerungPa : 2,
+        faktor: e.wertFaktor != null && Number(e.wertFaktor) > 0
+          ? Number(e.wertFaktor)
+          : (kf > 0 ? Math.round(kf * 10) / 10 : null),
         eigen: e.wertEigen != null ? e.wertEigen : (propData && propData.wert) || null,
       }
     }
@@ -4076,19 +4222,23 @@
       })
       const pz = document.getElementById('wertProzent')
       const ei = document.getElementById('wertEigen')
+      const fa = document.getElementById('wertFaktor')
       if (pz) pz.value = e.prozent === null || e.prozent === undefined ? '' : zahlEin(e.prozent)
       if (ei) ei.value = e.eigen ? zahlEin(e.eigen) : ''
+      if (fa) fa.value = e.faktor ? zahlEin(e.faktor) : ''
     }
 
     async function wertSpeichern() {
       const modus = (document.querySelector('input[name="wertModus"]:checked') || {}).value || 'kaufpreis'
       const prozent = zahlAus((document.getElementById('wertProzent') || {}).value)
       const eigen   = zahlAus((document.getElementById('wertEigen') || {}).value)
+      const faktor  = zahlAus((document.getElementById('wertFaktor') || {}).value)
       const st = document.getElementById('wertStatus')
 
       const einstellungen = Object.assign({}, propData.einstellungen || {}, {
         wertModus: modus,
         wertSteigerungPa: prozent === null ? 2 : prozent,
+        wertFaktor: faktor,
         wertEigen: eigen,
       })
 
@@ -4132,7 +4282,7 @@
       })
       document.querySelectorAll('input[name="wertModus"]').forEach(r =>
         r.addEventListener('change', wertSpeichern))
-      ;['wertProzent', 'wertEigen'].forEach(idf => {
+      ;['wertProzent', 'wertEigen', 'wertFaktor'].forEach(idf => {
         const el = document.getElementById(idf)
         if (el) el.addEventListener('change', wertSpeichern)
       })

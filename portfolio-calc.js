@@ -81,18 +81,62 @@
     return d && /^\d{4}-\d{2}-\d{2}/.test(String(d)) ? String(d).slice(0, 10) : null
   }
 
+  // Ab wann gerechnet wird: der Übernahmestichtag, sobald er gepflegt ist.
+  // „kaufdatum" steht auf dem Vortag der Eintragung ins Tool und taugt
+  // deshalb nicht als Ausgangspunkt für die Wertsteigerung.
+  function wertBasis (p) {
+    var st = stichtag(p)
+    return st ? st.slice(0, 7) : uebernahme(p)
+  }
+
+  // Nettokaltmiete eines Monats (Übersteuerung hat Vorrang)
+  function nkmMonat (p, m) {
+    var v = (ovs(p).nkm || {})[m]
+    if (v !== undefined && v !== null && v !== '') return Math.abs(Number(v) || 0)
+    return Math.abs(Number((zellen(p).nkm || {})[m]) || 0)
+  }
+
+  // Zuletzt bekannte Nettokaltmiete bis einschließlich diesem Monat
+  function nkmBis (p, m) {
+    var c = zellen(p).nkm || {}, o = ovs(p).nkm || {}
+    var keys = []
+    Object.keys(c).concat(Object.keys(o)).forEach(function (k) {
+      if (/^\d{4}-\d{2}$/.test(k) && keys.indexOf(k) === -1) keys.push(k)
+    })
+    keys.sort()
+    var letzte = 0, erste = 0
+    keys.forEach(function (k) {
+      var v = nkmMonat(p, k)
+      if (v <= 0.004) return
+      if (!erste) erste = v
+      if (!m || k <= m) letzte = v
+    })
+    return letzte || erste
+  }
+
+  // Faktor, zu dem gekauft wurde: Kaufpreis ÷ Jahresnettokaltmiete zum
+  // Übernahmestichtag – nicht zu der Miete, die heute gilt.
+  function kaufFaktor (p) {
+    var kp = kaufpreis(p)
+    var nkm = nkmBis(p, wertBasis(p))
+    return (kp > 0 && nkm > 0) ? kp / (nkm * 12) : 0
+  }
+
   // Wie der aktuelle Wert einer Immobilie bestimmt wird, legt die
   // Immobilie selbst fest (Zahnrad an der Kachel „Aktueller Wert"):
   //   kaufpreis   – der gezahlte Kaufpreis
-  //   steigerung  – Kaufpreis plus X % pro Jahr ab Übernahme
+  //   steigerung  – Kaufpreis plus X % pro Jahr ab Übernahmestichtag
+  //   faktor      – X-fache der aktuellen Jahresnettokaltmiete
   //   eigen       – ein von Hand eingetragener Wert
   function wertEinstellung (p) {
     var e = (p && p.einstellungen) || {}
     var modus = e.wertModus || 'kaufpreis'
     var proz  = Number(e.wertSteigerungPa)
+    var fak   = Number(e.wertFaktor)
     return {
       modus: modus,
       steigerung: isNaN(proz) ? 0 : proz,
+      faktor: isNaN(fak) || fak <= 0 ? 0 : fak,
       eigen: Number(e.wertEigen != null ? e.wertEigen : p && p.wert) || 0,
     }
   }
@@ -105,10 +149,20 @@
     if (e.modus === 'eigen') return e.eigen
 
     var kp = kaufpreis(p)
-    if (!kp) return e.modus === 'eigen' ? e.eigen : 0
+
+    if (e.modus === 'faktor') {
+      var f = e.faktor || kaufFaktor(p)
+      var miete = nkmBis(p, m || jetztMonat())
+      if (f > 0 && miete > 0) return miete * 12 * f
+      return kp
+    }
+
+    if (!kp) return 0
     if (e.modus === 'steigerung' && e.steigerung) {
       var faktorM = Math.pow(1 + e.steigerung / 100, 1 / 12)
-      return kp * Math.pow(faktorM, monatDiff(m || jetztMonat(), u))
+      // Vor dem Stichtag wird nicht rückwärts abgezinst
+      var monate = Math.max(0, monatDiff(m || jetztMonat(), wertBasis(p)))
+      return kp * Math.pow(faktorM, monate)
     }
     return kp
   }
@@ -116,38 +170,75 @@
   // Wert zum heutigen Tag – für Kacheln und den Portfoliowert
   function aktuellerWert (p) { return wert(p, jetztMonat()) }
 
+  /* ── Darlehen ────────────────────────────────────────────
+     Je Immobilie sind bis zu fünf Darlehen möglich. Das erste
+     heißt wie bisher „zins"/„tilgung"/„bankrate", die weiteren
+     bekommen die Nummer angehängt: „zins2", „tilgung3" … */
+  var DARLEHEN_MAX = 5
+  function dKey (basis, n) { return n === 1 ? basis : basis + n }
+
+  // Wie viele Darlehen hat diese Immobilie? Mindestens eins.
+  function darlehenAnzahl (p) {
+    var lq = (p && p.liquiditaet) || p || {}
+    var n = Number(lq.darlehen) || 0
+    if (!n && lq.darlehen2) n = 2          // alter Stand mit genau zwei Darlehen
+    if (!n) {
+      // Sicherheitsnetz: steht in einer höheren Zeile ein Wert, zählt sie mit
+      for (var i = DARLEHEN_MAX; i >= 2; i--) {
+        var c = (lq.cells || {})
+        if ((c[dKey('zins', i)] && Object.keys(c[dKey('zins', i)]).length) ||
+            (c[dKey('tilgung', i)] && Object.keys(c[dKey('tilgung', i)]).length)) { n = i; break }
+      }
+    }
+    return Math.min(DARLEHEN_MAX, Math.max(1, n || 1))
+  }
+
   // Restschuld: valutiertes Fremdkapital abzüglich geleisteter Tilgung
   function restschuld (p, m) {
     var u = uebernahme(p)
     if (m < u) return 0
     var fk = Math.abs(summeBis(p, 'einzahlungFk', m))
-    var tg = Math.abs(summeBis(p, 'tilgung', m)) + Math.abs(summeBis(p, 'tilgung2', m))
+    var tg = 0
+    for (var n = 1; n <= DARLEHEN_MAX; n++) tg += Math.abs(summeBis(p, dKey('tilgung', n), m))
     return Math.max(0, fk - tg)
   }
 
   // Bestandteile des Cashflows in einem Monat
+  // Die Grundsteuer gehört nicht zum CF Wohnung – sie steht in der
+  // Tabelle unterhalb davon bei den unregelmäßigen Posten.
   function cfTeile (p, m) {
     var u = uebernahme(p)
     if (m < u) return { miete: 0, weitereMiete: 0, hausgeld: 0, bankrate: 0, zins: 0, tilgung: 0,
                         bankrate1: 0, bankrate2: 0, zins2: 0, tilgung2: 0,
+                        bankrateN: [], zinsAlle: 0, tilgungAlle: 0,
                         bankrateFix: false, grundsteuer: 0, cf: 0, imBestand: false }
     var miete    = ov1(p, 'miete', m)    !== null ? ov1(p, 'miete', m)    : wert1(p, 'nkm', m) + wert1(p, 'nk', m)
     var bankrateFix = ov1(p, 'bankrate', m) !== null
     var zins = wert1(p, 'zins', m), tilgung = wert1(p, 'tilgung', m)
     var bankrate1 = bankrateFix ? ov1(p, 'bankrate', m) : zins + tilgung
-    // Zweites Darlehen (optional je Immobilie)
-    var zins2 = wert1(p, 'zins2', m), tilgung2 = wert1(p, 'tilgung2', m)
-    var b2ov = ov1(p, 'bankrate2', m)
-    var bankrate2 = b2ov !== null ? b2ov : zins2 + tilgung2
-    var bankrate = bankrate1 + bankrate2
+
+    // Weitere Darlehen (optional je Immobilie)
+    var bankrateN = [bankrate1], zinsAlle = zins, tilgungAlle = tilgung
+    var bankrate = bankrate1
+    for (var n = 2; n <= DARLEHEN_MAX; n++) {
+      var zN = wert1(p, dKey('zins', n), m), tN = wert1(p, dKey('tilgung', n), m)
+      var ovN = ov1(p, dKey('bankrate', n), m)
+      var rate = ovN !== null ? ovN : zN + tN
+      bankrateN.push(rate)
+      zinsAlle += zN; tilgungAlle += tN; bankrate += rate
+    }
+
     var weitereMiete = wert1(p, 'weitereMiete', m)
     var hausgeld     = wert1(p, 'hausgeld', m)
     var grundsteuer  = wert1(p, 'grundsteuer', m)
     var cfOv = ov1(p, 'cf', m)
-    var cf = cfOv !== null ? cfOv : miete + weitereMiete + grundsteuer + hausgeld + bankrate
+    var cf = cfOv !== null ? cfOv : miete + weitereMiete + hausgeld + bankrate
     return { miete: miete, weitereMiete: weitereMiete, hausgeld: hausgeld,
-             bankrate: bankrate, bankrate1: bankrate1, bankrate2: bankrate2,
-             zins: zins, tilgung: tilgung, zins2: zins2, tilgung2: tilgung2,
+             bankrate: bankrate, bankrate1: bankrate1, bankrate2: bankrateN[1] || 0,
+             bankrateN: bankrateN,
+             zins: zins, tilgung: tilgung,
+             zins2: wert1(p, 'zins2', m), tilgung2: wert1(p, 'tilgung2', m),
+             zinsAlle: zinsAlle, tilgungAlle: tilgungAlle,
              bankrateFix: bankrateFix,
              grundsteuer: grundsteuer, cf: cf, imBestand: true }
   }
@@ -172,8 +263,10 @@
 
   window.IECalc = {
     WACHSTUM_PA: WACHSTUM_PA,
+    DARLEHEN_MAX: DARLEHEN_MAX, dKey: dKey, darlehenAnzahl: darlehenAnzahl,
     jetztMonat: jetztMonat, monatPlus: monatPlus, monatDiff: monatDiff, fenster: fenster,
-    kaufpreis: kaufpreis, uebernahme: uebernahme, stichtag: stichtag,
+    kaufpreis: kaufpreis, uebernahme: uebernahme, stichtag: stichtag, wertBasis: wertBasis,
+    nkmBis: nkmBis, kaufFaktor: kaufFaktor,
     wert: wert, aktuellerWert: aktuellerWert, wertEinstellung: wertEinstellung, restschuld: restschuld, cfTeile: cfTeile, reihe: reihe,
     summeAlle: summeAlle, summeBis: summeBis,
   }

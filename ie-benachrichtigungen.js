@@ -155,10 +155,17 @@
     }
     if (art === 'weitereMiete') return zeileGebucht(lq, 'weitereMiete', monat)
     if (art === 'hausgeld') return hand.hausgeld === true || zeileGebucht(lq, 'hausgeld', monat)
-    // Darlehen (beide Darlehen zusammen)
-    return hand.bank === true || bb.bankrate !== undefined || bb.bankrate2 !== undefined ||
-      ['bankrate', 'zins', 'tilgung', 'bankrate2', 'zins2', 'tilgung2']
-        .some(function (z) { return zeileGebucht(lq, z, monat) })
+    // Darlehen (alle Darlehen der Immobilie zusammen)
+    var C = window.IECalc
+    var max = (C && C.DARLEHEN_MAX) || 5
+    var k = function (b, n) { return C ? C.dKey(b, n) : (n === 1 ? b : b + n) }
+    var zeilen = []
+    for (var n = 1; n <= max; n++) {
+      zeilen.push(k('bankrate', n), k('zins', n), k('tilgung', n))
+      if (bb[k('bankrate', n)] !== undefined) return true
+    }
+    return hand.bank === true ||
+      zeilen.some(function (z) { return zeileGebucht(lq, z, monat) })
   }
 
   // Ist die Nebenkostenabrechnung für ein Jahr schon in Arbeit?
