@@ -84,6 +84,58 @@
     return monatPlus(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'), -1)
   }
 
+  function monatAnfang (m) {
+    var t = String(m).split('-').map(Number)
+    return new Date(t[0], t[1] - 1, 1)
+  }
+
+  /* ── Wann wurde zuletzt erhöht? ───────────────────────────
+     Grundlage ist allein die Zeile „Nettokaltmiete" der
+     Liquiditätsplanung: der jüngste Monat, in dem der Betrag
+     über dem Vormonat liegt. Monate ohne Miete (Leerstand)
+     unterbrechen den Vergleich nicht, und der erste Monat mit
+     Miete ist keine Erhöhung, sondern der Beginn.
+     Nur wenn die Zeile leer ist, zählt das von Hand gepflegte
+     Feld im Mietverhältnis. */
+  function nkmWert (lq, m) {
+    var ov = ((lq.overrides || {}).nkm || {})[m]
+    if (ov !== undefined && ov !== null && ov !== '') return Number(ov) || 0
+    return Number(((lq.cells || {}).nkm || {})[m]) || 0
+  }
+
+  function letzteMieterhoehung (p) {
+    var lq = (p && p.liquiditaet) || {}
+    var roh = Object.keys((lq.cells || {}).nkm || {})
+      .concat(Object.keys((lq.overrides || {}).nkm || {}))
+    var monate = []
+    roh.forEach(function (m) {
+      if (/^\d{4}-\d{2}$/.test(m) && monate.indexOf(m) === -1) monate.push(m)
+    })
+    monate.sort()
+
+    var beginn = null, erhoehung = null, vorher = 0
+    monate.forEach(function (m) {
+      var v = nkmWert(lq, m)
+      if (v <= 0.004) return
+      if (!beginn) beginn = m
+      else if (v > vorher + 0.5) erhoehung = m
+      vorher = v
+    })
+
+    if (erhoehung) return { datum: monatAnfang(erhoehung), monat: erhoehung, art: 'erhoehung' }
+    if (beginn)    return { datum: monatAnfang(beginn),    monat: beginn,    art: 'beginn' }
+
+    var mv = (p && p.mietverhaeltnis && (p.mietverhaeltnis.aktuell || p.mietverhaeltnis)) || {}
+    var d = datumLesen(mv.letzteMieterhoehung)
+    return d ? { datum: d, art: 'feld' } : null
+  }
+
+  function erhoehungText (b) {
+    if (b.art === 'erhoehung') return 'letzte Erhöhung ' + monatName(b.monat)
+    if (b.art === 'beginn')    return 'Miete unverändert seit ' + monatName(b.monat)
+    return 'letzte Erhöhung am ' + datumSchreiben(b.datum)
+  }
+
   /* Gilt eine Zeile in einem Monat als gebucht?
      Gebucht ist eine Zahl, die aus dem Kontoauszug stammt oder in der
      Tabelle von Hand mit dem grünen Haken bestätigt wurde. Alles andere
@@ -138,18 +190,19 @@
       var weg = {}
       e.weg.forEach(function (k) { weg[k] = true })
 
-      // 1) Mieterhöhung liegt zwölf Monate zurück
+      // 1) Letzte Mieterhöhung liegt zu lange zurück.
+      //    Eine für die Zukunft geplante Erhöhung schiebt den Termin
+      //    nach hinten – dann gibt es nichts zu erinnern.
       if (e.mieterhoehung) {
-        var mv = (p.mietverhaeltnis && (p.mietverhaeltnis.aktuell || p.mietverhaeltnis)) || {}
-        var basis = datumLesen(mv.letzteMieterhoehung)
+        var basis = letzteMieterhoehung(p)
         if (basis) {
-          var faellig = new Date(basis)
+          var faellig = new Date(basis.datum)
           faellig.setMonth(faellig.getMonth() + e.mieterhoehungMonate)
-          var idM = 'mieterhoehung|' + p.id + '|' + faellig.toISOString().slice(0, 10)
+          var idM = 'mieterhoehung|' + p.id + '|' + (basis.monat || datumSchreiben(basis.datum))
           if (faellig <= heute && !weg[idM]) {
             items.push({
               id: idM, typ: 'mieterhoehung', propId: p.id, titel: '📈 Mieterhöhung prüfen',
-              sub: name + ' · letzte Erhöhung am ' + datumSchreiben(basis),
+              sub: name + ' · ' + erhoehungText(basis),
               datum: faellig, href: 'immobilie.html?id=' + p.id + '&tab=mietverhaeltnis',
             })
           }
@@ -215,6 +268,8 @@
     STANDARD: STANDARD,
     einstellungen: einstellungen,
     sammeln: sammeln,
+    letzteMieterhoehung: letzteMieterhoehung,
+    erhoehungText: erhoehungText,
     datumSchreiben: datumSchreiben,
     datumLesen: datumLesen,
     artLabel: ART_LABEL,

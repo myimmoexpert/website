@@ -49,22 +49,32 @@
     const mv = mvOf(prop)
     const jetzt = heute()
 
-    // 1) Mieterhöhung: letzte Anpassung liegt mehr als 12 Monate zurück
-    const basis = parseDatum(mv.letzteMieterhoehung)
+    // 1) Mieterhöhung: letzte Anpassung liegt zu lange zurück.
+    //    Grundlage ist die Zeile „Nettokaltmiete" der Liquiditätsplanung –
+    //    dieselbe Stelle, aus der auch die Benachrichtigungen rechnen.
+    const B = window.IEBenachrichtigungen
+    const abl = B && B.letzteMieterhoehung ? B.letzteMieterhoehung(prop) : null
+    const basis = abl ? abl.datum : parseDatum(mv.letzteMieterhoehung)
+    const stand = abl ? (abl.monat || fmt(abl.datum)) : String(mv.letzteMieterhoehung || '')
+    const monateBis = (B && B.einstellungen ? B.einstellungen(prop).mieterhoehungMonate : 12) || 12
     if (basis) {
       const faellig = new Date(basis)
-      faellig.setMonth(faellig.getMonth() + 12)
+      faellig.setMonth(faellig.getMonth() + monateBis)
       if (faellig <= jetzt) {
         const st = hinweisStand(prop, 'mieterhoehung')
-        const erledigt = st.erledigtFuer && st.erledigtFuer === String(mv.letzteMieterhoehung)
+        const erledigt = st.erledigtFuer && st.erledigtFuer === stand
         const schlummer = parseDatum(st.schlummertBis)
         if (!erledigt && (!schlummer || schlummer <= jetzt)) {
           const monate = Math.floor((jetzt - basis) / (1000 * 60 * 60 * 24 * 30.44))
+          const seit = abl && abl.art === 'beginn'
+            ? 'Die Nettokaltmiete ist seit ' + monate + ' Monaten unverändert.'
+            : 'Die letzte Mieterhöhung war am ' + fmt(basis) + ' und liegt ' + monate + ' Monate zurück.'
           out.push({
             key: 'mieterhoehung',
             bereich: 'mietverhaeltnis',
             titel: 'Mieterhöhung prüfen',
-            text: 'Die letzte Mieterhöhung war am ' + fmt(basis) + ' und liegt ' + monate + ' Monate zurück.',
+            text: seit,
+            stand: stand,
             seit: faellig,
           })
         }
@@ -80,10 +90,15 @@
   }
 
   /* Zustand setzen – gibt das veränderte mietverhaeltnis-Objekt zurück */
-  function erledigen (mietObj, key) {
+  // „stand" ist der Wert, auf den sich das Erledigen bezieht – der Hinweis
+  // kommt wieder, sobald sich dieser Wert ändert (neue Erhöhung in der Zeile).
+  function erledigen (mietObj, key, stand) {
     const ziel = (mietObj.aktuell = mietObj.aktuell || {})
     ziel.hinweise = ziel.hinweise || {}
-    ziel.hinweise[key] = { erledigtFuer: String(ziel.letzteMieterhoehung || ''), erledigtAm: fmt(heute()) }
+    ziel.hinweise[key] = {
+      erledigtFuer: stand !== undefined ? String(stand) : String(ziel.letzteMieterhoehung || ''),
+      erledigtAm: fmt(heute()),
+    }
     return mietObj
   }
 

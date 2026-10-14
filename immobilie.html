@@ -3839,7 +3839,13 @@
     // ════════════════════════════════════════
     function hinweiseAktualisieren() {
       if (!window.IEHinweise) return
-      const offen = window.IEHinweise.sammeln({ mietverhaeltnis: mietData })
+      // Die Liquiditätsplanung gehört dazu: die letzte Mieterhöhung wird
+      // aus der Zeile „Nettokaltmiete" abgeleitet.
+      const offen = window.IEHinweise.sammeln({
+        mietverhaeltnis: mietData,
+        liquiditaet: liqData || (propData && propData.liquiditaet),
+        einstellungen: propData && propData.einstellungen,
+      })
 
       document.querySelectorAll('.ie-sec').forEach(sec => {
         const slot = sec.querySelector('.ie-sec-alert-slot')
@@ -3884,7 +3890,7 @@
       anker.parentElement.appendChild(pop)
 
       pop.querySelector('[data-tun="erledigt"]').addEventListener('click', () => {
-        window.IEHinweise.erledigen(mietData, h.key)
+        window.IEHinweise.erledigen(mietData, h.key, h.stand)
         scheduleSave('m')
         hinweisMenueSchliessen()
         hinweiseAktualisieren()
