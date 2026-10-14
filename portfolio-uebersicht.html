@@ -1978,6 +1978,10 @@
       const items = window.IEBenachrichtigungen.sammeln(properties)
       if (!items.length) {
         ziel.innerHTML = '<div class="ov-empty">Nichts offen – alle Erinnerungen sind erledigt.</div>'
+        // Auch hier den roten Punkt nachziehen, sonst bleibt er nach dem
+        // Wegklicken der letzten Benachrichtigung stehen.
+        bnAktuelleItems = []
+        bnPunktSetzen(0)
         return
       }
       const D = window.IEBenachrichtigungen.datumSchreiben

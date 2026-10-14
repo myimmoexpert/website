@@ -286,6 +286,34 @@
     .kpi-quelle { font-size: 0.72rem; font-weight: 600; }
     .kpi-quelle.ok   { color: var(--green); }
     .kpi-quelle.schaetz { color: var(--muted); }
+
+    /* ── FEHLENDE ANGABEN SCHÄTZEN ── */
+    .fehlt-btn {
+      font: 600 0.7rem/1 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 0.5px;
+      padding: 6px 12px; border-radius: 50px; white-space: nowrap; cursor: pointer;
+      color: var(--gold); background: rgba(211,172,95,0.12); border: 1px solid rgba(211,172,95,0.45);
+    }
+    .fehlt-btn:hover { background: rgba(211,172,95,0.22); }
+    .fehlt-btn[disabled] { opacity: 0.6; cursor: default; }
+    .result-header > div { position: relative; }
+    .fehlt-box {
+      position: absolute; top: 100%; left: 0; margin-top: 8px;
+      z-index: 460; width: 300px; max-width: calc(100vw - 32px);
+      background: #202024; border: 1px solid rgba(255,255,255,0.14); border-radius: 14px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6); padding: 16px 18px;
+    }
+    .fehlt-box[hidden] { display: none; }
+    .fehlt-titel { font-size: 0.8rem; font-weight: 600; color: var(--white); margin-bottom: 10px; }
+    .fehlt-zeile { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 0.85rem; color: var(--muted); cursor: pointer; }
+    .fehlt-zeile input { width: 16px; height: 16px; accent-color: var(--gold); cursor: pointer; }
+    .fehlt-aktionen { display: flex; gap: 10px; justify-content: flex-end; margin-top: 12px; }
+    .fehlt-ok, .fehlt-ab {
+      font: 600 0.8rem/1 'Inter', sans-serif; padding: 8px 14px; border-radius: 8px; cursor: pointer;
+    }
+    .fehlt-ok { background: var(--gold); border: none; color: #1a1a1d; }
+    .fehlt-ok[disabled] { opacity: 0.5; cursor: default; }
+    .fehlt-ab { background: transparent; border: 1px solid rgba(255,255,255,0.18); color: var(--muted); }
+    .wert-geschaetzt { color: var(--gold); }
     .result-title {
       font-size: 1.3rem;
       font-weight: 700;
@@ -851,6 +879,15 @@
         <div class="result-title-row">
           <span class="result-title" id="resultTitle">–</span>
           <span class="miet-badge" id="mietBadge" hidden></span>
+          <button type="button" class="fehlt-btn" id="fehltBtn" hidden>Informationen fehlen</button>
+        </div>
+        <div class="fehlt-box" id="fehltBox" hidden>
+          <div class="fehlt-titel">Fehlende Angaben schätzen lassen</div>
+          <div id="fehltListe"></div>
+          <div class="fehlt-aktionen">
+            <button type="button" class="fehlt-ab" id="fehltAb">Abbrechen</button>
+            <button type="button" class="fehlt-ok" id="fehltOk">Schätzen</button>
+          </div>
         </div>
         <div class="result-subtitle" id="resultSubtitle">–</div>
       </div>
@@ -903,6 +940,7 @@
       <div class="detail-card">
         <h3>Investment</h3>
         <div class="detail-row"><span class="label">Kaufpreis</span><span class="value" id="dKaufpreis">–</span></div>
+        <div class="detail-row"><span class="label">Maklercourtage</span><span class="value" id="dCourtage">–</span></div>
         <div class="detail-row"><span class="label">Nebenkosten (ca.)</span><span class="value" id="dNebenkosten">–</span></div>
         <div class="detail-row"><span class="label">Gesamtinvestitionskosten</span><span class="value gold" id="dGesamt">–</span></div>
         <div class="detail-row"><span class="label">Abschreibung p.a. (ca.)</span><span class="value" id="dAbschreibung">–</span></div>
@@ -1080,6 +1118,13 @@
         if (e.key === 'Escape' && m && m.classList.contains('offen')
             && !document.getElementById('letterOverlay').classList.contains('visible')) closeResultModal()
       })
+      // Fehlende Angaben schätzen
+      const fb = document.getElementById('fehltBtn')
+      if (fb) fb.addEventListener('click', fehltBoxOeffnen)
+      const fa = document.getElementById('fehltAb')
+      if (fa) fa.addEventListener('click', () => { document.getElementById('fehltBox').hidden = true })
+      const fo = document.getElementById('fehltOk')
+      if (fo) fo.addEventListener('click', fehltSchaetzen)
     })()
 
     let currentData = null
@@ -1310,6 +1355,9 @@
         badge.className = 'miet-badge ' + (verm ? 'ja' : 'nein')
         badge.textContent = verm ? 'vermietet' : 'nicht vermietet'
       }
+      // Fehlen Angaben, die sich schätzen lassen?
+      fehltBtnZeigen(data)
+      const gesch = data.geschaetzt || []
 
       // KPIs
       document.getElementById('kpiInvestmentNote').textContent  = data.kpiInvestmentNote || '–'
@@ -1337,7 +1385,11 @@
       document.getElementById('dVermietet').textContent         = data.dVermietet    || '–'
       // Investment
       document.getElementById('dKaufpreis').textContent         = data.dKaufpreis    || '–'
-      document.getElementById('dNebenkosten').textContent       = data.dNebenkosten  || '–'
+      document.getElementById('dCourtage').textContent          = data.dCourtage     || '–'
+      const nkEl = document.getElementById('dNebenkosten')
+      nkEl.textContent = data.dNebenkosten  || '–'
+      // Woraus sich die Nebenkosten zusammensetzen, steht am Mauszeiger
+      nkEl.title = data.dNebenkostenDetail || ''
       document.getElementById('dGesamt').textContent            = data.dGesamt       || '–'
       document.getElementById('dAbschreibung').textContent      = data.dAbschreibung || '–'
       // Mietrendite aus Kaufpreis und Nettokaltmiete
@@ -1347,6 +1399,10 @@
         (kpWert && nkmWert) ? (nkmWert * 12 / kpWert * 100).toLocaleString('de-DE',
           { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %' : '–'
       document.getElementById('dEnergieklasse').textContent     = data.dEnergieklasse || '–'
+      // Geschätzte Werte sichtbar machen
+      document.getElementById('dWohnflaeche').className = 'value' + (gesch.includes('wohnflaeche') ? ' wert-geschaetzt' : '')
+      document.getElementById('cfHausgeldJahr').className = 'cf-amt minus' + (gesch.includes('hausgeld') ? ' wert-geschaetzt' : '')
+      document.getElementById('kpiNettokaltmiete').className = 'kpi-value' + (gesch.includes('miete') ? ' wert-geschaetzt' : '')
       // Cashflow – alle Zeilen pro Monat (die Analyse liefert Jahreswerte)
       document.getElementById('cfWarmmieteJahr').textContent    = proMonat(data.cfWarmmieteJahr)
       document.getElementById('cfHausgeldJahr').textContent     = proMonat(data.cfHausgeldJahr)
@@ -1370,7 +1426,9 @@
         besch = besch.replace(/\s*$/, '') + ' Energieklasse: ' + ek + '.'
       }
       document.getElementById('dBeschreibung').textContent      = besch
-      document.getElementById('ratingSummary').textContent      = data.ratingSummary   || '–'
+      let bewertung = data.ratingSummary || '–'
+      if (gesch.length && data.schaetzungHinweis) bewertung += ' ' + data.schaetzungHinweis
+      document.getElementById('ratingSummary').textContent      = bewertung
 
       const tagsEl = document.getElementById('ratingTags')
       tagsEl.innerHTML = ''
@@ -1380,6 +1438,117 @@
         span.textContent = t.text
         tagsEl.appendChild(span)
       })
+    }
+
+    /* ══════════════════════════════════════════════
+       FEHLENDE ANGABEN SCHÄTZEN LASSEN
+
+       Die Analyse erfindet nichts: steht ein Wert nicht im Inserat,
+       bleibt das Feld leer. Hier kann man gezielt sagen, welche
+       dieser Werte geschätzt werden sollen – das Ergebnis ist
+       sichtbar als Schätzung gekennzeichnet.
+       ══════════════════════════════════════════════ */
+    const SCHAETZBAR = [
+      { key: 'miete',       label: 'Nettokaltmiete', fehlt: d => !parseNumber(d.kpiNettokaltmiete) },
+      { key: 'hausgeld',    label: 'Hausgeld',       fehlt: d => !parseNumber(d.cfHausgeldJahr) },
+      { key: 'wohnflaeche', label: 'Wohnfläche',     fehlt: d => !wohnflaecheAus(d) },
+    ]
+
+    // Wohnfläche in m² aus der Angabe „90 m² · 3 Zimmer"
+    function wohnflaecheAus(d) {
+      const m = String(d.dWohnflaeche || '').match(/([\d.,]+)\s*m/)
+      return m ? parseNumber(m[1]) : null
+    }
+
+    function fehlendeFelder(d) {
+      return SCHAETZBAR.filter(f => f.fehlt(d))
+    }
+
+    // Button nur zeigen, wenn wirklich etwas fehlt, das sich schätzen lässt
+    function fehltBtnZeigen(d) {
+      const btn = document.getElementById('fehltBtn')
+      const offen = fehlendeFelder(d)
+      btn.hidden = offen.length === 0
+      btn.disabled = false
+      btn.textContent = 'Informationen fehlen'
+      document.getElementById('fehltBox').hidden = true
+    }
+
+    function fehltBoxOeffnen() {
+      const box = document.getElementById('fehltBox')
+      if (!box.hidden) { box.hidden = true; return }
+      const offen = fehlendeFelder(currentData || {})
+      if (!offen.length) return
+      document.getElementById('fehltListe').innerHTML = offen.map(f => `
+        <label class="fehlt-zeile">
+          <input type="checkbox" value="${f.key}" checked>
+          <span>${f.label}</span>
+        </label>`).join('')
+      box.hidden = false
+    }
+
+    async function fehltSchaetzen() {
+      const box = document.getElementById('fehltBox')
+      const keys = [...box.querySelectorAll('input:checked')].map(i => i.value)
+      if (!keys.length || !currentData) return
+      const ok = document.getElementById('fehltOk')
+      const btn = document.getElementById('fehltBtn')
+      ok.disabled = true; ok.textContent = 'Schätzt …'
+      btn.textContent = 'Schätzt …'
+      try {
+        const headers = { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY }
+        if (session) headers['Authorization'] = 'Bearer ' + session.access_token
+        const res = await fetch(EDGE_FN_URL, {
+          method: 'POST', headers,
+          body: JSON.stringify({ schaetzen: keys, daten: currentData, url: currentUrl }),
+        })
+        const r = await res.json()
+        if (r.error) throw new Error(r.error)
+
+        if (keys.includes('miete') && r.kpiNettokaltmiete) {
+          currentData.kpiNettokaltmiete = r.kpiNettokaltmiete
+          currentData.kpiNettokaltmieteQuelle = 'Schätzung'
+        }
+        if (keys.includes('hausgeld') && r.hausgeldMonat) {
+          const h = parseNumber(r.hausgeldMonat)
+          if (h) currentData.cfHausgeldJahr = '−' + Math.round(Math.abs(h) * 12).toLocaleString('de-DE') + ' €/Jahr'
+        }
+        if (keys.includes('wohnflaeche') && r.dWohnflaeche) currentData.dWohnflaeche = r.dWohnflaeche
+        currentData.geschaetzt = (currentData.geschaetzt || []).concat(keys.filter(k => !(currentData.geschaetzt || []).includes(k)))
+        if (r.schaetzungHinweis) currentData.schaetzungHinweis = r.schaetzungHinweis
+
+        nachrechnen(currentData)
+        box.hidden = true
+        fillResult(currentData, currentUrl)
+      } catch (err) {
+        alert('Die Schätzung hat nicht geklappt: ' + err.message)
+        btn.textContent = 'Informationen fehlen'
+      } finally {
+        ok.disabled = false; ok.textContent = 'Schätzen'
+      }
+    }
+
+    // Abgeleitete Werte nach einer Schätzung neu berechnen – hier, nicht
+    // in der Analyse, damit die Formeln an einer Stelle stehen.
+    function nachrechnen(d) {
+      const kp = parseNumber(d.kpiKaufpreis) || parseNumber(d.dKaufpreis)
+      const nkm = parseNumber(d.kpiNettokaltmiete)
+      const wfl = wohnflaecheAus(d)
+      const eur = n => Math.round(n).toLocaleString('de-DE') + ' €'
+
+      if (kp && wfl) d.kpiKaufpreisProQm = eur(kp / wfl) + '/m²'
+      if (kp && nkm) {
+        d.kpiInvestFaktor = (kp / (nkm * 12)).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + '×'
+        d.cfWarmmieteJahr = '+' + eur(nkm * 12) + '/Jahr'
+      }
+      const hg = parseNumber(d.cfHausgeldJahr)
+      const bank = parseNumber(d.cfBankrateJahr) || (kp ? kp * 0.05 : 0)
+      if (kp && !d.cfBankrateJahr) d.cfBankrateJahr = '−' + eur(kp * 0.05) + '/Jahr'
+      if (nkm) {
+        const cf = (nkm * 12 - Math.abs(hg || 0) - Math.abs(bank || 0)) / 12
+        d.cfMonatlich = (cf < 0 ? '−' : '+') + eur(Math.abs(cf)) + '/Monat'
+        d.cfMonatlichPositiv = cf >= 0
+      }
     }
 
     /* ── ANSCHREIBEN ── */
