@@ -566,7 +566,6 @@
           <div class="lp-frame-wrap">
             <div class="lp-body" id="liqGesamt">
               <div class="liq-controls">
-                <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Alle Werte in € · Summe aller Immobilien · nur Anzeige – bearbeitet wird in der jeweiligen Immobilie</span></span>
                 <button type="button" class="liq-btn liq-btn-xls" id="liqXlsBtn">⤓ Als Excel herunterladen</button>
               </div>
               <div class="liq-scroll" id="liqScroll"></div>
@@ -588,7 +587,6 @@
           <div class="lp-frame-wrap">
             <div class="lp-body" id="liqAdm">
               <div class="liq-controls">
-                <span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">Fließt in das Gesamtportfolio ein: Einzahlung Eigenkapital in „Einzahlung Eigenkapital", Ausgaben in „Weitere Ausgaben".</span></span>
                 <span class="save-indicator" id="siAdm" style="margin-left:auto;"></span>
               </div>
               <div class="liq-scroll" id="admScroll"></div>
@@ -1111,23 +1109,61 @@
           const [, mo] = m.split('-').map(Number)
           const cls = `${mo === 1 ? 'liq-yr' : ''}${m === nowM ? ' liq-now' : ''}`
           const wert = admZellen(z.key)[m]
-          return `<td class="${cls}"><input class="liq-cell adm-cell" data-adm="${z.key}" data-month="${m}"
-                    placeholder="0" value="${wert !== undefined && wert !== '' ? liqFmt(Number(wert) || 0) : ''}" /></td>`
+          const n = Number(wert) || 0
+          // Farbe wie in den anderen Tabellen, auch bei vergangenen Monaten
+          const vcls = n < -0.004 ? ' neg' : (n > 0.004 ? ' pos' : '')
+          return `<td class="${cls}"><input class="liq-cell adm-cell${vcls}" data-adm="${z.key}" data-month="${m}"
+                    placeholder="0" value="${wert !== undefined && wert !== '' ? liqFmt(n) : ''}" /></td>`
         }).join('')
         return `<tr class="liq-row-input"><td class="liq-label">${esc(z.label)}</td>${tds}</tr>`
       }).join('')
+
+      // Guthaben kumuliert, wie in den anderen Tabellen
+      let stand = 0
+      const guthabenTds = months.map(m => {
+        const [, mo] = m.split('-').map(Number)
+        const cls = `${mo === 1 ? 'liq-yr' : ''}${m === nowM ? ' liq-now' : ''}`
+        ADM_ZEILEN.forEach(z => { stand += Number(admZellen(z.key)[m]) || 0 })
+        const vcls = stand < -0.004 ? 'neg' : (stand > 0.004 ? 'pos' : '')
+        return `<td class="${cls}"><div class="liq-cell ${vcls}">${liqFmt(stand)}</div></td>`
+      }).join('')
+      const spacer = `<tr class="liq-spacer"><td class="liq-label"></td>${months.map(() => '<td></td>').join('')}</tr>`
+      const guthabenZeile = spacer +
+        `<tr class="liq-row-calc liq-row-total liq-sep"><td class="liq-label">Guthaben</td>${guthabenTds}</tr>`
+
       scroll.innerHTML = `<table class="liq-table">
           <thead><tr><th class="liq-label">Position</th>${kopf}</tr></thead>
-          <tbody>${zeilen}</tbody>
+          <tbody>${zeilen}${guthabenZeile}</tbody>
         </table>`
       scroll.querySelectorAll('.adm-cell').forEach(c => {
         c.addEventListener('change', () => admZelleGeaendert(c))
         c.addEventListener('focus', () => c.select())
+        c.addEventListener('keydown', e => admKeyNav(e, c, months))
       })
       // Beim ersten Zeichnen zum laufenden Monat scrollen
       const jetzt = scroll.querySelector('.liq-now')
       if (jetzt) scroll.scrollLeft = Math.max(0, jetzt.offsetLeft - scroll.clientWidth / 2)
       admSummeZeigen()
+    }
+
+    // Pfeiltasten zwischen den Zellen – wie in der Liquiditätsplanung
+    function admKeyNav(e, cell, months) {
+      if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter'].includes(e.key)) return
+      const keys = ADM_ZEILEN.map(z => z.key)
+      let ri = keys.indexOf(cell.dataset.adm)
+      let mi = months.indexOf(cell.dataset.month)
+      const len = cell.value.length
+      const ganz = cell.selectionStart === 0 && cell.selectionEnd === len
+      if (e.key === 'ArrowUp') ri--
+      else if (e.key === 'ArrowDown' || e.key === 'Enter') ri++
+      else if (e.key === 'ArrowLeft')  { if (!ganz && cell.selectionStart > 0) return; mi-- }
+      else if (e.key === 'ArrowRight') { if (!ganz && cell.selectionEnd < len) return; mi++ }
+      if (ri < 0 || ri >= keys.length || mi < 0 || mi >= months.length) return
+      const ziel = document.querySelector(`.adm-cell[data-adm="${keys[ri]}"][data-month="${months[mi]}"]`)
+      if (!ziel) return
+      e.preventDefault()
+      ziel.focus()
+      ziel.scrollIntoView({ block: 'nearest', inline: 'nearest' })
     }
 
     function admZelleGeaendert(cell) {
@@ -1149,8 +1185,28 @@
       cell.classList.toggle('neg', (w || 0) < 0)
       cell.classList.toggle('pos', (w || 0) > 0)
       scheduleSave('adm')
+      admGuthabenAktualisieren()
       admSummeZeigen()
       renderLiquiditaet()
+    }
+
+    // Die Guthabenzeile neu rechnen, ohne die Tabelle neu zu zeichnen –
+    // sonst verliert die gerade bearbeitete Zelle den Fokus.
+    function admGuthabenAktualisieren() {
+      const scroll = document.getElementById('admScroll')
+      const zeile = scroll && scroll.querySelector('.liq-row-total')
+      if (!zeile) return
+      const months = admMonate()
+      const zellen = zeile.querySelectorAll('.liq-cell')
+      let stand = 0
+      months.forEach((m, i) => {
+        ADM_ZEILEN.forEach(z => { stand += Number(admZellen(z.key)[m]) || 0 })
+        const el = zellen[i]
+        if (!el) return
+        el.textContent = liqFmt(stand)
+        el.classList.toggle('neg', stand < -0.004)
+        el.classList.toggle('pos', stand > 0.004)
+      })
     }
 
     function admSummeZeigen() {

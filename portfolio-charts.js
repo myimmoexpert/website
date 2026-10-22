@@ -24,9 +24,23 @@
      Über das Zahnrad lassen sich Start und Ende frei setzen; die
      Einstellung bleibt im Browser gespeichert. */
   var ZR_KEY = 'ie_pw_zeitraum'
-  function zeitraum () {
+
+  // Frühester Übernahmestichtag im Portfolio – dort beginnt der Graph
+  function erstesJahr (props) {
+    var C = window.IECalc
+    var frueh = null
+    ;(props || []).forEach(function (p) {
+      var ab = C && C.bestandAb ? C.bestandAb(p) : (C ? C.uebernahme(p) : null)
+      var y = Number(String(ab || '').slice(0, 4))
+      if (y && (frueh === null || y < frueh)) frueh = y
+    })
+    return frueh
+  }
+
+  function zeitraum (props) {
     var jetztJ = new Date().getFullYear()
-    var std = { von: jetztJ - 1, bis: jetztJ + 8 }
+    var ab = erstesJahr(props)
+    var std = { von: Math.min(ab || jetztJ - 1, jetztJ - 1), bis: jetztJ + 8 }
     try {
       var z = JSON.parse(localStorage.getItem(ZR_KEY) || 'null')
       if (z && z.von && z.bis && z.bis >= z.von) {
@@ -38,8 +52,8 @@
   function zeitraumSetzen (von, bis) {
     try { localStorage.setItem(ZR_KEY, JSON.stringify({ von: von, bis: bis })) } catch (e) {}
   }
-  function zeitraumJahre () {
-    var z = zeitraum(), out = []
+  function zeitraumJahre (props) {
+    var z = zeitraum(props), out = []
     for (var j = z.von; j <= z.bis; j++) out.push(j)
     return out.length ? out : [new Date().getFullYear()]
   }
@@ -50,7 +64,8 @@
     var jetztJ = new Date().getFullYear()
     var frueh = null
     ;(props || []).forEach(function (p) {
-      var y = Number(String(C.uebernahme(p)).slice(0, 4))
+      // Maßgeblich ist der Übernahmestichtag, nicht der Tag der Eintragung
+      var y = Number(String(C.bestandAb ? C.bestandAb(p) : C.uebernahme(p)).slice(0, 4))
       if (y && (frueh === null || y < frueh)) frueh = y
     })
     var start = frueh === null ? jetztJ : Math.min(Math.max(frueh, jetztJ - 9), jetztJ)
@@ -67,7 +82,9 @@
       var monate = []
       for (var m = 1; m <= 12; m++) monate.push(j + '-' + String(m).padStart(2, '0'))
       var reihe = C.reihe(props || [], monate)
-      var ende = reihe[11]
+      // Im laufenden Jahr gilt der Stand von heute – sonst würde der Graph
+      // einen anderen Wert zeigen als die Kachel „Portfoliowert".
+      var ende = reihe[j === jetztJ ? new Date().getMonth() : 11]
       var sum = function (k) { return reihe.reduce(function (s, r) { return s + r[k] }, 0) }
       var zins = 0, tilgung = 0
       monate.forEach(function (mm) {
@@ -142,7 +159,7 @@
   /* ── Einzelne Charts, auch für andere Seiten ─────────────── */
   function chartPortfoliowert (karte, props) {
     var F = window.IEChart.farben, eur = window.IEChart.eur
-    var daten = jahresDaten(props, zeitraumJahre())
+    var daten = jahresDaten(props, zeitraumJahre(props))
     var akt = daten.findIndex(function (d) { return d.heute })
     window.IEChart.saeulen(karte.querySelector('.pc-plot'), {
       aria: 'Portfoliowert je Jahr',
@@ -239,7 +256,7 @@
       e.stopPropagation()
       var alt = container.querySelector('.pc-zeitraum')
       if (alt) { alt.remove(); return }
-      var z = zeitraum()
+      var z = zeitraum(props)
       var box = document.createElement('div')
       box.className = 'pc-zeitraum'
       box.innerHTML =

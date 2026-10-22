@@ -32,7 +32,7 @@
   }
   function kurz (n) {
     var a = Math.abs(n)
-    if (a >= 1000000) return (n / 1000000).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' Mio'
+    if (a >= 1000000) return (n / 1000000).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + 'm'
     if (a >= 10000)   return Math.round(n / 1000) + 'k'
     if (a >= 1000)    return (n / 1000).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + 'k'
     return String(Math.round(n))

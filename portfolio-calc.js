@@ -89,6 +89,15 @@
     return st ? st.slice(0, 7) : uebernahme(p)
   }
 
+  // Ab wann die Immobilie im Bestand ist. Maßgeblich ist der Übernahme-
+  // stichtag; wann die Immobilie ins Tool eingetragen wurde, spielt keine
+  // Rolle. Von beiden gilt der frühere Zeitpunkt, damit erfasste Zahlen
+  // nie verschwinden.
+  function bestandAb (p) {
+    var u = uebernahme(p), w = wertBasis(p)
+    return (w && w < u) ? w : u
+  }
+
   // Nettokaltmiete eines Monats (Übersteuerung hat Vorrang)
   function nkmMonat (p, m) {
     var v = (ovs(p).nkm || {})[m]
@@ -143,7 +152,7 @@
 
   function wert (p, m) {
     var e = wertEinstellung(p)
-    var u = uebernahme(p)
+    var u = bestandAb(p)
     if (m && m < u) return 0
 
     if (e.modus === 'eigen') return e.eigen
@@ -195,7 +204,7 @@
 
   // Restschuld: valutiertes Fremdkapital abzüglich geleisteter Tilgung
   function restschuld (p, m) {
-    var u = uebernahme(p)
+    var u = bestandAb(p)
     if (m < u) return 0
     var fk = Math.abs(summeBis(p, 'einzahlungFk', m))
     var tg = 0
@@ -207,7 +216,7 @@
   // Die Grundsteuer gehört nicht zum CF Wohnung – sie steht in der
   // Tabelle unterhalb davon bei den unregelmäßigen Posten.
   function cfTeile (p, m) {
-    var u = uebernahme(p)
+    var u = bestandAb(p)
     if (m < u) return { miete: 0, weitereMiete: 0, hausgeld: 0, bankrate: 0, zins: 0, tilgung: 0,
                         bankrate1: 0, bankrate2: 0, zins2: 0, tilgung2: 0,
                         bankrateN: [], zinsAlle: 0, tilgungAlle: 0,
@@ -265,7 +274,7 @@
     WACHSTUM_PA: WACHSTUM_PA,
     DARLEHEN_MAX: DARLEHEN_MAX, dKey: dKey, darlehenAnzahl: darlehenAnzahl,
     jetztMonat: jetztMonat, monatPlus: monatPlus, monatDiff: monatDiff, fenster: fenster,
-    kaufpreis: kaufpreis, uebernahme: uebernahme, stichtag: stichtag, wertBasis: wertBasis,
+    kaufpreis: kaufpreis, uebernahme: uebernahme, stichtag: stichtag, wertBasis: wertBasis, bestandAb: bestandAb,
     nkmBis: nkmBis, kaufFaktor: kaufFaktor,
     wert: wert, aktuellerWert: aktuellerWert, wertEinstellung: wertEinstellung, restschuld: restschuld, cfTeile: cfTeile, reihe: reihe,
     summeAlle: summeAlle, summeBis: summeBis,

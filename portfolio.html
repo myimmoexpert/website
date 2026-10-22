@@ -382,7 +382,7 @@
 
   <!-- Einklappbare Bereiche -->
   <div class="sections">
-    <details class="ie-sec" id="secKennzahlen">
+    <details class="ie-sec" id="secKennzahlen" open>
       <summary>
         <span class="ie-sec-ico">📊</span>
         <span class="ie-sec-titel">Weitere Portfoliokennzahlen</span>
@@ -391,7 +391,7 @@
       <div class="ie-sec-body"><div id="kpiWrap"></div></div>
     </details>
 
-    <details class="ie-sec" id="secImmobilien">
+    <details class="ie-sec" id="secImmobilien" open>
       <summary>
         <span class="ie-sec-ico">🏢</span>
         <span class="ie-sec-titel">Meine Immobilien</span>
@@ -672,7 +672,7 @@
             t: wflSumme ? 'Summe der Kaufpreise ÷ Summe der Wohnflächen (' + wflSumme.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' m²)'
                         : 'Wohnfläche in den Einstellungen der Immobilien ergänzen.' },
           { l: 'Eigenkapital investiert', v: formatEur(ekEingesetzt), t: 'Summe der Zeilen „Einzahlung Eigenkapital" aus der Liquiditätsplanung.' },
-          { l: 'Mietrendite', v: pct(brutto), c: 'gold', t: 'Jahreskaltmiete ÷ Kaufpreis über das gesamte Portfolio.' },
+          { l: 'Mietrendite bei Kauf', v: pct(brutto), c: 'gold', t: 'Jahreskaltmiete ÷ Kaufpreis über das gesamte Portfolio.' },
         ], 'kcVermoegen', true) +
         gruppe('Monatliche Einnahmen und Ausgaben', [
           { l: 'Mieteinnahmen', v: formatEur(miete), c: 'green' },
