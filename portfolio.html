@@ -563,8 +563,9 @@
         // Summary berechnen
         const totalMiete = stats.reduce((s, st) => s + st.nkm, 0)
         const totalCf    = stats.reduce((s, st) => s + st.cf, 0)
-        // Empfohlene Liquidität = Hausgeld + Zins + Tilgung (aktueller Monat) aller Immobilien
-        const totalLiq   = Math.abs(stats.reduce((s, st) => s + st.hausgeld + st.zins + st.tilgung, 0))
+        // Empfohlene Liquidität = alle Hausgeldzahlungen und alle Darlehensraten
+        // des laufenden Monats über alle Immobilien
+        const totalLiq   = Math.abs(stats.reduce((s, st) => s + st.hausgeld + st.bankrate, 0))
         document.getElementById('sumAnzahl').textContent    = data.length
         PW_DATA = { rows: data, stats: stats }
         renderPortfolioWert()
@@ -828,18 +829,23 @@
     }
 
     // Kennzahlen aus der Liqui-Planung – gleiche Logik wie im Übersicht-Tab der Immobilie
+    // Alles über IECalc, damit hier dieselben Zahlen herauskommen wie in der
+    // Liquiditätsplanung: alle Darlehen, alle Hausgeldzahlungen, Grundsteuer
+    // gehört nicht zum CF Wohnung.
     function liqStats(p) {
-      const lq = p.liquiditaet
-      const nowM = new Date().toISOString().slice(0, 7)
-      if (!lq || !lq.cells) return { kaufpreis: p.kaufpreis || 0, nkm: p.kaltmiete || 0, cf: 0, hausgeld: 0, zins: 0, tilgung: 0 }
-      const cells = lq.cells, ovs = lq.overrides || {}
-      const sum = k => Object.values(cells[k] || {}).reduce((s, v) => s + (Number(v) || 0), 0)
-      const c   = k => Number(cells[k]?.[nowM]) || 0
-      const ov  = k => { const v = ovs[k]?.[nowM]; return (v === undefined || v === null || v === '') ? null : Number(v) }
-      const kaufpreis = Math.abs(sum('kaufpreis')) || p.kaufpreis || 0
-      const miete = ov('miete') ?? c('nkm') + c('nk')
-      const cf = ov('cf') ?? miete + c('weitereMiete') + c('grundsteuer') + c('hausgeld') + c('zins') + c('tilgung')
-      return { kaufpreis, nkm: c('nkm') || p.kaltmiete || 0, cf, hausgeld: c('hausgeld'), zins: c('zins'), tilgung: c('tilgung') }
+      const C = window.IECalc
+      if (!C) return { kaufpreis: p.kaufpreis || 0, nkm: p.kaltmiete || 0, cf: 0, hausgeld: 0, bankrate: 0, zins: 0, tilgung: 0 }
+      const m = C.jetztMonat()
+      const t = C.cfTeile(p, m)
+      return {
+        kaufpreis: C.kaufpreis(p) || p.kaufpreis || 0,
+        nkm: C.nkmBis(p, m) || p.kaltmiete || 0,
+        cf: t.cf,
+        hausgeld: t.hausgeld,
+        bankrate: t.bankrate,
+        zins: t.zinsAlle,
+        tilgung: t.tilgungAlle,
+      }
     }
 
     function buildAddTile() {

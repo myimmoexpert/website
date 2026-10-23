@@ -186,6 +186,21 @@
   var DARLEHEN_MAX = 5
   function dKey (basis, n) { return n === 1 ? basis : basis + n }
 
+  // Genauso lassen sich mehrere Hausgeldzahlungen erfassen
+  var HAUSGELD_MAX = 5
+  function hausgeldAnzahl (p) {
+    var lq = (p && p.liquiditaet) || p || {}
+    var n = Number(lq.hausgelder) || 0
+    if (!n) {
+      var c = lq.cells || {}
+      for (var i = HAUSGELD_MAX; i >= 2; i--) {
+        var k = dKey('hausgeld', i)
+        if (c[k] && Object.keys(c[k]).length) { n = i; break }
+      }
+    }
+    return Math.min(HAUSGELD_MAX, Math.max(1, n || 1))
+  }
+
   // Wie viele Darlehen hat diese Immobilie? Mindestens eins.
   function darlehenAnzahl (p) {
     var lq = (p && p.liquiditaet) || p || {}
@@ -219,7 +234,7 @@
     var u = bestandAb(p)
     if (m < u) return { miete: 0, weitereMiete: 0, hausgeld: 0, bankrate: 0, zins: 0, tilgung: 0,
                         bankrate1: 0, bankrate2: 0, zins2: 0, tilgung2: 0,
-                        bankrateN: [], zinsAlle: 0, tilgungAlle: 0,
+                        bankrateN: [], zinsAlle: 0, tilgungAlle: 0, hausgeldN: [],
                         bankrateFix: false, grundsteuer: 0, cf: 0, imBestand: false }
     var miete    = ov1(p, 'miete', m)    !== null ? ov1(p, 'miete', m)    : wert1(p, 'nkm', m) + wert1(p, 'nk', m)
     var bankrateFix = ov1(p, 'bankrate', m) !== null
@@ -238,7 +253,13 @@
     }
 
     var weitereMiete = wert1(p, 'weitereMiete', m)
-    var hausgeld     = wert1(p, 'hausgeld', m)
+    // Alle Hausgeldzahlungen der Immobilie zusammen
+    var hausgeldN = [], hausgeld = 0
+    for (var h = 1; h <= HAUSGELD_MAX; h++) {
+      var hv = wert1(p, dKey('hausgeld', h), m)
+      hausgeldN.push(hv)
+      hausgeld += hv
+    }
     var grundsteuer  = wert1(p, 'grundsteuer', m)
     var cfOv = ov1(p, 'cf', m)
     var cf = cfOv !== null ? cfOv : miete + weitereMiete + hausgeld + bankrate
@@ -247,7 +268,7 @@
              bankrateN: bankrateN,
              zins: zins, tilgung: tilgung,
              zins2: wert1(p, 'zins2', m), tilgung2: wert1(p, 'tilgung2', m),
-             zinsAlle: zinsAlle, tilgungAlle: tilgungAlle,
+             zinsAlle: zinsAlle, tilgungAlle: tilgungAlle, hausgeldN: hausgeldN,
              bankrateFix: bankrateFix,
              grundsteuer: grundsteuer, cf: cf, imBestand: true }
   }
@@ -273,6 +294,7 @@
   window.IECalc = {
     WACHSTUM_PA: WACHSTUM_PA,
     DARLEHEN_MAX: DARLEHEN_MAX, dKey: dKey, darlehenAnzahl: darlehenAnzahl,
+    HAUSGELD_MAX: HAUSGELD_MAX, hausgeldAnzahl: hausgeldAnzahl,
     jetztMonat: jetztMonat, monatPlus: monatPlus, monatDiff: monatDiff, fenster: fenster,
     kaufpreis: kaufpreis, uebernahme: uebernahme, stichtag: stichtag, wertBasis: wertBasis, bestandAb: bestandAb,
     nkmBis: nkmBis, kaufFaktor: kaufFaktor,

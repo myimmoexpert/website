@@ -936,6 +936,8 @@
         <button class="liq-btn" onclick="liqOpenImport()">⤒ Tilgungsplan importieren</button>
         <button class="liq-btn" id="liqD2Btn" onclick="liqDarlehenHinzufuegen()">+ Weiteres Darlehen</button>
         <button class="liq-btn" id="liqD2Weg" onclick="liqDarlehenEntfernen()" hidden>− Darlehen entfernen</button>
+        <button class="liq-btn" id="liqHgBtn" onclick="liqHausgeldHinzufuegen()">+ Weiteres Hausgeld</button>
+        <button class="liq-btn" id="liqHgWeg" onclick="liqHausgeldEntfernen()" hidden>− Hausgeld entfernen</button>
         <input type="file" id="liqPdfInput" accept="application/pdf" style="display:none" onchange="liqImportPdf(this.files[0])" />
         <div class="save-indicator" id="siLiq" style="margin-left:auto;"></div>
         <button class="liq-btn" onclick="liqExportExcel()" id="liqXlsBtn">⤓ Als Excel herunterladen</button>
@@ -1769,6 +1771,8 @@
       { key: 'nk',           label: 'Nebenkostenvorauszahlungen', type: 'input', sub: true, group: 'miete' },
       { key: 'weitereMiete', label: 'Weitere Mieteinnahmen', type: 'input' },
       { key: 'hausgeld',     label: 'Hausgeld',          type: 'input' },
+      // Weitere Hausgeldzahlungen (2 bis 5) werden unten eingefügt
+      { key: '_hausgeld',    type: 'platzhalter' },
       { key: 'bankrate',     label: 'Darlehen',          type: 'calc',  toggle: 'bankrate' },
       { key: 'zins',         label: 'Zins',              type: 'input', sub: true, group: 'bankrate' },
       { key: 'tilgung',      label: 'Tilgung',           type: 'input', sub: true, group: 'bankrate' },
@@ -1798,11 +1802,23 @@
       LIQ_ROWS.splice(i, 1, ...extra)
     })()
 
+    // Weitere Hausgeldzahlungen 2 bis 5
+    const HMAX = (window.IECalc && window.IECalc.HAUSGELD_MAX) || 5
+    ;(() => {
+      const i = LIQ_ROWS.findIndex(r => r.key === '_hausgeld')
+      const extra = []
+      for (let n = 2; n <= HMAX; n++) {
+        extra.push({ key: dK('hausgeld', n), label: 'Hausgeld ' + n, type: 'input', hn: n })
+      }
+      LIQ_ROWS.splice(i, 1, ...extra)
+    })()
+
     // Zeilen, für die der Abgleich mit den Kontoumsätzen gilt
     const LIQ_TRACK_ROWS = ['nkm', 'nk', 'weitereMiete', 'hausgeld', 'bankrate',
                             'zins', 'tilgung', 'grundsteuer',
                             'weitereAusgaben', 'nebenkostenabrechnung']
       .concat(Array.from({ length: DMAX - 1 }, (_, i) => [dK('zins', i + 2), dK('tilgung', i + 2)]).flat())
+      .concat(Array.from({ length: HMAX - 1 }, (_, i) => dK('hausgeld', i + 2)))
 
     // Zeilen, deren Wert auf dem Bankkonto als EINE Buchung erscheint, in der
     // Tabelle aber aus mehreren Zeilen besteht. Für sie wird die Buchung mit
@@ -1839,7 +1855,42 @@
     // Zeilen, die gerade sichtbar sind (für Rendering und Tastaturnavigation)
     function liqVisibleRows() {
       const anz = liqDarlehenAnzahl()
-      return LIQ_ROWS.filter(r => (!r.dn || r.dn <= anz) && (!r.group || liqOpenGroups.has(r.group)))
+      const hg = liqHausgeldAnzahl()
+      return LIQ_ROWS.filter(r => (!r.dn || r.dn <= anz) && (!r.hn || r.hn <= hg)
+                                  && (!r.group || liqOpenGroups.has(r.group)))
+    }
+
+    // Wie viele Hausgeldzahlungen hat diese Immobilie?
+    function liqHausgeldAnzahl() {
+      if (!liqData) return 1
+      const n = Number(liqData.hausgelder) || 0
+      return Math.min(HMAX, Math.max(1, n || 1))
+    }
+
+    // Eine weitere Hausgeldzahlung anlegen
+    function liqHausgeldHinzufuegen() {
+      if (!liqData) return
+      const anz = liqHausgeldAnzahl()
+      if (anz >= HMAX) return
+      liqData.hausgelder = anz + 1
+      liqRender()
+      scheduleSave('l')
+      liqD2BtnText()
+    }
+
+    // Die zuletzt angelegte Hausgeldzeile wieder entfernen
+    function liqHausgeldEntfernen() {
+      if (!liqData) return
+      const anz = liqHausgeldAnzahl()
+      if (anz <= 1) return
+      const k = dK('hausgeld', anz)
+      const belegt = Object.values((liqData.cells || {})[k] || {}).some(v => Number(v))
+      if (belegt && !confirm('Hausgeld ' + anz + ' enthält Werte. Wirklich entfernen? Die Beträge werden gelöscht.')) return
+      delete liqData.cells[k]
+      liqData.hausgelder = anz - 1
+      liqRender()
+      scheduleSave('l')
+      liqD2BtnText()
     }
 
     // Ein weiteres Darlehen anlegen
@@ -1886,6 +1937,16 @@
       const w = document.getElementById('liqD2Weg')
       if (w) w.hidden = anz <= 1
       if (w) w.textContent = '− Darlehen ' + anz + ' entfernen'
+
+      const hg = liqHausgeldAnzahl()
+      const hb = document.getElementById('liqHgBtn')
+      if (hb) {
+        hb.textContent = '+ Weiteres Hausgeld'
+        hb.disabled = hg >= HMAX
+        hb.title = hg >= HMAX ? 'Mehr als ' + HMAX + ' Hausgeldzahlungen sind nicht vorgesehen.' : ''
+      }
+      const hw = document.getElementById('liqHgWeg')
+      if (hw) { hw.hidden = hg <= 1; hw.textContent = '− Hausgeld ' + hg + ' entfernen' }
     }
 
     let liqData = null
@@ -2166,10 +2227,13 @@
           out[k][m] = r
           bankAlle += r
         }
+        // Alle Hausgeldzahlungen
+        let hgAlle = out.hausgeld[m]
+        for (let n = 2; n <= HMAX; n++) hgAlle += out[dK('hausgeld', n)][m]
         // CF Wohnung – ohne Grundsteuer, die steht unterhalb bei den
         // unregelmäßigen Posten und geht erst ins Guthaben ein.
         const cf       = ov('cf', m)         ?? miete + out.weitereMiete[m]
-                                               + out.hausgeld[m] + bankAlle
+                                               + hgAlle + bankAlle
         guthaben       = ov('guthaben', m)   ?? guthaben + out.einzahlungEk[m] + out.einzahlungFk[m]
                                                + out.kaufpreis[m] + out.ausgabe[m] + out.grundsteuer[m]
                                                + out.weitereAusgaben[m]

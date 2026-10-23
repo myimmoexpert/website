@@ -702,6 +702,7 @@
       { key: 'nk',           label: 'Nebenkostenvorauszahlungen', type: 'input', sub: true },
       { key: 'weitereMiete', label: 'Weitere Miete',     type: 'input' },
       { key: 'hausgeld',     label: 'Hausgeld',          type: 'input' },
+      { key: '_hausgeld',    type: 'platzhalter' },
       { key: 'bankrate',     label: 'Darlehen',          type: 'calc' },
       { key: 'zins',         label: 'Zins',              type: 'input', sub: true },
       { key: 'tilgung',      label: 'Tilgung',           type: 'input', sub: true },
@@ -724,6 +725,15 @@
         extra.push({ key: dK('zins', n),    label: 'Zins',    type: 'input', sub: true, dn: n })
         extra.push({ key: dK('tilgung', n), label: 'Tilgung', type: 'input', sub: true, dn: n })
       }
+      LIQ_ROWS.splice(i, 1, ...extra)
+    })()
+
+    // Weitere Hausgeldzahlungen
+    const HMAX = (window.IECalc && window.IECalc.HAUSGELD_MAX) || 5
+    ;(() => {
+      const i = LIQ_ROWS.findIndex(r => r.key === '_hausgeld')
+      const extra = []
+      for (let n = 2; n <= HMAX; n++) extra.push({ key: dK('hausgeld', n), label: 'Hausgeld ' + n, type: 'input', hn: n })
       LIQ_ROWS.splice(i, 1, ...extra)
     })()
 
@@ -791,10 +801,12 @@
         bankrate += ov(dK('bankrate', n)) ?? c(dK('zins', n)) + c(dK('tilgung', n))
       }
       // CF Wohnung ohne Grundsteuer – die steht unterhalb davon
-      const cf  = ov('cf') ?? miete + c('weitereMiete') + c('hausgeld') + bankrate
-      const liq = Math.abs(c('hausgeld') + bankrate)
+      let hausgeld = 0
+      for (let n = 1; n <= HMAX; n++) hausgeld += c(dK('hausgeld', n))
+      const cf  = ov('cf') ?? miete + c('weitereMiete') + hausgeld + bankrate
+      const liq = Math.abs(hausgeld + bankrate)
       return { kaufpreis, nkm: c('nkm') || p.kaltmiete || 0, cf, liq,
-               hausgeld: c('hausgeld'), bankrate, grundsteuer: c('grundsteuer'), miete }
+               hausgeld: hausgeld, bankrate, grundsteuer: c('grundsteuer'), miete }
     }
 
     // ════════════════════════════════════════
@@ -961,7 +973,9 @@
           bankAlle += r
         }
         // CF Wohnung ohne Grundsteuer – die zählt erst beim Guthaben mit
-        const cf = ov('cf', m) ?? miete + out.weitereMiete[m] + out.hausgeld[m] + bankAlle
+        let hgAlle = out.hausgeld[m]
+        for (let n = 2; n <= HMAX; n++) hgAlle += out[dK('hausgeld', n)][m]
+        const cf = ov('cf', m) ?? miete + out.weitereMiete[m] + hgAlle + bankAlle
         guthaben = ov('guthaben', m) ?? guthaben + out.einzahlungEk[m] + out.einzahlungFk[m]
                                         + out.kaufpreis[m] + out.ausgabe[m] + out.grundsteuer[m]
                                         + out.weitereAusgaben[m]
@@ -1027,6 +1041,7 @@
       { key: 'nk',           label: 'Nebenkostenvorauszahlungen', type: 'input', sub: true, group: 'miete' },
       { key: 'weitereMiete', label: 'Weitere Mieteinnahmen',      type: 'input' },
       { key: 'hausgeld',     label: 'Hausgeld',                   type: 'input' },
+      { key: '_hausgeld',    type: 'platzhalter' },
       { key: 'bankrate',     label: 'Darlehen',                   type: 'calc',  toggle: 'bankrate' },
       { key: 'zins',         label: 'Zins',                       type: 'input', sub: true, group: 'bankrate' },
       { key: 'tilgung',      label: 'Tilgung',                    type: 'input', sub: true, group: 'bankrate' },
@@ -1045,6 +1060,12 @@
         extra.push({ key: dK('zins', n),    label: 'Zins',    type: 'input', sub: true, group: dK('bankrate', n), dn: n })
         extra.push({ key: dK('tilgung', n), label: 'Tilgung', type: 'input', sub: true, group: dK('bankrate', n), dn: n })
       }
+      LIQ_ANZEIGE.splice(i, 1, ...extra)
+    })()
+    ;(() => {
+      const i = LIQ_ANZEIGE.findIndex(r => r.key === '_hausgeld')
+      const extra = []
+      for (let n = 2; n <= HMAX; n++) extra.push({ key: dK('hausgeld', n), label: 'Hausgeld ' + n, type: 'input', hn: n })
       LIQ_ANZEIGE.splice(i, 1, ...extra)
     })()
     let liqOffeneGruppen = (() => {
@@ -1242,7 +1263,10 @@
       // Wie viele Darlehen hat die Immobilie mit den meisten?
       const maxD = properties.reduce((n, p) => Math.max(n,
         window.IECalc ? window.IECalc.darlehenAnzahl(p) : 1), 1)
-      const rows = LIQ_ANZEIGE.filter(r => (!r.dn || r.dn <= maxD) && (!r.group || liqOffeneGruppen.has(r.group))).map(r => {
+      const maxH = properties.reduce((n, p) => Math.max(n,
+        window.IECalc ? window.IECalc.hausgeldAnzahl(p) : 1), 1)
+      const rows = LIQ_ANZEIGE.filter(r => (!r.dn || r.dn <= maxD) && (!r.hn || r.hn <= maxH)
+        && (!r.group || liqOffeneGruppen.has(r.group))).map(r => {
         const cls = ['liq-row-' + r.type,
           r.sub ? 'liq-row-sub' : '', r.sep ? 'liq-sep' : '',
           r.strong ? 'liq-row-strong' : '', r.total ? 'liq-row-total' : ''].filter(Boolean).join(' ')
@@ -1486,6 +1510,7 @@
       ROW_LABELS[dK('tilgung', n)]  = 'Tilgung (Darlehen ' + n + ')'
       SUMMEN_ROWS[dK('bankrate', n)] = [dK('zins', n), dK('tilgung', n)]
     }
+    for (let n = 2; n <= HMAX; n++) ROW_LABELS[dK('hausgeld', n)] = 'Hausgeld ' + n
 
     let bkBuchungen = []
 
@@ -2251,7 +2276,8 @@
     // ════════════════════════════════════════
     const BS_ARTEN = [
       { key: 'miete',    label: 'Miete',    zeilen: ['miete', 'nkm', 'nk', 'weitereMiete'], summen: ['miete'] },
-      { key: 'hausgeld', label: 'Hausgeld', zeilen: ['hausgeld'], summen: [] },
+      { key: 'hausgeld', label: 'Hausgeld',
+        zeilen: Array.from({ length: HMAX }, (_, i) => dK('hausgeld', i + 1)), summen: [] },
       { key: 'bank',     label: 'Darlehen',
         zeilen: Array.from({ length: DMAX }, (_, i) => [dK('bankrate', i + 1), dK('zins', i + 1), dK('tilgung', i + 1)]).flat(),
         summen: Array.from({ length: DMAX }, (_, i) => dK('bankrate', i + 1)) },
