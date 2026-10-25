@@ -19,7 +19,7 @@
       info: 'Nach so vielen Jahren wird der Verkauf angenommen – wahlweise gerechnet ab heute oder ab der Übernahme der Immobilie.' },
     { key: 'wert',        gruppe: 'Markt',        label: 'Wertentwicklung',                einheit: '% / Jahr', min: -10, max: 15, step: 0.1, nurModus: 'wert',
       info: 'Jährliche Veränderung des Immobilienwerts ab dem heutigen Wert. Negativ = Wertverlust.' },
-    { key: 'faktor',      gruppe: 'Markt',        label: 'Verkaufsfaktor',                 einheit: '× Jahresnettokaltmiete', min: 0, max: 60, step: 0.5, nurModus: 'faktor',
+    { key: 'faktor',      gruppe: 'Markt',        label: 'Verkaufsfaktor',                 einheit: '', min: 0, max: 60, step: 0.5, nurModus: 'faktor',
       info: 'Der Verkaufspreis ergibt sich aus der Jahresnettokaltmiete des jeweiligen Jahres mal diesem Faktor.' },
     { key: 'miete',       gruppe: 'Markt',        label: 'Mietsteigerung',                 einheit: '% / Jahr', min: -5, max: 10,  step: 0.1,
       info: 'Die Miete steigt jeweils zum Beginn eines neuen Jahres um diesen Satz (z. B. Index- oder Staffelmiete).' },
@@ -33,22 +33,19 @@
       info: 'Sollzins nach Ende der Zinsbindung.' },
     { key: 'sonder',      gruppe: 'Finanzierung', label: 'Sondertilgung',                  einheit: '€ / Jahr', min: 0, max: 1000000, step: 500,
       info: 'Zahlung zusätzlich zur Bankrate, jeweils am Ende eines Jahres. Senkt den Cashflow und die Restschuld. Beim Gesamtportfolio je Immobilie.' },
-    { key: 'instand',     gruppe: 'Ausgaben & Verkauf', label: 'Zusätzliche Instandhaltung', einheit: '€ / Monat', min: 0, max: 100000, step: 10,
-      info: 'Rücklage oder Reparaturen, die nicht im Hausgeld stecken. Beim Gesamtportfolio je Immobilie.' },
     { key: 'verkauf',     gruppe: 'Ausgaben & Verkauf', label: 'Verkaufskosten',            einheit: '% vom Wert', min: 0, max: 20, step: 0.5,
       info: 'Makler, Notar, Vorfälligkeitsentschädigung o. ä. – wird beim Exit vom Verkaufspreis abgezogen.' },
   ]
 
   var VORLAGEN = {
-    basis:        { label: 'Basis',        werte: { wert: 2, miete: 2, kosten: 2, ausfall: 0, zinsbindung: 0, anschluss: 4, sonder: 0, instand: 0, verkauf: 3, faktor: 25 } },
-    optimistisch: { label: 'Optimistisch', werte: { wert: 3, miete: 3, kosten: 1.5, ausfall: 0, zinsbindung: 0, anschluss: 3, sonder: 0, instand: 0, verkauf: 3, faktor: 28 } },
+    basis:        { label: 'Basis',        werte: { wert: 2, miete: 2, kosten: 2, ausfall: 0, zinsbindung: 0, anschluss: 4, sonder: 0, verkauf: 3, faktor: 25 } },
+    optimistisch: { label: 'Optimistisch', werte: { wert: 3, miete: 3, kosten: 1.5, ausfall: 0, zinsbindung: 0, anschluss: 3, sonder: 0, verkauf: 3, faktor: 28 } },
   }
 
   // Exit ab heute oder ab Übernahme; Verkaufspreis über Wertentwicklung oder Faktor
-  var EXIT_BASIS = { heute: 'ab heute', uebernahme: 'ab Übernahme' }
   var EXIT_MODUS = { wert: 'Wertentwicklung', faktor: 'Verkaufsfaktor' }
 
-  var state = { auswahl: 'portfolio', p: null, vorlage: 'basis', basis: 'heute', modus: 'wert' }
+  var state = { auswahl: 'portfolio', p: null, vorlage: 'basis', modus: 'wert' }
   var props = []
   var gebaut = false
 
@@ -84,7 +81,6 @@
       var s = JSON.parse(localStorage.getItem(LS_KEY) || 'null')
       if (s && s.p) {
         state.auswahl = s.auswahl || 'portfolio'; state.p = s.p; state.vorlage = s.vorlage || ''
-        state.basis = s.basis === 'uebernahme' ? 'uebernahme' : 'heute'
         state.modus = s.modus === 'faktor' ? 'faktor' : 'wert'
       }
     } catch (e) {}
@@ -126,20 +122,16 @@
   function simuliere (p, par) {
     var calc = C()
     var heute = calc.jetztMonat()
-    // Exit ab heute oder ab Übernahme der Immobilie
     var jahre = Math.max(1, Math.round(par.jahre))
     var N = jahre * 12
-    if (state.basis === 'uebernahme') {
-      var seit = Math.max(0, mDiff(heute, calc.uebernahme(p)))
-      N = Math.max(1, jahre * 12 - seit)
-    }
     var t = calc.cfTeile(p, heute)
     var W0 = calc.aktuellerWert(p) || 0
     var RS = calc.restschuld(p, heute) || 0
     var RS0 = RS
 
     var miete0  = (t.miete || 0) + (t.weitereMiete || 0)
-    var nkm0    = Math.abs(t.miete || 0)   // Nettokaltmiete + NK-Vorauszahlung, Basis für den Faktor
+    // Basis für den Verkaufsfaktor ist die reine Nettokaltmiete
+    var nkm0    = calc.nkmBis ? calc.nkmBis(p, heute) : Math.abs(t.miete || 0)
     var kosten0 = (t.hausgeld || 0) + (t.grundsteuer || 0)          // negativ
     var rate    = Math.abs(t.bankrate || 0)
     var zins0   = Math.abs(t.zinsAlle !== undefined ? t.zinsAlle : (t.zins || 0) + (t.zins2 || 0))
@@ -162,7 +154,7 @@
       var fM = Math.pow(1 + par.miete / 100, y)
       var fK = Math.pow(1 + par.kosten / 100, y)
       var miete  = miete0 * fM * (1 - par.ausfall / 100)
-      var kosten = kosten0 * fK - par.instand * fK
+      var kosten = kosten0 * fK
 
       // Zinsbindung zählt ab dem Kaufdatum, nicht ab heute
       if (par.zinsbindung > 0 && RS > 0) {
@@ -188,13 +180,19 @@
 
       j.miete += miete; j.kosten += kosten; j.zins += zins; j.tilgung += tilgung; j.cf += cf
       j.nkm += nkm0 * fM * (1 - par.ausfall / 100)
+      // Der Verkaufsfaktor gilt nur für das Verkaufsjahr. Bis dahin bleibt
+      // der Wert auf dem heutigen Stand – eine Wertentwicklung ist in diesem
+      // Modus ja gerade nicht angenommen.
       j.wert = state.modus === 'faktor'
-        ? (nkm0 * 12 * Math.pow(1 + par.miete / 100, y) * par.faktor)
+        ? W0
         : W0 * Math.pow(1 + par.wert / 100, k / 12)
       j.restschuld = RS
     }
 
     var letzte = jahre[jahre.length - 1]
+    if (state.modus === 'faktor' && letzte) {
+      letzte.wert = nkm0 * 12 * Math.pow(1 + par.miete / 100, letzte.idx) * par.faktor
+    }
     var wertExit = state.modus === 'faktor'
       ? (letzte ? letzte.wert : 0)
       : W0 * Math.pow(1 + par.wert / 100, N / 12)
@@ -364,7 +362,6 @@
     var gruppe = ''
     var felder = PARAMS.map(function (d) {
       var kopf = d.gruppe !== gruppe ? '<div class="sz-gruppe">' + esc(d.gruppe) + '</div>' : ''
-      if (d.key === 'jahre') kopf += schalter('szBasis', EXIT_BASIS, state.basis)
       if (d.key === 'wert')  kopf += schalter('szModus', EXIT_MODUS, state.modus)
       gruppe = d.gruppe
       return kopf +
@@ -421,7 +418,7 @@
     host.querySelectorAll('.sz-chip').forEach(function (b) {
       b.addEventListener('click', function () { vorlage(b.getAttribute('data-v')) })
     })
-    ;[['szBasis', 'basis'], ['szModus', 'modus']].forEach(function (x) {
+    ;[['szModus', 'modus']].forEach(function (x) {
       var box = host.querySelector('#' + x[0])
       if (!box) return
       box.addEventListener('click', function (e) {
@@ -590,7 +587,6 @@
     '</div>'
 
     /* ── Bereich 2: von Kauf bis Exit ────────────────────── */
-    var basisTxt = state.basis === 'uebernahme' ? 'ab Übernahme' : 'ab heute'
     var w2 = r.wertExit - kaufpreis
     var t2 = Math.max(0, heuteZ.fk - r.restschuldExit)
     var c2 = c1 + r.kumCf
@@ -598,7 +594,7 @@
     var s2netto = s2 - r.verkaufskosten
 
     html += '<div class="sz-titel">2 · Entwicklung von Kauf bis Exit ' + esc(exitJahr) +
-      ' (Verkauf nach ' + par.jahre + ' ' + (par.jahre === 1 ? 'Jahr' : 'Jahren') + ' ' + basisTxt + ')</div>'
+      ' (Verkauf nach ' + par.jahre + ' ' + (par.jahre === 1 ? 'Jahr' : 'Jahren') + ')</div>'
     html += dreier(
       kachel('Kaufpreis', eur(kaufpreis)),
       kachel('Wert beim Exit', eur(r.wertExit), 'gold', '',
@@ -640,14 +636,6 @@
         frist.map(function (s) { return (state.auswahl === 'portfolio' ? esc(s.p.bezeichnung || 'Immobilie') + ' ' : '') + '(Frist endet am ' + datum(s.fristEnde) + ')' }).join(', ') +
         ': Ein Veräußerungsgewinn ist bei vermieteten Immobilien in der Regel einkommensteuerpflichtig (§ 23 EStG). Der Rechner zieht keine Steuern ab.')
     }
-    if (state.basis === 'uebernahme') {
-      var schonVorbei = r.einzeln.filter(function (s) { return s.N <= 1 })
-      if (schonVorbei.length) {
-        hinweise.push('<b>Haltedauer bereits erreicht</b>' +
-          (state.auswahl === 'portfolio' ? ' bei ' + schonVorbei.map(function (s) { return esc(s.p.bezeichnung || 'Immobilie') }).join(', ') : '') +
-          ': Der gewählte Zeitraum ab Übernahme liegt in der Vergangenheit – gerechnet wird mit dem nächstmöglichen Monat.')
-      }
-    }
     var ohneStichtag = r.einzeln.filter(function (s) { return !s.stichtag })
     if (ohneStichtag.length) {
       hinweise.push('<b>Übernahmestichtag fehlt</b>' +
@@ -663,10 +651,6 @@
         ' – ohne Kaufpreis oder eigenen Wert geht die Immobilie mit 0 € in den Verkaufserlös ein.')
     }
     if (hinweise.length) html += '<div class="sz-hinweise">' + hinweise.map(function (h) { return '<div class="sz-hinweis">' + h + '</div>' }).join('') + '</div>'
-
-    html += '<p class="sz-disclaimer">Bereich 1 kommt vollständig aus der Liquiditätsplanung und den Werteinstellungen. ' +
-      'Bereich 2 schreibt denselben Stand mit den Annahmen links fort; das erste Prognosejahr umfasst die nächsten zwölf Monate. ' +
-      'Modellrechnung ohne Steuern, ohne Gewähr – keine Anlage- oder Steuerberatung.</p>'
 
     host.innerHTML = html
 

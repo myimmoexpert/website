@@ -196,14 +196,12 @@
     .jahr-tab tr.sum td.lbl { color: var(--white); }
     .jahr-tab tr.total td { background: rgba(211,172,95,0.08); font-weight: 700; }
     .jahr-tab tr.total td.lbl, .jahr-tab tr.total td.z { color: var(--gold); }
-    .jahr-tab tr.eingabe td.lbl::after { content: ' ✎'; color: rgba(211,172,95,0.55); font-size: 0.72rem; }
     .jahr-abschnitt { padding: 14px 14px 2px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.5px;
                       text-transform: uppercase; color: var(--muted); }
     .jahr-feld { width: 150px; background: var(--navy); border: 1px solid rgba(255,255,255,0.175);
                  border-radius: 7px; padding: 6px 9px; color: var(--white); font: 500 0.84rem 'Inter', sans-serif; text-align: right; }
     .jahr-feld:focus { outline: none; border-color: rgba(211,172,95,0.55); }
     .jahr-einheit { color: var(--muted); font-size: 0.78rem; margin-left: 6px; }
-    .jahr-fuss { color: var(--muted); font-size: 0.78rem; line-height: 1.6; margin-top: 18px; }
     @media (max-width: 700px) {
       .jahr-tab td { padding: 8px 10px; }
       .jahr-tab td.z { width: auto; }
@@ -645,8 +643,6 @@
         <span class="save-indicator" id="siJahr"></span>
       </div>
       <div id="jahrListe"></div>
-      <p class="jahr-fuss">Zusammenstellung aus den erfassten Zahlen der Liquiditätsplanung. Keine
-         Steuerberatung und kein Ersatz für die Prüfung durch eine Steuerberaterin oder einen Steuerberater.</p>
     </div>
   </div>
 
@@ -1491,7 +1487,7 @@
     /* ════════════════════════════════════════
        JAHRESÜBERSICHT
        Alle Zahlen kommen aus der Liquiditätsplanung der jeweiligen
-       Immobilie. Die mit ✎ markierten Zeilen trägt der Nutzer selbst
+       Immobilie. Die Zeilen mit Eingabefeld trägt der Nutzer selbst
        ein; sie liegen je Immobilie und Jahr in „einstellungen.jahr".
        ════════════════════════════════════════ */
     const JAHR_FELDER = ['ruecklageAnteil', 'ausgabenRuecklage', 'kaufnebenAbsetzbar', 'weitereAusgaben',
