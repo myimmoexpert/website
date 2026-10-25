@@ -2,7 +2,6 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <script>if(sessionStorage.getItem('ie_gate')!=='1')document.documentElement.style.visibility='hidden'</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Portfoliokennzahlen – Immo.Expert</title>
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
@@ -183,6 +182,33 @@
     .bn-item-sub { font-size: 0.8rem; color: var(--muted); }
     .bn-item-datum { font-size: 0.78rem; color: var(--red); white-space: nowrap; font-weight: 600; }
 
+    /* ── JAHRESÜBERSICHT ── */
+    .jahr-kopf { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+    .jahr-kopf label { font-size: 0.8rem; color: var(--muted); }
+    .jahr-select { background: var(--navy2); border: 1px solid rgba(255,255,255,0.16); border-radius: 9px;
+                   color: var(--white); font: 500 0.88rem/1 'Inter', sans-serif; padding: 10px 12px; color-scheme: dark; }
+    .jahr-block { margin-bottom: 14px; }
+    .jahr-tab { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+    .jahr-tab td { padding: 9px 14px; border-top: 1px solid rgba(255,255,255,0.07); }
+    .jahr-tab td.z { text-align: right; white-space: nowrap; width: 190px; color: var(--white); }
+    .jahr-tab td.lbl { color: var(--muted); }
+    .jahr-tab tr.sum td { background: rgba(255,255,255,0.04); font-weight: 600; }
+    .jahr-tab tr.sum td.lbl { color: var(--white); }
+    .jahr-tab tr.total td { background: rgba(211,172,95,0.08); font-weight: 700; }
+    .jahr-tab tr.total td.lbl, .jahr-tab tr.total td.z { color: var(--gold); }
+    .jahr-tab tr.eingabe td.lbl::after { content: ' ✎'; color: rgba(211,172,95,0.55); font-size: 0.72rem; }
+    .jahr-abschnitt { padding: 14px 14px 2px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.5px;
+                      text-transform: uppercase; color: var(--muted); }
+    .jahr-feld { width: 150px; background: var(--navy); border: 1px solid rgba(255,255,255,0.175);
+                 border-radius: 7px; padding: 6px 9px; color: var(--white); font: 500 0.84rem 'Inter', sans-serif; text-align: right; }
+    .jahr-feld:focus { outline: none; border-color: rgba(211,172,95,0.55); }
+    .jahr-einheit { color: var(--muted); font-size: 0.78rem; margin-left: 6px; }
+    .jahr-fuss { color: var(--muted); font-size: 0.78rem; line-height: 1.6; margin-top: 18px; }
+    @media (max-width: 700px) {
+      .jahr-tab td { padding: 8px 10px; }
+      .jahr-tab td.z { width: auto; }
+      .jahr-feld { width: 100px; }
+    }
     .bn-tab-wrap { overflow-x: auto; border: 1px solid rgba(255,255,255,0.088); border-radius: 12px; background: var(--navy2); }
     .bn-tab { width: 100%; border-collapse: collapse; font-size: 0.86rem; min-width: 1120px; }
     .bn-tab th {
@@ -613,22 +639,14 @@
   <!-- ══ JAHRESÜBERSICHT (in Entwicklung) ══ -->
   <div class="tab-pane" id="pane-jahr">
     <div class="tab-content">
-      <div class="dev-card">
-        <div class="dev-badge">Befindet sich in Entwicklung</div>
-        <h2>Jahresübersicht</h2>
-        <p>Hier sammeln wir künftig die steuerlich relevanten Informationen Ihres Portfolios für ein
-           Kalenderjahr – übersichtlich je Immobilie und als Summe, als Grundlage für die Unterlagen an
-           Ihre Steuerberatung.</p>
-        <div class="dev-list">
-          <div><b>Einnahmen</b><span>Kaltmieten, Nebenkostenvorauszahlungen, weitere Mieteinnahmen, Nachzahlungen aus der Nebenkostenabrechnung</span></div>
-          <div><b>Finanzierung</b><span>gezahlte Schuldzinsen je Darlehen, getrennt von der Tilgung</span></div>
-          <div><b>Laufende Kosten</b><span>Hausgeld, Grundsteuer, Versicherungen, weitere Ausgaben aus der Liquiditätsplanung</span></div>
-          <div><b>Anschaffung</b><span>Kaufpreis, Kaufnebenkosten und Übernahmedatum als Ausgangsdaten für die Abschreibung</span></div>
-          <div><b>Belege</b><span>Verknüpfung mit den Dateien der Immobilie und Export als Excel</span></div>
-        </div>
-        <p class="dev-hinweis">Die Jahresübersicht stellt Zahlen zusammen, die Sie bereits erfasst haben. Sie ist keine
-           Steuerberatung und ersetzt keine Prüfung durch eine Steuerberaterin oder einen Steuerberater.</p>
+      <div class="jahr-kopf">
+        <label for="jahrSelect">Jahr</label>
+        <select class="jahr-select" id="jahrSelect"></select>
+        <span class="save-indicator" id="siJahr"></span>
       </div>
+      <div id="jahrListe"></div>
+      <p class="jahr-fuss">Zusammenstellung aus den erfassten Zahlen der Liquiditätsplanung. Keine
+         Steuerberatung und kein Ersatz für die Prüfung durch eine Steuerberaterin oder einen Steuerberater.</p>
     </div>
   </div>
 
@@ -1232,13 +1250,7 @@
 
     function admSummeZeigen() {
       const el = document.getElementById('admSumme')
-      if (!el) return
-      let ek = 0, aus = 0
-      Object.values(admZellen('einzahlungEk')).forEach(v => { ek += Number(v) || 0 })
-      Object.values(admZellen('ausgaben')).forEach(v => { aus += Number(v) || 0 })
-      el.innerHTML = (ek || aus)
-        ? `Eigenkapital ${liqFmt(ek)} € · Ausgaben ${liqFmt(aus)} €`
-        : ''
+      if (el) el.innerHTML = ''
     }
 
     function renderLiquiditaet() {
@@ -1473,6 +1485,235 @@
       if (name === 'planung') { renderLiquiditaet(); renderAdministrativ(); renderLiqProps(); setTimeout(liqScrollToNow, 150); renderBuchungsstatus() }
       if (name === 'szenario' && window.IESzenario) window.IESzenario.zeigen(properties)
       if (name === 'benachrichtigungen') bnRender()
+      if (name === 'jahr') jahrRender()
+    }
+
+    /* ════════════════════════════════════════
+       JAHRESÜBERSICHT
+       Alle Zahlen kommen aus der Liquiditätsplanung der jeweiligen
+       Immobilie. Die mit ✎ markierten Zeilen trägt der Nutzer selbst
+       ein; sie liegen je Immobilie und Jahr in „einstellungen.jahr".
+       ════════════════════════════════════════ */
+    const JAHR_FELDER = ['ruecklageAnteil', 'ausgabenRuecklage', 'kaufnebenAbsetzbar', 'weitereAusgaben',
+                         'gebaeudeAnteil', 'kaufnebenAbschreibung', 'nutzungsdauer', 'monate']
+    let jahrAktiv = null
+    let jahrTimer = null
+
+    function jahrWerte(p, jahr) {
+      const e = (p.einstellungen && p.einstellungen.jahr && p.einstellungen.jahr[jahr]) || {}
+      const o = {}
+      JAHR_FELDER.forEach(k => { o[k] = e[k] === undefined || e[k] === null || e[k] === '' ? null : Number(e[k]) })
+      return o
+    }
+
+    // Summe einer Zeile über alle Monate eines Jahres (Übersteuerung zählt)
+    function jahrZeile(p, key, jahr) {
+      const lq = p.liquiditaet || {}
+      const c = (lq.cells || {})[key] || {}
+      const o = (lq.overrides || {})[key] || {}
+      let s = 0
+      for (let mo = 1; mo <= 12; mo++) {
+        const m = jahr + '-' + String(mo).padStart(2, '0')
+        const ov = o[m]
+        s += (ov !== undefined && ov !== null && ov !== '') ? Number(ov) || 0 : Number(c[m]) || 0
+      }
+      return s
+    }
+
+    function jahrZahlen(p, jahr) {
+      const C = window.IECalc
+      const DM = (C && C.DARLEHEN_MAX) || 5
+      const HM = (C && C.HAUSGELD_MAX) || 5
+      const k = (b, n) => (C ? C.dKey(b, n) : (n === 1 ? b : b + n))
+      const warm = jahrZeile(p, 'nkm', jahr) + jahrZeile(p, 'nk', jahr) + jahrZeile(p, 'weitereMiete', jahr)
+      let hausgeld = 0
+      for (let n = 1; n <= HM; n++) hausgeld += jahrZeile(p, k('hausgeld', n), jahr)
+      let zins = 0
+      for (let n = 1; n <= DM; n++) zins += jahrZeile(p, k('zins', n), jahr)
+      return {
+        warm: Math.abs(warm),
+        hausgeld: Math.abs(hausgeld),
+        zins: Math.abs(zins),
+        nkAbrechnung: jahrZeile(p, 'nebenkostenabrechnung', jahr),
+        kaufpreis: C ? Math.abs(C.kaufpreis(p)) : 0,
+        monateImBestand: jahrMonate(p, jahr),
+      }
+    }
+
+    // Wie viele Monate des Jahres gehört die Immobilie bereits dem Nutzer?
+    function jahrMonate(p, jahr) {
+      const C = window.IECalc
+      if (!C) return 0
+      const ab = C.bestandAb ? C.bestandAb(p) : C.uebernahme(p)
+      let n = 0
+      for (let mo = 1; mo <= 12; mo++) {
+        if (jahr + '-' + String(mo).padStart(2, '0') >= ab) n++
+      }
+      return n
+    }
+
+    function jahrFmt(n) {
+      return (Math.round((n || 0) * 100) / 100).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
+    }
+
+    function jahrJahre() {
+      const C = window.IECalc
+      const jetzt = new Date().getFullYear()
+      let von = jetzt
+      properties.forEach(p => {
+        const ab = C && C.bestandAb ? C.bestandAb(p) : (C ? C.uebernahme(p) : null)
+        const y = Number(String(ab || '').slice(0, 4))
+        if (y && y < von) von = y
+      })
+      const out = []
+      for (let j = jetzt; j >= von; j--) out.push(j)
+      return out
+    }
+
+    function jahrRender() {
+      const sel = document.getElementById('jahrSelect')
+      const ziel = document.getElementById('jahrListe')
+      if (!sel || !ziel) return
+      const jahre = jahrJahre()
+      if (jahrAktiv === null || jahre.indexOf(jahrAktiv) === -1) jahrAktiv = jahre[0]
+      sel.innerHTML = jahre.map(j => `<option value="${j}" ${j === jahrAktiv ? 'selected' : ''}>${j}</option>`).join('')
+      sel.onchange = () => { jahrAktiv = Number(sel.value); jahrRender() }
+
+      if (!properties.length) { ziel.innerHTML = '<div class="ov-empty">Noch keine Immobilien im Portfolio.</div>'; return }
+      ziel.innerHTML = properties.map((p, i) => jahrBlock(p, i, jahrAktiv)).join('')
+      ziel.querySelectorAll('.jahr-feld').forEach(f => {
+        f.addEventListener('change', () => jahrFeldGeaendert(f))
+        f.addEventListener('focus', () => f.select())
+      })
+    }
+
+    function jahrZeileHtml(label, wert, klasse, titel) {
+      return `<tr class="${klasse || ''}"><td class="lbl"${titel ? ` title="${esc(titel)}"` : ''}>${esc(label)}</td>` +
+             `<td class="z">${wert}</td></tr>`
+    }
+
+    function jahrFeldHtml(idx, key, wert, einheit, titel) {
+      return `<input class="jahr-feld" data-idx="${idx}" data-key="${key}" inputmode="decimal"` +
+             ` value="${wert === null ? '' : String(wert).replace('.', ',')}"${titel ? ` title="${esc(titel)}"` : ''} />` +
+             (einheit ? `<span class="jahr-einheit">${esc(einheit)}</span>` : '')
+    }
+
+    function jahrBlock(p, idx, jahr) {
+      const z = jahrZahlen(p, jahr)
+      const e = jahrWerte(p, jahr)
+      const n = v => Number(v) || 0
+
+      // Einnahmenüberschuss des Jahres
+      const zwischen = z.warm - (z.hausgeld - n(e.ruecklageAnteil)) - n(e.ausgabenRuecklage)
+                       - z.zins - n(e.kaufnebenAbsetzbar) - n(e.weitereAusgaben) + z.nkAbrechnung
+
+      // Abschreibung
+      const gebaeude = z.kaufpreis * n(e.gebaeudeAnteil) / 100
+      const afaBasis = gebaeude + n(e.kaufnebenAbschreibung)
+      const afaJahr = n(e.nutzungsdauer) > 0 ? afaBasis / n(e.nutzungsdauer) : 0
+      const afa = afaJahr * n(e.monate) / 12
+      const euer = zwischen - afa
+
+      const F = (key, einheit, titel) => jahrFeldHtml(idx, key, e[key], einheit, titel)
+
+      return `
+      <details class="liq-auf lp-prop jahr-block" ${idx === 0 ? 'open' : ''}>
+        <summary>
+          <span class="liq-auf-chev">▾</span>
+          <span class="liq-auf-titel"><span class="lp-ico">${OBJEKTART_ICONS[p.objektart] || '🏗️'}</span>
+            <span class="lp-name">${esc(p.bezeichnung || 'Immobilie')}</span>
+            <span class="lp-adr">${esc(p.adresse || '')}</span></span>
+          <span class="lp-cf" style="color:${euer < 0 ? 'var(--red)' : 'var(--green)'}">${jahrFmt(euer)}</span>
+        </summary>
+        <div class="lp-frame-wrap"><div class="lp-body">
+          <table class="jahr-tab">
+            <tbody>
+              ${jahrZeileHtml('Warmmiete', jahrFmt(z.warm), '', 'Nettokaltmiete, Nebenkostenvorauszahlung und weitere Mieteinnahmen des Jahres')}
+              ${jahrZeileHtml('Hausgeld', jahrFmt(-z.hausgeld), '', 'Summe aller Hausgeldzeilen des Jahres')}
+              <tr class="eingabe"><td class="lbl">Hausgeld Rücklage Anteil</td><td class="z">${F('ruecklageAnteil', '€')}</td></tr>
+              <tr class="eingabe"><td class="lbl">Ausgaben gezahlt aus Rücklage</td><td class="z">${F('ausgabenRuecklage', '€')}</td></tr>
+              ${jahrZeileHtml('Darlehenszins', jahrFmt(-z.zins), '', 'Summe der Zinszeilen aller Darlehen des Jahres')}
+              <tr class="eingabe"><td class="lbl">Kaufnebenkosten (direkt absetzbar)</td><td class="z">${F('kaufnebenAbsetzbar', '€')}</td></tr>
+              <tr class="eingabe"><td class="lbl">Weitere Ausgaben</td><td class="z">${F('weitereAusgaben', '€')}</td></tr>
+              ${jahrZeileHtml('Nebenkostenabrechnung', jahrFmt(z.nkAbrechnung), '', 'Summe der Zeile „Nebenkostenabrechnung" des Jahres')}
+              ${jahrZeileHtml('Zwischensumme', jahrFmt(zwischen), 'sum')}
+            </tbody>
+          </table>
+
+          <div class="jahr-abschnitt">Abschreibung</div>
+          <table class="jahr-tab">
+            <tbody>
+              ${jahrZeileHtml('Kaufpreis', jahrFmt(z.kaufpreis), '', 'Aus der Zeile „Zahlung Kaufpreis" der Liquiditätsplanung')}
+              <tr class="eingabe"><td class="lbl">Gebäudeanteil</td><td class="z">${F('gebaeudeAnteil', '%')}</td></tr>
+              ${jahrZeileHtml('Zwischensumme Gebäudeanteil', jahrFmt(gebaeude), '', 'Kaufpreis × Gebäudeanteil')}
+              <tr class="eingabe"><td class="lbl">Kaufnebenkosten (abzuschreiben)</td><td class="z">${F('kaufnebenAbschreibung', '€')}</td></tr>
+              ${jahrZeileHtml('Zwischensumme Gebäudeanteil und Kaufnebenkosten', jahrFmt(afaBasis), 'sum')}
+              <tr class="eingabe"><td class="lbl">Restnutzungsdauer</td><td class="z">${F('nutzungsdauer', 'Jahre')}</td></tr>
+              ${jahrZeileHtml('Abschreibung pro Jahr', jahrFmt(afaJahr), '', 'Zwischensumme ÷ Restnutzungsdauer')}
+              <tr class="eingabe"><td class="lbl">Relevante Monate</td><td class="z">${F('monate', 'von 12', 'Im Jahr ' + jahr + ' gehört die Immobilie ' + z.monateImBestand + ' Monate zum Bestand.')}</td></tr>
+              ${jahrZeileHtml('Abschreibung im betrachteten Jahr', jahrFmt(-afa), 'sum', 'Abschreibung pro Jahr × relevante Monate ÷ 12')}
+            </tbody>
+          </table>
+
+          <div class="jahr-abschnitt">Ergebnis ${jahr}</div>
+          <table class="jahr-tab">
+            <tbody>
+              ${jahrZeileHtml('Zwischensumme', jahrFmt(zwischen))}
+              ${jahrZeileHtml('Abschreibung im betrachteten Jahr', jahrFmt(-afa))}
+              ${jahrZeileHtml('EÜR inkl. Abschreibung', jahrFmt(euer), 'total')}
+            </tbody>
+          </table>
+        </div></div>
+      </details>`
+    }
+
+    function jahrFeldGeaendert(feld) {
+      const p = properties[Number(feld.dataset.idx)]
+      if (!p) return
+      const key = feld.dataset.key
+      const roh = feld.value.trim().replace(/[\s€%]/g, '')
+      let wert = null
+      if (roh) {
+        let t = roh
+        if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.')
+        else if (/^-?\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '')
+        const num = parseFloat(t)
+        wert = isNaN(num) ? null : num
+      }
+      p.einstellungen = Object.assign({}, p.einstellungen || {})
+      p.einstellungen.jahr = Object.assign({}, p.einstellungen.jahr || {})
+      p.einstellungen.jahr[jahrAktiv] = Object.assign({}, p.einstellungen.jahr[jahrAktiv] || {})
+      if (wert === null) delete p.einstellungen.jahr[jahrAktiv][key]
+      else p.einstellungen.jahr[jahrAktiv][key] = wert
+      jahrSpeichern(p)
+      // Nur die betroffene Immobilie neu rechnen, Fokus bleibt erhalten
+      const det = feld.closest('details')
+      const offen = det ? det.open : true
+      const idx = Number(feld.dataset.idx)
+      const platz = document.createElement('div')
+      platz.innerHTML = jahrBlock(p, idx, jahrAktiv)
+      const neu = platz.firstElementChild
+      neu.open = offen
+      det.replaceWith(neu)
+      neu.querySelectorAll('.jahr-feld').forEach(f => {
+        f.addEventListener('change', () => jahrFeldGeaendert(f))
+        f.addEventListener('focus', () => f.select())
+      })
+      const wieder = neu.querySelector(`.jahr-feld[data-key="${key}"]`)
+      if (wieder) wieder.focus()
+    }
+
+    async function jahrSpeichern(p) {
+      const ind = document.getElementById('siJahr')
+      if (ind) { ind.textContent = 'Speichert …'; ind.className = 'save-indicator saving' }
+      clearTimeout(jahrTimer)
+      jahrTimer = setTimeout(async () => {
+        const { error } = await sb.from('portfolio').update({ einstellungen: p.einstellungen }).eq('id', p.id)
+        if (!ind) return
+        if (error) { ind.textContent = '⚠ Fehler beim Speichern'; ind.style.color = 'var(--red)'; return }
+        ind.textContent = '✓ Gespeichert'; ind.className = 'save-indicator saved'
+        setTimeout(() => { ind.textContent = ''; ind.className = 'save-indicator' }, 2000)
+      }, 500)
     }
 
     window.ieSetView = switchTab
@@ -2438,6 +2679,5 @@
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
     }
   </script>
-  <script src="password-gate.js"></script>
 </body>
 </html>

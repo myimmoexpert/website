@@ -147,7 +147,10 @@
     return (props || []).map(function (p) {
       var t = C.cfTeile(p, m)
       var basis = C.aktuellerWert(p) || C.kaufpreis(p)
-      var jahresMiete = (t.miete + t.weitereMiete) * 12
+      // Nur echte Mieteinnahmen: Nettokaltmiete und weitere Mieteinnahmen.
+      // Die Nebenkostenvorauszahlung ist ein durchlaufender Posten.
+      var nkm = C.nkmBis ? C.nkmBis(p, m) : Math.abs(t.miete)
+      var jahresMiete = (nkm + t.weitereMiete) * 12
       return {
         name: p.bezeichnung || 'Immobilie', basis: basis, miete: jahresMiete, cf: t.cf * 12,
         rendite: basis > 0 ? (jahresMiete / basis) * 100 : 0
@@ -193,10 +196,10 @@
     var summeBasis = objekte.reduce(function (s, o) { return s + o.basis }, 0)
     var schnitt = summeBasis > 0 ? (summeMiete / summeBasis) * 100 : 0
     window.IEChart.balken(karte.querySelector('.pc-plot'), {
-      aria: 'Mietrendite je Immobilie',
+      aria: 'Mietrendite aktuell je Immobilie',
       leerText: 'Noch keine Immobilie mit Wert erfasst.',
       labels: objekte.map(function (o) { return o.name }),
-      serien: [{ name: 'Mietrendite', farbe: F.GOLD, werte: objekte.map(function (o) { return o.rendite }) }],
+      serien: [{ name: 'Mietrendite aktuell', farbe: F.GOLD, werte: objekte.map(function (o) { return o.rendite }) }],
       format: pct,
       achse: function (v) { return v.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' %' },
       rechts: function (i) { return pct(objekte[i].rendite) },
@@ -237,10 +240,10 @@
                 klasse: vorschauCf.cf < -0.004 ? 'red' : 'green' },
         legende: vorschauCf.schritte.filter(function (x) { return gibt[x.name] })
           .map(function (x) { return { c: x.farbe, t: x.name } }) }) +
-      K.karte({ id: 'pcRd', titel: 'Mietrendite je Immobilie',
-        info: 'Jahresmiete bezogen auf den aktuellen Wert der Immobilie',
+      K.karte({ id: 'pcRd', titel: 'Mietrendite aktuell je Immobilie',
+        info: 'Jahreskaltmiete zuzüglich weiterer Mieteinnahmen, bezogen auf den aktuellen Wert der Immobilie',
         hero: { wert: pct(sb > 0 ? sm / sb * 100 : 0), label: 'Portfolio im Schnitt' },
-        legende: [{ c: F.GOLD, t: 'Mietrendite' }, { c: F.INK, t: 'Portfolioschnitt', linie: true }] })
+        legende: [{ c: F.GOLD, t: 'Mietrendite aktuell' }, { c: F.INK, t: 'Portfolioschnitt', linie: true }] })
 
     chartPortfoliowert(container.querySelector('#pcAum'), props)
     chartCashflow(container.querySelector('#pcCf'), props, monat)

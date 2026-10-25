@@ -2,7 +2,6 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <script>if(sessionStorage.getItem('ie_gate')!=='1')document.documentElement.style.visibility='hidden'</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Immobilie – Immo.Expert</title>
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
@@ -102,6 +101,8 @@
     .cl-value-input { background: transparent; border: none; color: var(--white); font-family: inherit; font-size: 0.86rem; padding: 11px 16px; outline: none; width: 100%; }
     .cl-value-input:focus { background: rgba(211,172,95,0.03); }
     .cl-value-input::placeholder { color: rgba(155,150,140,0.35); }
+    /* Abgeleiteter Wert – sieht aus wie ein Feld, ist aber keins */
+    .cl-value-auto { color: var(--muted); font-size: 0.86rem; padding: 11px 16px; width: 100%; cursor: default; }
     select.cl-value-input { cursor: pointer; }
     select.cl-value-input option { background: var(--navy2); color: var(--white); }
     textarea.miet-notes { resize: vertical; min-height: 76px; line-height: 1.55; font-family: inherit; }
@@ -1621,7 +1622,7 @@
       { key: 'mieterTelefon',       label: 'Mieter Telefonnummer' },
       { key: 'mieterEmail',         label: 'Mieter E-Mail' },
       { key: 'mietverhaeltnisSeit', label: 'Mietverhältnis seit' },
-      { key: 'letzteMieterhoehung', label: 'Letzte Mieterhöhung', ph: 'TT.MM.JJJJ (z. B. 01.07.2025)' },
+      { key: 'letzteMieterhoehung', label: 'Letzte Mieterhöhung', auto: true },
       { key: 'mietsicherheitArt',   label: 'Mietsicherheit Art', ph: 'z. B. Bürgschaft, Barkaution …' },
       { key: 'mietsicherheitHoehe', label: 'Mietsicherheit Höhe' },
       { key: 'notes',               label: 'Notizen', textarea: true },
@@ -1659,6 +1660,12 @@
             <select class="cl-value-input" data-miet-key="${field.key}">${opts}</select>
             <div></div>`
           row.querySelector('select').addEventListener('change', () => scheduleSave('m'))
+        } else if (field.auto) {
+          // Wird aus der Zeile „Nettokaltmiete" der Liquiditätsplanung abgeleitet
+          row.innerHTML = `
+            <div class="cl-fixed-label">${field.label}</div>
+            <div class="cl-value-auto" id="mietLetzteErhoehung">–</div>
+            <div></div>`
         } else if (field.textarea) {
           row.innerHTML = `
             <div class="cl-fixed-label" style="align-items:flex-start; padding-top:12px;">${field.label}</div>
@@ -1676,6 +1683,30 @@
         }
         table.appendChild(row)
       })
+      mietErhoehungZeigen()
+    }
+
+    // Datum der letzten Mieterhöhung – abgeleitet aus der Zeile
+    // „Nettokaltmiete" der Liquiditätsplanung (jüngster Anstieg)
+    function mietErhoehungZeigen() {
+      const el = document.getElementById('mietLetzteErhoehung')
+      const B = window.IEBenachrichtigungen
+      if (!el || !B || !B.letzteMieterhoehung) return
+      const b = B.letzteMieterhoehung(propFuerCalc())
+      if (!b) {
+        el.textContent = '–'
+        el.title = 'Noch keine Nettokaltmiete in der Liquiditätsplanung erfasst.'
+        return
+      }
+      if (b.art === 'beginn') {
+        el.textContent = 'keine – unverändert seit ' + B.datumSchreiben(b.datum)
+        el.title = 'Die Nettokaltmiete wurde seit Beginn nicht erhöht.'
+      } else {
+        el.textContent = B.datumSchreiben(b.datum)
+        el.title = b.art === 'erhoehung'
+          ? 'Jüngster Anstieg in der Zeile „Nettokaltmiete" der Liquiditätsplanung.'
+          : 'Aus dem früher von Hand eingetragenen Datum – in der Liquiditätsplanung ist keine Nettokaltmiete erfasst.'
+      }
     }
 
     function collectMiet() {
@@ -2823,6 +2854,8 @@
       })
       liqRollupGroups(rec)
       updateFinanzWerte()
+      // Die letzte Mieterhöhung hängt an der Zeile „Nettokaltmiete"
+      if (typeof mietErhoehungZeigen === 'function') mietErhoehungZeigen()
     }
 
     // Eine Summenzeile gilt als gebucht, sobald ihre Teilzeilen gebucht sind:
@@ -4709,6 +4742,5 @@
     }
   </script>
   <script src="jszip.min.js"></script>
-  <script src="password-gate.js"></script>
 </body>
 </html>

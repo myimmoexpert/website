@@ -116,7 +116,7 @@
                 Math.abs(calc.summeBis(p, 'weitereAusgaben', heute))
     // Cashflow seit der Übernahme bis einschließlich heute
     var cf = 0
-    var u = calc.uebernahme(p)
+    var u = calc.bestandAb ? calc.bestandAb(p) : calc.uebernahme(p)
     var n = Math.max(0, mDiff(heute, u))
     for (var i = 0; i <= n; i++) cf += calc.cfTeile(p, calc.monatPlus(u, i)).cf
     return { wert: wert, restschuld: rs, nebenkosten: neben, cf: cf,
@@ -314,7 +314,10 @@
       '.sz-start b { font-size:0.95rem; font-weight:600; }',
       '.sz-kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:18px; }',
       '.sz-kpis-4 { grid-template-columns:repeat(4,minmax(0,1fr)); }',
-      '@media (max-width: 1200px) { .sz-kpis-4 { grid-template-columns:repeat(2,minmax(0,1fr)); } }',
+      '.sz-kpis-3 { grid-template-columns:repeat(3,minmax(0,1fr)); }',
+      '.sz-kpis-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }',
+      '@media (max-width: 1200px) { .sz-kpis-4, .sz-kpis-3 { grid-template-columns:repeat(2,minmax(0,1fr)); } }',
+      '@media (max-width: 700px) { .sz-kpis-4, .sz-kpis-3, .sz-kpis-2 { grid-template-columns:minmax(0,1fr); } }',
       '.sz-kpi { background:var(--navy2); border:1px solid rgba(255,255,255,0.112); border-radius:12px; padding:14px 16px; }',
       '.sz-kpi.haupt { border-color:rgba(211,172,95,0.4); background:linear-gradient(180deg,rgba(211,172,95,0.08),rgba(211,172,95,0.02)); }',
       '.sz-kpi-lab { font-size:0.7rem; font-weight:600; text-transform:uppercase; letter-spacing:0.4px; color:var(--muted); display:flex; align-items:center; gap:6px; }',
@@ -481,6 +484,55 @@
       '<div class="sz-kpi-val ' + (klasse || '') + '">' + wert + '</div>' + (sub || '') + '</div>'
   }
 
+  /* ── Geschichte aus der Liquiditätsplanung ────────────────
+     Jahr für Jahr vom Übernahmestichtag bis heute, ausschließlich
+     aus den erfassten Zahlen: Wert, valutiertes Fremdkapital,
+     Restschuld, geleistete Tilgung und kumulierter Cashflow. */
+  function historie (p) {
+    var calc = C()
+    var heute = calc.jetztMonat()
+    var ab = calc.bestandAb ? calc.bestandAb(p) : calc.uebernahme(p)
+    if (ab > heute) ab = heute
+    var j0 = Number(String(ab).slice(0, 4)), jN = Number(heute.slice(0, 4))
+    var out = [], cfKum = 0
+    for (var y = j0; y <= jN; y++) {
+      for (var mo = 1; mo <= 12; mo++) {
+        var m = y + '-' + String(mo).padStart(2, '0')
+        if (m < ab || m > heute) continue
+        cfKum += calc.cfTeile(p, m).cf
+      }
+      var bis = y < jN ? y + '-12' : heute
+      var fk = Math.abs(calc.summeBis(p, 'einzahlungFk', bis))
+      var rs = calc.restschuld(p, bis) || 0
+      out.push({ jahr: y, wert: calc.wert(p, bis) || 0, fk: fk, restschuld: rs,
+                 tilgung: Math.max(0, fk - rs), cfKum: cfKum })
+    }
+    return out
+  }
+
+  // Geschichte mehrerer Immobilien auf eine gemeinsame Jahresreihe legen
+  function historieAlle (liste) {
+    var proP = liste.map(historie)
+    var jahre = []
+    proP.forEach(function (h) { h.forEach(function (z) { if (jahre.indexOf(z.jahr) === -1) jahre.push(z.jahr) }) })
+    jahre.sort(function (a, b) { return a - b })
+    return jahre.map(function (y) {
+      var z = { jahr: y, wert: 0, fk: 0, restschuld: 0, tilgung: 0, cfKum: 0 }
+      proP.forEach(function (h) {
+        // Vor dem Kauf zählt die Immobilie nicht, danach ihr letzter bekannter Stand
+        var pass = null
+        h.forEach(function (x) { if (x.jahr <= y) pass = x })
+        if (!pass) return
+        z.wert += pass.wert; z.fk += pass.fk; z.restschuld += pass.restschuld
+        z.tilgung += pass.tilgung; z.cfKum += pass.cfKum
+      })
+      return z
+    })
+  }
+
+  // Eine Zeile aus drei Kacheln: Ausgangswert, heutiger Wert, Differenz
+  function dreier (a, b, c) { return '<div class="sz-kpis sz-kpis-3">' + a + b + c + '</div>' }
+
   var zeichenTimer = null
   function ausgeben () {
     clearTimeout(zeichenTimer)
@@ -492,39 +544,91 @@
     if (!host) return
     if (!props.length) { host.innerHTML = '<div class="ov-empty">Noch keine Immobilien im Portfolio.</div>'; return }
 
+    var calc = C(), Kc = K()
     var par = state.p
     var r = rechne(par)
+    var auswahl = state.auswahl === 'portfolio' ? props : props.filter(function (x) { return x.id === state.auswahl })
+    var hist = historieAlle(auswahl)
+    var heuteZ = hist[hist.length - 1] || { wert: 0, fk: 0, restschuld: 0, tilgung: 0, cfKum: 0 }
+
+    var kaufpreis = auswahl.reduce(function (s, p) { return s + (calc.kaufpreis(p) || 0) }, 0)
     var exitJahr = r.exitMonat ? r.exitMonat.slice(0, 4) : ''
 
+    /* ── Bereich 1: von Kauf bis heute ───────────────────── */
+    var w1 = heuteZ.wert - kaufpreis
+    var t1 = heuteZ.tilgung
+    var c1 = heuteZ.cfKum
+    var s1 = w1 + t1 + c1
+
     var html = ''
-    html += '<div class="sz-titel">Ausgangslage heute</div>'
-    html += '<div class="sz-start">' +
-      '<div><span>Wert heute</span><b>' + eur(r.W0) + '</b></div>' +
-      '<div><span>Restschuld heute</span><b>' + eur(r.RS0) + '</b></div>' +
-      '<div><span>Eigenkapital heute</span><b>' + eur(r.EK0) + '</b></div>' +
-      '<div><span>Cashflow / Monat</span><b style="color:' + (r.cf0 < 0 ? 'var(--red)' : 'var(--green)') + '">' + eur(r.cf0) + '</b></div>' +
-      '<div title="Aktueller Wert − Restschuld − alle Nebenkosten + bisher erwirtschafteter Cashflow">' +
-        '<span>Vermögenszuwachs heute</span><b style="color:' + (r.vermoegenHeute < 0 ? 'var(--red)' : 'var(--gold)') + '">' + eur(r.vermoegenHeute) + '</b></div>' +
+    html += '<div class="sz-titel">1 · Entwicklung von Kauf bis heute</div>'
+    html += dreier(
+      kachel('Kaufpreis', eur(kaufpreis), '', '', 'Summe der Zeile „Zahlung Kaufpreis" aus der Liquiditätsplanung.'),
+      kachel('Wert heute', eur(heuteZ.wert), 'gold', '', 'Aktueller Wert laut Einstellung der Immobilie.'),
+      kachel('Wertsteigerung', eur(w1), w1 < 0 ? 'red' : 'green'))
+    html += dreier(
+      kachel('Finanzierung Anfangssumme', eur(heuteZ.fk), '', '', 'Summe der Zeile „Valutierung Fremdkapital".'),
+      kachel('Restschuld heute', eur(heuteZ.restschuld)),
+      kachel('Tilgung gesamt', eur(t1), t1 > 0 ? 'green' : '', '', 'Anfangssumme abzüglich heutiger Restschuld – entspricht der Summe aller Tilgungszeilen.'))
+    html += '<div class="sz-kpis sz-kpis-2">' +
+      kachel('Cashflow insgesamt bisher', eur(c1), c1 < 0 ? 'red' : 'green', '',
+        'Summe aller monatlichen Cashflows seit der Übernahme.') +
+      kachel('Summe Wertzuwachs bisher', eur(s1), s1 < 0 ? 'red' : 'gold', '',
+        'Wertsteigerung + Tilgung + Cashflow. Das eingesetzte Eigenkapital ist nicht enthalten, Kaufnebenkosten ebenfalls nicht.', true) +
     '</div>'
 
+    html += '<div class="pc-grid sz-charts">' +
+      Kc.karte({ id: 'szHistWert', titel: 'Wert und Finanzierung je Jahr',
+        info: 'Stand jeweils zum Jahresende, aus Kaufpreis, Werteinstellung und den Tilgungen der Liquiditätsplanung.',
+        legende: [{ c: Kc.farben.GOLD, t: 'Eigenkapitalwert' }, { c: Kc.farben.BLAU, t: 'Restschuld' }] }) +
+      Kc.karte({ id: 'szHistCf', titel: 'Cashflow kumuliert je Jahr',
+        info: 'Aufsummierter Cashflow seit der Übernahme.',
+        legende: [{ c: Kc.farben.TEAL, t: 'Cashflow kumuliert' }] }) +
+      Kc.karte({ id: 'szHistZuwachs', titel: 'Woher der Wertzuwachs kommt',
+        info: 'Wertsteigerung, Tilgung und Cashflow – zusammen ergeben sie die Summe Wertzuwachs.',
+        legende: [{ c: Kc.farben.GOLD, t: 'Wertsteigerung' }, { c: Kc.farben.BLAU, t: 'Tilgung' }, { c: Kc.farben.TEAL, t: 'Cashflow' }] }) +
+    '</div>'
+
+    /* ── Bereich 2: von Kauf bis Exit ────────────────────── */
     var basisTxt = state.basis === 'uebernahme' ? 'ab Übernahme' : 'ab heute'
-    html += '<div class="sz-titel">Ergebnis beim Exit ' + esc(exitJahr) + ' (nach ' + par.jahre + ' ' +
-      (par.jahre === 1 ? 'Jahr' : 'Jahren') + ' ' + basisTxt + ')</div>'
-    html += '<div class="sz-kpis">' +
-      kachel('Vermögen bis Exit', eur(r.vermoegenExit), 'gold', '',
-        'Wert beim Exit − Verkaufskosten − Restschuld − alle Nebenkosten + Cashflow bis dahin. Jede Position zählt genau einmal.', true) +
-      kachel('Vermögenszuwachs heute → Exit', eur(r.zuwachs), r.zuwachs < 0 ? 'red' : 'green', '',
-        'Vermögen bis Exit abzüglich des heute bereits aufgebauten Vermögens.') +
-      kachel('Eigenkapitalrendite p. a.', r.irr === null ? '–' : pct(r.irr), r.irr !== null && r.irr < 0 ? 'red' : '', '',
-        'Interner Zinsfuß ab heute: heutiges Eigenkapital als Einsatz, monatliche Cashflows und der Verkaufserlös als Rückflüsse.') +
-    '</div><div class="sz-kpis sz-kpis-4">' +
-      kachel('Wert beim Exit', eur(r.wertExit), '', '',
-        state.modus === 'faktor' ? 'Jahresnettokaltmiete im Exitjahr × Faktor ' + par.faktor : '') +
-      kachel('Restschuld beim Exit', eur(r.restschuldExit)) +
-      kachel('Verkaufserlös netto', eur(r.erloes), r.erloes < 0 ? 'red' : '', '',
-        'Wert beim Exit − Verkaufskosten (' + pct(par.verkauf) + ' = ' + eur(r.verkaufskosten) + ') − Restschuld.') +
-      kachel('Cashflow bis Exit', eur(r.kumCf), r.kumCf < 0 ? 'red' : 'green', '',
-        'Summe aller monatlichen Cashflows bis zum Verkauf, nach Zins, Tilgung und Sondertilgungen.') +
+    var w2 = r.wertExit - kaufpreis
+    var t2 = Math.max(0, heuteZ.fk - r.restschuldExit)
+    var c2 = c1 + r.kumCf
+    var s2 = w2 + t2 + c2
+    var s2netto = s2 - r.verkaufskosten
+
+    html += '<div class="sz-titel">2 · Entwicklung von Kauf bis Exit ' + esc(exitJahr) +
+      ' (Verkauf nach ' + par.jahre + ' ' + (par.jahre === 1 ? 'Jahr' : 'Jahren') + ' ' + basisTxt + ')</div>'
+    html += dreier(
+      kachel('Kaufpreis', eur(kaufpreis)),
+      kachel('Wert beim Exit', eur(r.wertExit), 'gold', '',
+        state.modus === 'faktor' ? 'Jahresnettokaltmiete im Exitjahr × Faktor ' + par.faktor : 'Heutiger Wert, fortgeschrieben mit ' + pct(par.wert) + ' pro Jahr.'),
+      kachel('Wertsteigerung', eur(w2), w2 < 0 ? 'red' : 'green'))
+    html += dreier(
+      kachel('Finanzierung Anfangssumme', eur(heuteZ.fk)),
+      kachel('Restschuld beim Exit', eur(r.restschuldExit)),
+      kachel('Tilgung gesamt', eur(t2), t2 > 0 ? 'green' : '', '', 'Anfangssumme abzüglich Restschuld beim Exit, inklusive Sondertilgungen.'))
+    html += '<div class="sz-kpis sz-kpis-2">' +
+      kachel('Cashflow insgesamt bis Exit', eur(c2), c2 < 0 ? 'red' : 'green', '',
+        'Cashflow seit der Übernahme bis heute zuzüglich der fortgeschriebenen Jahre bis zum Verkauf.') +
+      kachel('Summe Wertzuwachs bis Exit', eur(s2), s2 < 0 ? 'red' : 'gold', '',
+        'Wertsteigerung + Tilgung + Cashflow, gerechnet vom Kauf bis zum Verkauf.', true) +
+    '</div>'
+    html += '<div class="sz-kpis sz-kpis-2">' +
+      kachel('Verkaufskosten', eur(-r.verkaufskosten), 'red', '',
+        pct(par.verkauf) + ' vom Wert beim Exit.') +
+      kachel('Wertzuwachs nach Verkaufskosten', eur(s2netto), s2netto < 0 ? 'red' : 'gold') +
+    '</div>'
+
+    html += '<div class="pc-grid sz-charts">' +
+      Kc.karte({ id: 'szExitWert', titel: 'Wert und Finanzierung bis zum Exit',
+        info: 'Vergangene Jahre aus der Liquiditätsplanung, künftige Jahre fortgeschrieben mit den Annahmen links.',
+        legende: [{ c: Kc.farben.GOLD, t: 'Eigenkapitalwert' }, { c: Kc.farben.BLAU, t: 'Restschuld' }] }) +
+      Kc.karte({ id: 'szExitCf', titel: 'Cashflow kumuliert bis zum Exit',
+        info: 'Aufsummierter Cashflow vom Kauf bis zum Verkauf.',
+        legende: [{ c: Kc.farben.TEAL, t: 'Cashflow kumuliert' }] }) +
+      Kc.karte({ id: 'szExitZuwachs', titel: 'Woher der Wertzuwachs bis zum Exit kommt',
+        legende: [{ c: Kc.farben.GOLD, t: 'Wertsteigerung' }, { c: Kc.farben.BLAU, t: 'Tilgung' }, { c: Kc.farben.TEAL, t: 'Cashflow' }] }) +
     '</div>'
 
     // Hinweise: Spekulationsfrist und Datenlücken
@@ -560,85 +664,79 @@
     }
     if (hinweise.length) html += '<div class="sz-hinweise">' + hinweise.map(function (h) { return '<div class="sz-hinweis">' + h + '</div>' }).join('') + '</div>'
 
-    var Kc = K()
-    html += '<div class="pc-grid sz-charts">' +
-      Kc.karte({ id: 'szChartVermoegen', titel: 'Wert und Finanzierung je Jahr', info: 'Stand jeweils zum Jahresende. Beide Säulenteile zusammen ergeben den Wert der Immobilie.',
-        legende: [{ c: Kc.farben.GOLD, t: 'Eigenkapital' }, { c: Kc.farben.BLAU, t: 'Restschuld' }] }) +
-      Kc.karte({ id: 'szChartCf', titel: 'Cashflow je Jahr', info: 'Jahressumme nach Zins, Tilgung, Sondertilgung und Kosten. Die Linie zeigt den aufsummierten Cashflow.',
-        legende: [{ c: Kc.farben.TEAL, t: 'Cashflow' }, { c: Kc.farben.TERRA, t: 'negativer Cashflow' }, { c: Kc.farben.GOLD, t: 'kumuliert', linie: true }] }) +
-      Kc.karte({ id: 'szChartVerm', titel: 'Vermögen je Jahr', info: 'Wert abzüglich Restschuld und Nebenkosten, zuzüglich des bis dahin erwirtschafteten Cashflows.',
-        legende: [{ c: Kc.farben.GOLD, t: 'Vermögen' }] }) +
-      Kc.karte({ id: 'szChartMiete', titel: 'Mieteinnahmen je Jahr', info: 'Jahressumme nach angenommenem Mietausfall.',
-        legende: [{ c: Kc.farben.TEAL, t: 'Mieteinnahmen' }] }) +
-    '</div>'
-
-    // Statt der Jahrestabelle: Kennzahlen über die Laufzeit und ein dritter Graph
-    var summeMiete = r.jahre.reduce(function (a, j) { return a + j.miete }, 0)
-    var summeKosten = r.jahre.reduce(function (a, j) { return a + j.kosten }, 0)
-    var summeZins = r.jahre.reduce(function (a, j) { return a + j.zins }, 0)
-    var summeTilgung = r.jahre.reduce(function (a, j) { return a + j.tilgung }, 0)
-    var wertZuwachs = r.wertExit - r.W0
-    html += '<div class="sz-titel">Über die gesamte Laufzeit</div>'
-    html += '<div class="sz-kpis sz-kpis-4">' +
-      kachel('Mieteinnahmen', eur(summeMiete), 'green') +
-      kachel('Laufende Kosten', eur(summeKosten), 'red') +
-      kachel('Gezahlte Zinsen', eur(-summeZins), 'red') +
-      kachel('Tilgung', eur(summeTilgung), '', '', 'Tilgung baut Eigenkapital auf – sie mindert den Cashflow, nicht das Vermögen.') +
-    '</div>'
-    html += '<div class="sz-kpis sz-kpis-4">' +
-      kachel('Wertzuwachs', eur(wertZuwachs), wertZuwachs < 0 ? 'red' : 'green', '', 'Wert beim Exit abzüglich Wert heute.') +
-      kachel('Entschuldung', eur(Math.max(0, r.RS0 - r.restschuldExit)), '', '', 'Um so viel sinkt die Restschuld bis zum Exit.') +
-      kachel('Cashflow je Monat ⌀', eur(r.N ? r.kumCf / r.N : 0), (r.kumCf < 0 ? 'red' : 'green')) +
-      kachel('Vermögen heute', eur(r.vermoegenHeute), 'gold', '',
-        'Aktueller Wert − Restschuld − alle Nebenkosten + bisher erwirtschafteter Cashflow.') +
-    '</div>'
-
-    html += '<p class="sz-disclaimer">Ausgangspunkt sind die Werte des laufenden Monats aus der Liquiditätsplanung (Miete, Hausgeld, Grundsteuer, Zins, Tilgung) ' +
-      'und der aktuelle Wert jeder Immobilie. Das erste Jahr umfasst die nächsten zwölf Monate. Modellrechnung ohne Steuern, ohne Gewähr – keine Anlage- oder Steuerberatung.</p>'
+    html += '<p class="sz-disclaimer">Bereich 1 kommt vollständig aus der Liquiditätsplanung und den Werteinstellungen. ' +
+      'Bereich 2 schreibt denselben Stand mit den Annahmen links fort; das erste Prognosejahr umfasst die nächsten zwölf Monate. ' +
+      'Modellrechnung ohne Steuern, ohne Gewähr – keine Anlage- oder Steuerberatung.</p>'
 
     host.innerHTML = html
 
-    // Charts
-    var labels = ['heute'].concat(r.jahre.map(function (j) { return "'" + String(j.jahr).slice(2) }))
-    var ekWerte = [Math.max(0, r.W0 - r.RS0)].concat(r.jahre.map(function (j) { return Math.max(0, j.wert - j.restschuld) }))
-    var rsWerte = [Math.min(r.RS0, r.W0 || r.RS0)].concat(r.jahre.map(function (j) { return j.wert ? Math.min(j.restschuld, j.wert) : j.restschuld }))
-    var plotV = document.querySelector('#szChartVermoegen .pc-plot')
-    if (plotV) Kc.saeulen(plotV, {
-      labels: labels, gestapelt: true, aktuell: labels.length - 1, wertOben: true,
-      serien: [{ name: 'Restschuld', farbe: Kc.farben.BLAU, werte: rsWerte }, { name: 'Eigenkapital', farbe: Kc.farben.GOLD, werte: ekWerte }],
-      tipTitel: function (i) { return i === 0 ? 'Heute' : 'Jahr ' + i + ' · ' + r.jahre[i - 1].bis.slice(5, 7) + '/' + r.jahre[i - 1].jahr },
-      tipExtra: function (i) { return [{ c: 'transparent', t: 'Wert', v: eur(i === 0 ? r.W0 : r.jahre[i - 1].wert) }] },
+    /* ── Graphen ─────────────────────────────────────────── */
+    var lab = function (y) { return "'" + String(y).slice(2) }
+
+    // Bereich 1
+    var hLab = hist.map(function (z) { return lab(z.jahr) })
+    zeichneWert('szHistWert', hLab, hist.map(function (z) { return z.wert }), hist.map(function (z) { return z.restschuld }))
+    zeichneLinie('szHistCf', hLab, hist.map(function (z) { return z.cfKum }))
+    zeichneZuwachs('szHistZuwachs', hLab,
+      hist.map(function (z) { return z.wert - kaufpreis }),
+      hist.map(function (z) { return z.tilgung }),
+      hist.map(function (z) { return z.cfKum }))
+
+    // Bereich 2: Vergangenheit und Prognose hintereinander
+    var eLab = hLab.slice(0, -1).concat([lab(heuteZ.jahr)]).concat(r.jahre.map(function (j) { return lab(j.jahr) }))
+    var eWert = hist.map(function (z) { return z.wert }).concat(r.jahre.map(function (j) { return j.wert }))
+    var eRest = hist.map(function (z) { return z.restschuld }).concat(r.jahre.map(function (j) { return j.restschuld }))
+    var eCf = [], lauf = heuteZ.cfKum
+    hist.forEach(function (z) { eCf.push(z.cfKum) })
+    r.jahre.forEach(function (j) { lauf += j.cf; eCf.push(lauf) })
+    var eTilg = hist.map(function (z) { return z.tilgung })
+      .concat(r.jahre.map(function (j) { return Math.max(0, heuteZ.fk - j.restschuld) }))
+    var eZu = eWert.map(function (w) { return w - kaufpreis })
+    zeichneWert('szExitWert', eLab, eWert, eRest, hist.length - 1)
+    zeichneLinie('szExitCf', eLab, eCf, hist.length - 1)
+    zeichneZuwachs('szExitZuwachs', eLab, eZu, eTilg, eCf, hist.length - 1)
+  }
+
+  function zeichneWert (id, labels, wert, rest, akt) {
+    var Kc = K()
+    var plot = document.querySelector('#' + id + ' .pc-plot')
+    if (!plot) return
+    Kc.saeulen(plot, {
+      labels: labels, gestapelt: true, wertOben: true,
+      aktuell: akt === undefined ? labels.length - 1 : akt,
+      blass: akt === undefined ? undefined : function (i) { return i > akt },
+      serien: [{ name: 'Restschuld', farbe: Kc.farben.BLAU, werte: rest.map(function (v, i) { return wert[i] ? Math.min(v, wert[i]) : v }) },
+               { name: 'Eigenkapitalwert', farbe: Kc.farben.GOLD, werte: wert.map(function (v, i) { return Math.max(0, v - rest[i]) }) }],
+      tipExtra: function (i) { return [{ c: 'transparent', t: 'Wert', v: eur(wert[i]) }] },
       aria: 'Wert und Finanzierung je Jahr'
     })
-    var kumW = [], s = 0
-    r.jahre.forEach(function (j) { s += j.cf; kumW.push(s) })
-    var vermW = [], lauf = 0
-    r.jahre.forEach(function (j) {
-      lauf += j.cf
-      vermW.push(j.wert - j.restschuld - r.vhNeben + r.vhCf + lauf)
+  }
+
+  function zeichneLinie (id, labels, werte, akt) {
+    var Kc = K()
+    var plot = document.querySelector('#' + id + ' .pc-plot')
+    if (!plot) return
+    Kc.saeulen(plot, {
+      labels: labels, wertOben: true,
+      aktuell: akt === undefined ? labels.length - 1 : akt,
+      blass: akt === undefined ? undefined : function (i) { return i > akt },
+      serien: [{ name: 'Cashflow kumuliert', farbe: Kc.farben.TEAL, farbeNeg: Kc.farben.TERRA, werte: werte }],
+      aria: 'Cashflow kumuliert je Jahr'
     })
-    var plotVm = document.querySelector('#szChartVerm .pc-plot')
-    if (plotVm) Kc.saeulen(plotVm, {
-      labels: r.jahre.map(function (j) { return "'" + String(j.jahr).slice(2) }),
-      serien: [{ name: 'Vermögen', farbe: Kc.farben.GOLD, werte: vermW }],
-      aktuell: r.jahre.length - 1, wertOben: true,
-      tipTitel: function (i) { return 'Jahr ' + (i + 1) + ' · bis ' + r.jahre[i].bis.slice(5, 7) + '/' + r.jahre[i].jahr },
-      aria: 'Vermögen je Jahr'
-    })
-    var plotM = document.querySelector('#szChartMiete .pc-plot')
-    if (plotM) Kc.saeulen(plotM, {
-      labels: r.jahre.map(function (j) { return "'" + String(j.jahr).slice(2) }),
-      serien: [{ name: 'Mieteinnahmen', farbe: Kc.farben.TEAL, werte: r.jahre.map(function (j) { return j.miete }) }],
-      tipTitel: function (i) { return 'Jahr ' + (i + 1) + ' · bis ' + r.jahre[i].bis.slice(5, 7) + '/' + r.jahre[i].jahr },
-      aria: 'Mieteinnahmen je Jahr'
-    })
-    var plotC = document.querySelector('#szChartCf .pc-plot')
-    if (plotC) Kc.saeulen(plotC, {
-      labels: r.jahre.map(function (j) { return "'" + String(j.jahr).slice(2) }),
-      serien: [{ name: 'Cashflow', farbe: Kc.farben.TEAL, farbeNeg: Kc.farben.TERRA, werte: r.jahre.map(function (j) { return j.cf }) }],
-      linie: { name: 'kumuliert', farbe: Kc.farben.GOLD, werte: kumW },
-      tipTitel: function (i) { return 'Jahr ' + (i + 1) + ' · bis ' + r.jahre[i].bis.slice(5, 7) + '/' + r.jahre[i].jahr },
-      aria: 'Cashflow je Jahr'
+  }
+
+  function zeichneZuwachs (id, labels, wertsteigerung, tilgung, cf, akt) {
+    var Kc = K()
+    var plot = document.querySelector('#' + id + ' .pc-plot')
+    if (!plot) return
+    Kc.saeulen(plot, {
+      labels: labels, gestapelt: true, wertOben: true,
+      aktuell: akt === undefined ? labels.length - 1 : akt,
+      blass: akt === undefined ? undefined : function (i) { return i > akt },
+      serien: [{ name: 'Wertsteigerung', farbe: Kc.farben.GOLD, werte: wertsteigerung },
+               { name: 'Tilgung', farbe: Kc.farben.BLAU, werte: tilgung },
+               { name: 'Cashflow', farbe: Kc.farben.TEAL, werte: cf }],
+      aria: 'Zusammensetzung des Wertzuwachses'
     })
   }
 

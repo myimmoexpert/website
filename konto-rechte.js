@@ -148,7 +148,6 @@
           .filter(function (n) { return /^sb-.*-auth-token/.test(n) || n.indexOf("supabase.auth") === 0; })
           .forEach(function (n) { localStorage.removeItem(n); });
       } catch (_) { /* privater Modus */ }
-      try { sessionStorage.removeItem("ie_gate"); } catch (_) {}
 
       alert("Ihr Konto wurde geloescht. Vielen Dank, dass Sie Immo.Expert genutzt haben.");
       // replace statt href: der Zurueck-Knopf soll nicht in die Anwendung fuehren

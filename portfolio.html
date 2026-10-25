@@ -2,7 +2,6 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <script>if(sessionStorage.getItem('ie_gate')!=='1')document.documentElement.style.visibility='hidden'</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Immo.Portfolio – Immo.Expert</title>
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
@@ -635,13 +634,8 @@
       const ek  = Math.max(0, aum - fk)
       const ltv = aum > 0 ? fk / aum : null
       const brutto = kaufpreis > 0 && nkmJahr > 0 ? nkmJahr / kaufpreis : null
-      // Nettomietrendite: Jahreskaltmiete abzüglich Hausgeld, bezogen auf den Kaufpreis
-      const nettoJahr = nkmJahr + hausgeld * 12   // Hausgeld ist negativ erfasst
-      const netto = kaufpreis > 0 && nkmJahr > 0 ? nettoJahr / kaufpreis : null
-      const faktor = nkmJahr > 0 ? kaufpreis / nkmJahr : null
 
       const pct = v => v === null ? '–' : (v * 100).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' %'
-      const fak = v => v === null ? '–' : v.toLocaleString('de-DE', { maximumFractionDigits: 1 })
 
       const gruppe = (titel, kacheln, chartId, vier) => `
         <div class="kpi-group">
@@ -680,12 +674,7 @@
           { l: 'Hausgeld',      v: formatEur(hausgeld) },
           { l: 'Bankrate',      v: formatEur(bankrate) },
           { l: 'Cashflow',      v: formatEur(cf), c: cf < -0.004 ? 'red' : 'green' },
-        ], 'kcMonat') +
-        gruppe('Rendite', [
-          { l: 'Brutto-Mietrendite', v: pct(brutto) },
-          { l: 'Nettomietrendite', v: pct(netto) },
-          { l: 'Kaufpreisfaktor', v: fak(faktor) },
-        ], 'kcRendite')
+        ])
 
       zeichneKennzahlenCharts()
     }
@@ -721,65 +710,6 @@
           rechts: i => rows[i].wert ? Math.round(rows[i].fk / rows[i].wert * 100) + ' %' : '–',
           tipExtra: i => [{ c: F.INK2, t: 'Wert', v: K.eur(rows[i].wert) },
                           { c: F.INK2, t: 'Finanzierungsquote', v: rows[i].wert ? Math.round(rows[i].fk / rows[i].wert * 100) + ' %' : '–' }],
-        })
-      }
-
-      // 2) Monatliche Einnahmen und Ausgaben: 12 Monate um heute
-      const hM = document.getElementById('kcMonat')
-      if (hM) {
-        const monate = []
-        for (let i = -5; i <= 6; i++) monate.push(C.monatPlus(m, i))
-        const daten = monate.map(mm => {
-          let ein = 0, aus = 0, cf = 0
-          PW_DATA.rows.forEach(p => {
-            const t = C.cfTeile(p, mm)
-            ein += t.miete + t.weitereMiete
-            aus += Math.abs(t.hausgeld) + Math.abs(t.bankrate) + Math.abs(t.grundsteuer)
-            cf += t.cf
-          })
-          return { m: mm, ein, aus, cf }
-        })
-        const akt = monate.indexOf(m)
-        hM.innerHTML = K.karte({ titel: 'Einnahmen und Ausgaben je Monat',
-          info: 'Mieteinnahmen und laufende Ausgaben (Hausgeld, Bankrate, Grundsteuer) aller Immobilien, fünf Monate zurück bis sechs Monate voraus. Die Linie ist der Cashflow.',
-          legende: [{ c: F.GOLD, t: 'Einnahmen' }, { c: F.BLAU, t: 'Ausgaben' }, { c: F.INK, t: 'Cashflow', linie: true }] })
-        K.saeulen(hM.querySelector('.pc-plot'), {
-          aria: 'Einnahmen und Ausgaben je Monat',
-          labels: monate.map(mm => window.IECharts.monatName(mm)),
-          serien: [{ name: 'Einnahmen', farbe: F.GOLD, werte: daten.map(d => d.ein) },
-                   { name: 'Ausgaben', farbe: F.BLAU, werte: daten.map(d => d.aus) }],
-          linie: { name: 'Cashflow', farbe: F.INK, werte: daten.map(d => d.cf) },
-          aktuell: akt,
-          blass: i => i > akt,
-          tipTitel: i => window.IECharts.monatName(monate[i], true) + (i > akt ? ' · Planung' : i === akt ? ' · laufender Monat' : ''),
-        })
-      }
-
-      // 3) Rendite je Immobilie
-      const hR = document.getElementById('kcRendite')
-      if (hR) {
-        const rows = PW_DATA.rows.map(p => {
-          const kp = C.kaufpreis(p)
-          const st = liqStats(p)
-          const t = C.cfTeile(p, m)
-          // Nettomietrendite: Jahreskaltmiete abzüglich Hausgeld ÷ Kaufpreis
-          const netto = ((st.nkm || 0) + t.hausgeld) * 12
-          return { name: kurzName(p),
-                   brutto: kp > 0 ? (st.nkm || 0) * 12 / kp * 100 : 0,
-                   ekr: kp > 0 ? netto / kp * 100 : 0, hatEk: Math.abs(t.hausgeld) > 0.004, kp }
-        }).filter(r => r.kp > 0).sort((a, b) => b.brutto - a.brutto)
-        const pct = v => v.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %'
-        hR.innerHTML = K.karte({ titel: 'Rendite je Immobilie',
-          legende: [{ c: F.GOLD, t: 'Brutto-Mietrendite' }, { c: F.BLAU, t: 'Nettomietrendite' }] })
-        K.balken(hR.querySelector('.pc-plot'), {
-          aria: 'Rendite je Immobilie',
-          leerText: 'Noch keine Immobilie mit Kaufpreis erfasst.',
-          labels: rows.map(r => r.name),
-          serien: [{ name: 'Brutto-Mietrendite', farbe: F.GOLD, werte: rows.map(r => r.brutto) },
-                   { name: 'Nettomietrendite', farbe: F.BLAU, werte: rows.map(r => r.ekr) }],
-          format: pct,
-          achse: v => v.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' %',
-          tipExtra: i => rows[i].hatEk ? [] : [{ c: F.INK2, t: 'Hausgeld', v: 'nicht erfasst' }],
         })
       }
     }
@@ -1054,6 +984,5 @@
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
     }
   </script>
-  <script src="password-gate.js"></script>
 </body>
 </html>
