@@ -1493,7 +1493,6 @@
     const JAHR_FELDER = ['ruecklageAnteil', 'ausgabenRuecklage', 'kaufnebenAbsetzbar', 'weitereAusgaben',
                          'gebaeudeAnteil', 'kaufnebenAbschreibung', 'nutzungsdauer', 'monate']
     let jahrAktiv = null
-    let jahrTimer = null
 
     function jahrWerte(p, jahr) {
       const e = (p.einstellungen && p.einstellungen.jahr && p.einstellungen.jahr[jahr]) || {}
@@ -1571,21 +1570,41 @@
       const ziel = document.getElementById('jahrListe')
       if (!sel || !ziel) return
       const jahre = jahrJahre()
+      if (jahrAktiv === null) {
+        const gemerkt = Number(localStorage.getItem('ie_jahr') || 0)
+        if (gemerkt && jahre.indexOf(gemerkt) !== -1) jahrAktiv = gemerkt
+      }
       if (jahrAktiv === null || jahre.indexOf(jahrAktiv) === -1) jahrAktiv = jahre[0]
       sel.innerHTML = jahre.map(j => `<option value="${j}" ${j === jahrAktiv ? 'selected' : ''}>${j}</option>`).join('')
-      sel.onchange = () => { jahrAktiv = Number(sel.value); jahrRender() }
+      sel.onchange = () => {
+        jahrAktiv = Number(sel.value)
+        try { localStorage.setItem('ie_jahr', String(jahrAktiv)) } catch (e) {}
+        jahrRender()
+      }
 
       if (!properties.length) { ziel.innerHTML = '<div class="ov-empty">Noch keine Immobilien im Portfolio.</div>'; return }
       ziel.innerHTML = properties.map((p, i) => jahrBlock(p, i, jahrAktiv)).join('')
       ziel.querySelectorAll('.jahr-feld').forEach(f => {
+        // Schon beim Tippen übernehmen und speichern – ein Neuladen der Seite
+        // darf nichts verschlucken
+        f.addEventListener('input', () => jahrFeldGeaendert(f))
         f.addEventListener('change', () => jahrFeldGeaendert(f))
         f.addEventListener('focus', () => f.select())
+        f.addEventListener('blur', () => jahrFeldFormatieren(f))
       })
     }
 
-    function jahrZeileHtml(label, wert, klasse, titel) {
+    // Beim Verlassen des Feldes den Wert sauber darstellen
+    function jahrFeldFormatieren(feld) {
+      const p = properties[Number(feld.dataset.idx)]
+      if (!p) return
+      const w = jahrWerte(p, jahrAktiv)[feld.dataset.key]
+      feld.value = w === null ? '' : String(w).replace('.', ',')
+    }
+
+    function jahrZeileHtml(label, wert, klasse, titel, rechen) {
       return `<tr class="${klasse || ''}"><td class="lbl"${titel ? ` title="${esc(titel)}"` : ''}>${esc(label)}</td>` +
-             `<td class="z">${wert}</td></tr>`
+             `<td class="z"${rechen ? ` data-calc="${rechen}"` : ''}>${wert}</td></tr>`
     }
 
     function jahrFeldHtml(idx, key, wert, einheit, titel) {
@@ -1594,21 +1613,23 @@
              (einheit ? `<span class="jahr-einheit">${esc(einheit)}</span>` : '')
     }
 
-    function jahrBlock(p, idx, jahr) {
+    // Alle abgeleiteten Zahlen eines Jahres an einer Stelle
+    function jahrRechnen(p, jahr) {
       const z = jahrZahlen(p, jahr)
       const e = jahrWerte(p, jahr)
       const n = v => Number(v) || 0
-
-      // Einnahmenüberschuss des Jahres
       const zwischen = z.warm - (z.hausgeld - n(e.ruecklageAnteil)) - n(e.ausgabenRuecklage)
                        - z.zins - n(e.kaufnebenAbsetzbar) - n(e.weitereAusgaben) + z.nkAbrechnung
-
-      // Abschreibung
       const gebaeude = z.kaufpreis * n(e.gebaeudeAnteil) / 100
       const afaBasis = gebaeude + n(e.kaufnebenAbschreibung)
       const afaJahr = n(e.nutzungsdauer) > 0 ? afaBasis / n(e.nutzungsdauer) : 0
       const afa = afaJahr * n(e.monate) / 12
-      const euer = zwischen - afa
+      return { z, e, zwischen, gebaeude, afaBasis, afaJahr, afa, euer: zwischen - afa }
+    }
+
+    function jahrBlock(p, idx, jahr) {
+      const r = jahrRechnen(p, jahr)
+      const z = r.z, e = r.e
 
       const F = (key, einheit, titel) => jahrFeldHtml(idx, key, e[key], einheit, titel)
 
@@ -1619,7 +1640,7 @@
           <span class="liq-auf-titel"><span class="lp-ico">${OBJEKTART_ICONS[p.objektart] || '🏗️'}</span>
             <span class="lp-name">${esc(p.bezeichnung || 'Immobilie')}</span>
             <span class="lp-adr">${esc(p.adresse || '')}</span></span>
-          <span class="lp-cf" style="color:${euer < 0 ? 'var(--red)' : 'var(--green)'}">${jahrFmt(euer)}</span>
+          <span class="lp-cf" data-calc="euer" style="color:${r.euer < 0 ? 'var(--red)' : 'var(--green)'}">${jahrFmt(r.euer)}</span>
         </summary>
         <div class="lp-frame-wrap"><div class="lp-body">
           <table class="jahr-tab">
@@ -1632,7 +1653,7 @@
               <tr class="eingabe"><td class="lbl">Kaufnebenkosten (direkt absetzbar)</td><td class="z">${F('kaufnebenAbsetzbar', '€')}</td></tr>
               <tr class="eingabe"><td class="lbl">Weitere Ausgaben</td><td class="z">${F('weitereAusgaben', '€')}</td></tr>
               ${jahrZeileHtml('Nebenkostenabrechnung', jahrFmt(z.nkAbrechnung), '', 'Summe der Zeile „Nebenkostenabrechnung" des Jahres')}
-              ${jahrZeileHtml('Zwischensumme', jahrFmt(zwischen), 'sum')}
+              ${jahrZeileHtml('Zwischensumme', jahrFmt(r.zwischen), 'sum', '', 'zwischen')}
             </tbody>
           </table>
 
@@ -1641,28 +1662,31 @@
             <tbody>
               ${jahrZeileHtml('Kaufpreis', jahrFmt(z.kaufpreis), '', 'Aus der Zeile „Zahlung Kaufpreis" der Liquiditätsplanung')}
               <tr class="eingabe"><td class="lbl">Gebäudeanteil</td><td class="z">${F('gebaeudeAnteil', '%')}</td></tr>
-              ${jahrZeileHtml('Zwischensumme Gebäudeanteil', jahrFmt(gebaeude), '', 'Kaufpreis × Gebäudeanteil')}
+              ${jahrZeileHtml('Zwischensumme Gebäudeanteil', jahrFmt(r.gebaeude), '', 'Kaufpreis × Gebäudeanteil', 'gebaeude')}
               <tr class="eingabe"><td class="lbl">Kaufnebenkosten (abzuschreiben)</td><td class="z">${F('kaufnebenAbschreibung', '€')}</td></tr>
-              ${jahrZeileHtml('Zwischensumme Gebäudeanteil und Kaufnebenkosten', jahrFmt(afaBasis), 'sum')}
+              ${jahrZeileHtml('Zwischensumme Gebäudeanteil und Kaufnebenkosten', jahrFmt(r.afaBasis), 'sum', '', 'afaBasis')}
               <tr class="eingabe"><td class="lbl">Restnutzungsdauer</td><td class="z">${F('nutzungsdauer', 'Jahre')}</td></tr>
-              ${jahrZeileHtml('Abschreibung pro Jahr', jahrFmt(afaJahr), '', 'Zwischensumme ÷ Restnutzungsdauer')}
+              ${jahrZeileHtml('Abschreibung pro Jahr', jahrFmt(r.afaJahr), '', 'Zwischensumme ÷ Restnutzungsdauer', 'afaJahr')}
               <tr class="eingabe"><td class="lbl">Relevante Monate</td><td class="z">${F('monate', 'von 12', 'Im Jahr ' + jahr + ' gehört die Immobilie ' + z.monateImBestand + ' Monate zum Bestand.')}</td></tr>
-              ${jahrZeileHtml('Abschreibung im betrachteten Jahr', jahrFmt(-afa), 'sum', 'Abschreibung pro Jahr × relevante Monate ÷ 12')}
+              ${jahrZeileHtml('Abschreibung im betrachteten Jahr', jahrFmt(-r.afa), 'sum', 'Abschreibung pro Jahr × relevante Monate ÷ 12', 'afa')}
             </tbody>
           </table>
 
           <div class="jahr-abschnitt">Ergebnis ${jahr}</div>
           <table class="jahr-tab">
             <tbody>
-              ${jahrZeileHtml('Zwischensumme', jahrFmt(zwischen))}
-              ${jahrZeileHtml('Abschreibung im betrachteten Jahr', jahrFmt(-afa))}
-              ${jahrZeileHtml('EÜR inkl. Abschreibung', jahrFmt(euer), 'total')}
+              ${jahrZeileHtml('Zwischensumme', jahrFmt(r.zwischen), '', '', 'zwischen')}
+              ${jahrZeileHtml('Abschreibung im betrachteten Jahr', jahrFmt(-r.afa), '', '', 'afa')}
+              ${jahrZeileHtml('EÜR inkl. Abschreibung', jahrFmt(r.euer), 'total', '', 'euer')}
             </tbody>
           </table>
         </div></div>
       </details>`
     }
 
+    // Eingabe übernehmen: Modell aktualisieren, abgeleitete Zeilen neu
+    // beschriften und speichern. Der Block wird bewusst NICHT neu gebaut –
+    // sonst verliert das Feld beim Tippen den Fokus.
     function jahrFeldGeaendert(feld) {
       const p = properties[Number(feld.dataset.idx)]
       if (!p) return
@@ -1681,36 +1705,83 @@
       p.einstellungen.jahr[jahrAktiv] = Object.assign({}, p.einstellungen.jahr[jahrAktiv] || {})
       if (wert === null) delete p.einstellungen.jahr[jahrAktiv][key]
       else p.einstellungen.jahr[jahrAktiv][key] = wert
+
+      jahrZeilenAktualisieren(feld.closest('details'), p, jahrAktiv)
       jahrSpeichern(p)
-      // Nur die betroffene Immobilie neu rechnen, Fokus bleibt erhalten
-      const det = feld.closest('details')
-      const offen = det ? det.open : true
-      const idx = Number(feld.dataset.idx)
-      const platz = document.createElement('div')
-      platz.innerHTML = jahrBlock(p, idx, jahrAktiv)
-      const neu = platz.firstElementChild
-      neu.open = offen
-      det.replaceWith(neu)
-      neu.querySelectorAll('.jahr-feld').forEach(f => {
-        f.addEventListener('change', () => jahrFeldGeaendert(f))
-        f.addEventListener('focus', () => f.select())
-      })
-      const wieder = neu.querySelector(`.jahr-feld[data-key="${key}"]`)
-      if (wieder) wieder.focus()
     }
 
-    async function jahrSpeichern(p) {
+    function jahrZeilenAktualisieren(det, p, jahr) {
+      if (!det) return
+      const r = jahrRechnen(p, jahr)
+      const werte = { zwischen: r.zwischen, gebaeude: r.gebaeude, afaBasis: r.afaBasis,
+                      afaJahr: r.afaJahr, afa: -r.afa, euer: r.euer }
+      Object.keys(werte).forEach(k => {
+        det.querySelectorAll('[data-calc="' + k + '"]').forEach(el => {
+          el.textContent = jahrFmt(werte[k])
+          if (k === 'euer' && el.classList.contains('lp-cf')) {
+            el.style.color = r.euer < 0 ? 'var(--red)' : 'var(--green)'
+          }
+        })
+      })
+    }
+
+    /* Speichern je Immobilie. Ein eigener Timer pro Immobilie, damit sich
+       parallele Eingaben nicht gegenseitig abwürgen, und ein Sofortspeichern,
+       bevor die Seite verlassen oder neu geladen wird. */
+    const jahrTimers = {}
+    const jahrOffen = {}
+
+    function jahrSpeichern(p) {
       const ind = document.getElementById('siJahr')
       if (ind) { ind.textContent = 'Speichert …'; ind.className = 'save-indicator saving' }
-      clearTimeout(jahrTimer)
-      jahrTimer = setTimeout(async () => {
-        const { error } = await sb.from('portfolio').update({ einstellungen: p.einstellungen }).eq('id', p.id)
-        if (!ind) return
-        if (error) { ind.textContent = '⚠ Fehler beim Speichern'; ind.style.color = 'var(--red)'; return }
-        ind.textContent = '✓ Gespeichert'; ind.className = 'save-indicator saved'
-        setTimeout(() => { ind.textContent = ''; ind.className = 'save-indicator' }, 2000)
-      }, 500)
+      jahrOffen[p.id] = p
+      clearTimeout(jahrTimers[p.id])
+      jahrTimers[p.id] = setTimeout(() => jahrJetztSpeichern(p), 600)
     }
+
+    async function jahrJetztSpeichern(p) {
+      clearTimeout(jahrTimers[p.id])
+      delete jahrTimers[p.id]
+      delete jahrOffen[p.id]
+      const ind = document.getElementById('siJahr')
+      const { error } = await sb.from('portfolio').update({ einstellungen: p.einstellungen }).eq('id', p.id)
+      if (!ind) return
+      if (error) {
+        ind.textContent = '⚠ Nicht gespeichert: ' + (error.message || 'unbekannter Fehler')
+        ind.className = 'save-indicator'
+        ind.style.color = 'var(--red)'
+        console.error('Jahresübersicht speichern fehlgeschlagen:', error)
+        return
+      }
+      ind.style.color = ''
+      ind.textContent = '✓ Gespeichert'; ind.className = 'save-indicator saved'
+      setTimeout(() => { if (ind.textContent === '✓ Gespeichert') { ind.textContent = ''; ind.className = 'save-indicator' } }, 2000)
+    }
+
+    // Beim Verlassen oder Neuladen der Seite nichts liegen lassen
+    function jahrAlleSichern() {
+      Object.keys(jahrOffen).forEach(id => {
+        const p = jahrOffen[id]
+        clearTimeout(jahrTimers[id])
+        delete jahrTimers[id]
+        delete jahrOffen[id]
+        try {
+          // keepalive, damit der Browser die Anfrage auch beim Schließen noch sendet
+          fetch(SUPABASE_URL + '/rest/v1/portfolio?id=eq.' + encodeURIComponent(p.id), {
+            method: 'PATCH', keepalive: true,
+            headers: {
+              'apikey': SUPABASE_KEY,
+              'Authorization': 'Bearer ' + (window.__ieToken || SUPABASE_KEY),
+              'Content-Type': 'application/json',
+              'Prefer': 'return=minimal',
+            },
+            body: JSON.stringify({ einstellungen: p.einstellungen }),
+          })
+        } catch (e) { /* beim Schließen nicht weiter zu behandeln */ }
+      })
+    }
+    window.addEventListener('pagehide', jahrAlleSichern)
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') jahrAlleSichern() })
 
     window.ieSetView = switchTab
 

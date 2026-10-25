@@ -558,7 +558,7 @@
     var s1 = w1 + t1 + c1
 
     var html = ''
-    html += '<div class="sz-titel">1 · Entwicklung von Kauf bis heute</div>'
+    html += '<div class="sz-titel">Entwicklung von Kauf bis heute</div>'
     html += dreier(
       kachel('Kaufpreis', eur(kaufpreis), '', '', 'Summe der Zeile „Zahlung Kaufpreis" aus der Liquiditätsplanung.'),
       kachel('Wert heute', eur(heuteZ.wert), 'gold', '', 'Aktueller Wert laut Einstellung der Immobilie.'),
@@ -593,7 +593,7 @@
     var s2 = w2 + t2 + c2
     var s2netto = s2 - r.verkaufskosten
 
-    html += '<div class="sz-titel">2 · Entwicklung von Kauf bis Exit ' + esc(exitJahr) +
+    html += '<div class="sz-titel">Entwicklung von Kauf bis Exit ' + esc(exitJahr) +
       ' (Verkauf nach ' + par.jahre + ' ' + (par.jahre === 1 ? 'Jahr' : 'Jahren') + ')</div>'
     html += dreier(
       kachel('Kaufpreis', eur(kaufpreis)),
