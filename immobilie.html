@@ -4235,10 +4235,12 @@
       const ekEinzahlung = Math.abs(C.summeBis(p, 'einzahlungEk', m))
       const ek = ekEinzahlung || Math.max(0, kaufpreis - Math.abs(C.summeBis(p, 'einzahlungFk', m)))
       const t = C.cfTeile(p, m)
-      const nkm = Math.abs((p.liquiditaet && p.liquiditaet.cells && Number((p.liquiditaet.cells.nkm || {})[m])) || 0)
       const tilgBis = Math.abs(C.summeBis(p, 'tilgung', m))
       const nebenkosten = Math.abs(C.summeAlle(p, 'ausgabe'))
       const pctF = v => v === null ? '–' : v.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %'
+      const fakF = v => v.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '×'
+      // Faktor, zu dem gekauft wurde – wie die Kachel „Ø Kauffaktor" im Portfolio
+      const kaufFaktor = C.kaufFaktor ? C.kaufFaktor(p) : 0
       const info = txt => `<span class="ie-info" tabindex="0" role="button" aria-label="Erklärung"><span class="ie-info-pop">${esc(txt)}</span></span>`
       // Ohne (i): die Erklärung bleibt als Hinweis am Mauszeiger erhalten
       const kachel = (l, v, c, i) => `<div class="ub-tile"${i ? ` title="${esc(i)}"` : ''}><span class="ub-label">${esc(l)}</span><span class="ub-value ${c || ''}">${v}</span></div>`
@@ -4260,7 +4262,8 @@
         kachel('Eigenkapital investiert', formatEur(ekEinzahlung), '',
                ekEinzahlung ? 'Summe der Zeile „Einzahlung Eigenkapital" aus der Liquiditätsplanung.'
                             : 'Noch keine Einzahlung Eigenkapital in der Liquiditätsplanung erfasst.') +
-        kachel('Mietrendite bei Kauf', kaufpreis > 0 && nkm ? pctF(nkm * 12 / kaufpreis * 100) : '–', 'gold', 'Jahreskaltmiete ÷ Kaufpreis')
+        kachel('Kauffaktor', kaufFaktor ? fakF(kaufFaktor) : '–', 'gold',
+               'Kaufpreis ÷ zwölf erste erfasste Monatsnettokaltmieten, beides aus der Liquiditätsplanung.')
 
       const jahre = X.zehnJahre([p])
       const daten = X.jahresDaten([pw], jahre)
