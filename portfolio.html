@@ -609,7 +609,8 @@
 
       const m = window.IECalc.jetztMonat()
       let aum = 0, fk = 0, kaufpreis = 0, ekEingesetzt = 0, wflSumme = 0
-      let miete = 0, hausgeld = 0, bankrate = 0, cf = 0, nkmJahr = 0
+      const faktoren = []
+      let miete = 0, hausgeld = 0, bankrate = 0, cf = 0
 
       // Der Wert je Immobilie kommt aus deren eigener Einstellung
       const zaehler = { kaufpreis: 0, steigerung: 0, eigen: 0 }
@@ -622,18 +623,21 @@
         kaufpreis += window.IECalc.kaufpreis(p)
         ekEingesetzt += Math.abs(window.IECalc.summeAlle(p, 'einzahlungEk'))
         wflSumme += Number((p.einstellungen && p.einstellungen.wohnflaeche) || 0) || 0
+        // Kauffaktor je Immobilie: Kaufpreis ÷ zwölf erste Monatsnettokaltmieten
+        const kf = window.IECalc.kaufFaktor ? window.IECalc.kaufFaktor(p) : 0
+        if (kf > 0) faktoren.push(kf)
         const t = window.IECalc.cfTeile(p, m)
         miete += t.miete + t.weitereMiete
         hausgeld += t.hausgeld
         bankrate += t.bankrate
         cf += t.cf
-        const st = liqStats(p)
-        nkmJahr += (st.nkm || 0) * 12
       })
 
       const ek  = Math.max(0, aum - fk)
       const ltv = aum > 0 ? fk / aum : null
-      const brutto = kaufpreis > 0 && nkmJahr > 0 ? nkmJahr / kaufpreis : null
+      // Durchschnitt über alle Immobilien mit erfasster Miete und Kaufpreis
+      const kaufFaktor = faktoren.length ? faktoren.reduce((a, b) => a + b, 0) / faktoren.length : null
+      const fak = v => v === null ? '–' : v.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '×'
 
       const pct = v => v === null ? '–' : (v * 100).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' %'
 
@@ -667,7 +671,9 @@
             t: wflSumme ? 'Summe der Kaufpreise ÷ Summe der Wohnflächen (' + wflSumme.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' m²)'
                         : 'Wohnfläche in den Einstellungen der Immobilien ergänzen.' },
           { l: 'Eigenkapital investiert', v: formatEur(ekEingesetzt), t: 'Summe der Zeilen „Einzahlung Eigenkapital" aus der Liquiditätsplanung.' },
-          { l: 'Mietrendite bei Kauf', v: pct(brutto), c: 'gold', t: 'Jahreskaltmiete ÷ Kaufpreis über das gesamte Portfolio.' },
+          { l: 'Ø Kauffaktor', v: fak(kaufFaktor), c: 'gold',
+            t: 'Je Immobilie: Kaufpreis ÷ zwölf erste erfasste Monatsnettokaltmieten, beides aus der Liquiditätsplanung. Hier der Mittelwert über '
+               + faktoren.length + (faktoren.length === 1 ? ' Immobilie.' : ' Immobilien.') },
         ], 'kcVermoegen', true) +
         gruppe('Monatliche Einnahmen und Ausgaben', [
           { l: 'Mieteinnahmen', v: formatEur(miete), c: 'green' },

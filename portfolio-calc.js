@@ -123,11 +123,27 @@
     return letzte || erste
   }
 
-  // Faktor, zu dem gekauft wurde: Kaufpreis ÷ Jahresnettokaltmiete zum
-  // Übernahmestichtag – nicht zu der Miete, die heute gilt.
+  // Die erste überhaupt erfasste Nettokaltmiete – unabhängig davon, in
+  // welchem Monat sie steht und ob das der Monat des Kaufpreises ist.
+  function ersteNkm (p) {
+    var c = zellen(p).nkm || {}, o = ovs(p).nkm || {}
+    var keys = []
+    Object.keys(c).concat(Object.keys(o)).forEach(function (k) {
+      if (/^\d{4}-\d{2}$/.test(k) && keys.indexOf(k) === -1) keys.push(k)
+    })
+    keys.sort()
+    for (var i = 0; i < keys.length; i++) {
+      var v = nkmMonat(p, keys[i])
+      if (v > 0.004) return v
+    }
+    return 0
+  }
+
+  // Faktor, zu dem gekauft wurde: Kaufpreis ÷ zwölf erste Monatsnettokaltmieten.
+  // Beides kommt aus der Liquiditätsplanung.
   function kaufFaktor (p) {
     var kp = kaufpreis(p)
-    var nkm = nkmBis(p, wertBasis(p))
+    var nkm = ersteNkm(p)
     return (kp > 0 && nkm > 0) ? kp / (nkm * 12) : 0
   }
 
@@ -297,7 +313,7 @@
     HAUSGELD_MAX: HAUSGELD_MAX, hausgeldAnzahl: hausgeldAnzahl,
     jetztMonat: jetztMonat, monatPlus: monatPlus, monatDiff: monatDiff, fenster: fenster,
     kaufpreis: kaufpreis, uebernahme: uebernahme, stichtag: stichtag, wertBasis: wertBasis, bestandAb: bestandAb,
-    nkmBis: nkmBis, kaufFaktor: kaufFaktor,
+    nkmBis: nkmBis, ersteNkm: ersteNkm, kaufFaktor: kaufFaktor,
     wert: wert, aktuellerWert: aktuellerWert, wertEinstellung: wertEinstellung, restschuld: restschuld, cfTeile: cfTeile, reihe: reihe,
     summeAlle: summeAlle, summeBis: summeBis,
   }
