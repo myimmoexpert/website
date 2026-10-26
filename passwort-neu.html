@@ -280,16 +280,18 @@
     <span class="footer-copy">© 2026 Immo.Expert</span>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
   <script>
     const SUPABASE_URL = 'https://awvnfocepqkkncgqgaka.supabase.co'
     const SUPABASE_KEY = 'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
     const { createClient } = window.supabase
 
     // detectSessionInUrl aus: Token-Auswertung erfolgt unten kontrolliert
-    const sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
+    // Nur EIN Client je Seite: sonst erneuern mehrere Clients gleichzeitig
+    // das Refresh-Token und der Verlierer wirft die Sitzung weg.
+    const sb = window.IE_SB || (window.IE_SB = createClient(SUPABASE_URL, SUPABASE_KEY, {
       auth: { detectSessionInUrl: false, flowType: 'implicit' }
-    })
+    }))
 
     /* ---------- UI-Helfer ---------- */
 

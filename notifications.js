@@ -7,10 +7,12 @@
 // ═══════════════════════════════════════════════════════════
 (function () {
   if (!window.supabase) return
-  const client = window.supabase.createClient(
+  // Nur EIN Supabase-Client je Seite (siehe app-shell.js): mehrere Clients
+  // erneuern sonst gleichzeitig dasselbe Refresh-Token.
+  const client = window.IE_SB || (window.IE_SB = window.supabase.createClient(
     'https://awvnfocepqkkncgqgaka.supabase.co',
     'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
-  )
+  ))
 
   const style = document.createElement('style')
   style.textContent = `

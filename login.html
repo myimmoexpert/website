@@ -248,12 +248,12 @@
     <span class="footer-copy">© 2026 Immo.Expert</span>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
   <script>
     const SUPABASE_URL = 'https://awvnfocepqkkncgqgaka.supabase.co'
     const SUPABASE_KEY = 'sb_publishable_58JgPRNH2JIpXyTi-UZFOw_xohwzWZs'
     const { createClient } = window.supabase
-    const sb = createClient(SUPABASE_URL, SUPABASE_KEY)
+    const sb = window.IE_SB || (window.IE_SB = createClient(SUPABASE_URL, SUPABASE_KEY))
     window.sb = sb
 
     // Fassung der Rechtstexte. Bei jeder Änderung von AGB oder AVV hochzählen.
