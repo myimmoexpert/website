@@ -171,6 +171,8 @@
     /* Abgleich mit den Kontoumsätzen */
     .liq-table td.liq-ok { background: #16241c; }
     .liq-table td.liq-ok.liq-now { background: #16241c; }
+    /* Monat vorbei, Betrag steht, aber nichts gebucht */
+    .liq-table td.liq-faellig { background: #231719; }
     .liq-table td.liq-warn { background: #241f14; }
     .liq-table td.liq-warn::before {
       content: '⚠'; position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
@@ -2864,6 +2866,11 @@
         td.classList.toggle('liq-gebucht', gebucht && !abw)
         td.classList.toggle('liq-abw', !!abw)
         td.classList.toggle('liq-xmark', marke === 'x')
+        // Monat vorbei, Betrag steht, aber nichts gebucht → leicht rot
+        const faellig = LIQ_TRACK_ROWS.includes(row) && liqMonateHer(month) >= 1
+          && Math.abs(val) > 0.004 && !gebucht && !abw && marke !== 'x'
+        td.classList.toggle('liq-faellig', faellig)
+        if (faellig) td.classList.remove('liq-ok', 'liq-warn')
 
         const note = liqData.notes?.[row]?.[month]
         const hinweis = marke === 'x'
@@ -2873,6 +2880,8 @@
           : abw
           ? `Gebucht ${liqFmt(val)} €, geplant waren ${liqFmt(abw.plan)} € `
             + `(${abw.diff > 0 ? '+' : ''}${liqFmt(abw.diff)} €).`
+          : faellig
+            ? 'Der Monat ist vorbei, dieser Betrag ist noch nicht als gebucht markiert.'
           : stand === 'warn'
             ? 'Geplanter Wert – seit zwei Monaten keine passende Buchung im Kontoauszug gefunden.'
             : stand === 'ok'
@@ -2930,7 +2939,7 @@
           // der Vergleich mit der Summe der Einzelzeilen – sonst nichts.
           const eigen = liqMarke(parent.key, m)
           if (eigen) {
-            td.classList.remove('liq-warn', 'liq-abw', 'liq-ok', 'liq-gebucht', 'liq-xmark')
+            td.classList.remove('liq-warn', 'liq-abw', 'liq-ok', 'liq-gebucht', 'liq-xmark', 'liq-faellig')
             td.classList.add(eigen === 'ok' ? 'liq-ok' : 'liq-xmark')
             if (eigen === 'ok') td.classList.add('liq-gebucht')
             cell.title = eigen === 'ok' ? 'Von Hand als gebucht bestätigt.' : 'Von Hand als „Betrag stimmt nicht" markiert.'
@@ -2938,7 +2947,7 @@
           }
           const bs = LIQ_SUMMEN[parent.key] ? liqSummeStand(parent.key, m, out) : null
           if (bs) {
-            td.classList.remove('liq-warn', 'liq-abw', 'liq-ok', 'liq-gebucht', 'liq-xmark')
+            td.classList.remove('liq-warn', 'liq-abw', 'liq-ok', 'liq-gebucht', 'liq-xmark', 'liq-faellig')
             if (bs.ok) {
               td.classList.add('liq-ok', 'liq-gebucht')
               cell.title = `Buchung vom Konto: ${liqFmt(bs.geb)} € – stimmt mit der Tabelle überein.`
@@ -2960,18 +2969,23 @@
             : kinder.every(k => rec.ic[k.key + '|' + m] || liqMarke(k.key, m) === 'ok')
           const abw = kinder.some(k => liqMarke(k.key, m) === 'x'
             || (liqMarke(k.key, m) !== 'ok' && liqAbweichung(k.key, m, out[k.key]?.[m] ?? 0, rec)))
-          if (zu && staende.includes('warn') && !gebucht) {
+          // Monat vorbei und Betrag steht, aber nicht alles gebucht → rot statt gelb
+          const faelligP = liqMonateHer(m) >= 1 && Math.abs(out[parent.key]?.[m] ?? 0) > 0.004 && !gebucht
+          if (zu && staende.includes('warn') && !gebucht && !faelligP) {
             td.classList.add('liq-warn'); td.classList.remove('liq-ok', 'liq-gebucht', 'liq-abw')
             return
           }
           if (abw) {
-            td.classList.add('liq-abw'); td.classList.remove('liq-gebucht', 'liq-ok', 'liq-warn')
+            td.classList.add('liq-abw'); td.classList.remove('liq-gebucht', 'liq-ok', 'liq-warn', 'liq-faellig')
             cell.title = 'Eine gebuchte Zeile weicht vom geplanten Wert ab – Gruppe aufklappen.'
           } else if (gebucht) {
-            td.classList.add('liq-ok', 'liq-gebucht'); td.classList.remove('liq-warn')
+            td.classList.add('liq-ok', 'liq-gebucht'); td.classList.remove('liq-warn', 'liq-faellig')
             cell.title = 'Gebucht, weil ' + (LIQ_SUMMEN[parent.key] || { teile: kinder.map(k => k.key) }).teile
               .map(k => (LIQ_ROWS.find(r => r.key === k) || {}).label || k).join(' und ')
               + ' gebucht sind.'
+          } else if (faelligP) {
+            td.classList.add('liq-faellig'); td.classList.remove('liq-ok', 'liq-warn')
+            cell.title = 'Der Monat ist vorbei, hier ist noch nicht alles als gebucht markiert.'
           } else if (zu && staende.length && staende.every(x => x === 'ok')) td.classList.add('liq-ok')
         })
       })

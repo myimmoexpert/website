@@ -2624,6 +2624,46 @@
       renderBuchungsstatus()
     }
 
+    // Welche Zeilen gehören zu einer Art, und auf welcher Summenzeile erscheint
+    // ihre Buchung auf dem Konto? (Miete = Nettokaltmiete + Nebenkosten,
+    // Darlehen = Zins + Tilgung je Darlehen.)
+    function bsTeile(art) {
+      if (art.key === 'miete') {
+        return [{ k: 'nkm', s: 'miete' }, { k: 'nk', s: 'miete' }, { k: 'weitereMiete', s: null }]
+      }
+      if (art.key === 'hausgeld') {
+        return Array.from({ length: HMAX }, (_, i) => ({ k: dK('hausgeld', i + 1), s: null }))
+      }
+      return Array.from({ length: DMAX }, (_, i) => [
+        { k: dK('zins', i + 1),    s: dK('bankrate', i + 1) },
+        { k: dK('tilgung', i + 1), s: dK('bankrate', i + 1) },
+      ]).flat()
+    }
+
+    // Gebucht ist die Art erst, wenn JEDE Zeile mit Betrag gebucht ist – aus dem
+    // Kontoauszug oder von Hand mit dem Haken in der Liquiditätsplanung.
+    function bsAllesGebucht(p, art, monat) {
+      const lq = p.liquiditaet || {}
+      const ic = lq.importedCells || {}, mk = lq.marken || {}
+      const cells = lq.cells || {}, ovr = lq.overrides || {}
+      const betrag = k => {
+        const o = (ovr[k] || {})[monat]
+        if (o !== undefined && o !== null && o !== '') return Math.abs(Number(o) || 0)
+        return Math.abs(Number((cells[k] || {})[monat]) || 0)
+      }
+      const gebucht = k => !!(ic[k + '|' + monat] || mk[k + '|' + monat] === 'ok')
+      const teile = bsTeile(art)
+      const offen = teile.filter(t => betrag(t.k) > 0.004)
+        .map(t => ({ k: t.k, s: t.s }))
+      // Festdarlehen: der Betrag steht nur in der Summenzeile
+      const summen = [...new Set(teile.map(t => t.s).filter(Boolean))]
+        .filter(s => betrag(s) > 0.004 && !offen.some(t => t.s === s))
+        .map(s => ({ k: s, s: null }))
+      const zuBuchen = offen.concat(summen)
+      if (!zuBuchen.length) return false
+      return zuBuchen.every(t => gebucht(t.k) || (t.s && gebucht(t.s)))
+    }
+
     function bsStand(p, art, monat) {
       const C = window.IECalc
       const lq = p.liquiditaet || {}
@@ -2633,11 +2673,9 @@
         art.key === 'miete'    ? Math.abs(t.miete + t.weitereMiete) > 0.004 :
         art.key === 'hausgeld' ? Math.abs(t.hausgeld) > 0.004 :
                                  Math.abs(t.bankrate) > 0.004)
-      const ic = lq.importedCells || {}
-      // Gebucht ist eine Zeile, wenn sie aus dem Kontoauszug kommt ODER in der
-      // Liquiditätsplanung von Hand mit dem Haken als gebucht markiert wurde.
-      const mk = lq.marken || {}
-      const auto = art.zeilen.some(z => ic[z + '|' + monat] || mk[z + '|' + monat] === 'ok')
+      // Grün erst, wenn ALLE Positionen der Art gebucht sind: jede Miete,
+      // jedes Hausgeld, jedes Darlehen.
+      const auto = bsAllesGebucht(p, art, monat)
       const hand = lq.gebucht && lq.gebucht[monat] ? lq.gebucht[monat][art.key] : undefined
       const gebucht = hand !== undefined ? !!hand : auto
 
