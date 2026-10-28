@@ -2286,6 +2286,32 @@
     }
     const liqFmt = n => new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.round(n * 100) / 100)
 
+    // ── In den Zellen darf gerechnet werden: „320+45,50", „1.200/12", „3*19,90" ──
+    // Erlaubt sind nur Ziffern, Komma, Punkt, Klammern und + - * /.
+    function liqRechnen(s) {
+      if (typeof s !== 'string') return null
+      const t = s.replace(/[\s€]/g, '')
+      if (!t) return null
+      if (!/[+*/]/.test(t) && !/.[-]/.test(t)) return null   // kein Rechenzeichen → normale Zahl
+      if (!/^[-+*/().,\d]+$/.test(t)) return null
+      // Jede Zahl einzeln aus dem deutschen Format übersetzen (1.200,50 → 1200.5)
+      const norm = t.replace(/\d[\d.,]*/g, z => {
+        const n = liqParse(z)
+        return n === null ? 'NaN' : String(n)
+      })
+      let n = null
+      try { n = Function('"use strict";return (' + norm + ')')() } catch (e) { return null }
+      return (typeof n === 'number' && isFinite(n)) ? Math.round(n * 100) / 100 : null
+    }
+
+    // Beim Verlassen der Zelle das Ergebnis eintragen
+    function liqZelleRechnen(cell) {
+      const n = liqRechnen(cell.value)
+      if (n === null) return
+      cell.value = liqFmt(n)
+      liqOnEdit(cell)
+    }
+
     // ── Rendering ──
     function liqRender() {
       const { months, out } = liqCompute()
@@ -2332,7 +2358,7 @@
       liqScrollToNow()
       document.querySelectorAll('.liq-cell').forEach(cell => {
         cell.addEventListener('input',    () => liqOnEdit(cell))
-        cell.addEventListener('change',   () => liqMaybeOfferForward(cell))
+        cell.addEventListener('change',   () => { liqZelleRechnen(cell); liqMaybeOfferForward(cell) })
         cell.addEventListener('blur',     () => liqRefreshCells())
         cell.addEventListener('keydown',  e  => liqKeyNav(e, cell))
         cell.addEventListener('dblclick', () => liqEditNote(cell))
@@ -2703,7 +2729,11 @@
 
     // ── Forward-Edit: geänderte Zelle für alle Folgemonate übernehmen ──
     const LIQ_FORWARD_ROWS = ['miete', 'nkm', 'nk', 'weitereMiete', 'grundsteuer', 'hausgeld',
-                              'bankrate', 'zins', 'tilgung', 'bankrate2', 'zins2', 'tilgung2']
+                              'bankrate', 'zins', 'tilgung']
+      // weitere Darlehen und weitere Hausgeldzahlungen zählen genauso
+      .concat(Array.from({ length: DMAX - 1 }, (_, i) =>
+        [dK('bankrate', i + 2), dK('zins', i + 2), dK('tilgung', i + 2)]).flat())
+      .concat(Array.from({ length: HMAX - 1 }, (_, i) => dK('hausgeld', i + 2)))
     let liqToastTimer = null
 
     function liqMaybeOfferForward(cell) {

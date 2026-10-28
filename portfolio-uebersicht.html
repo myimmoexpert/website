@@ -1095,6 +1095,30 @@
 
     const liqFmt = n => new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.round(n * 100) / 100)
 
+    // In den Zellen darf gerechnet werden: „320+45,50", „1.200/12", „3*19,90".
+    // Erlaubt sind nur Ziffern, Komma, Punkt, Klammern und + - * /.
+    function ieZahl(s) {
+      let t = String(s).replace(/[\s€]/g, '')
+      if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.')
+      else if (/^-?\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '')
+      const n = parseFloat(t)
+      return isNaN(n) ? null : n
+    }
+    function ieRechnen(s) {
+      if (typeof s !== 'string') return null
+      const t = s.replace(/[\s€]/g, '')
+      if (!t) return null
+      if (!/[+*/]/.test(t) && !/.[-]/.test(t)) return null   // kein Rechenzeichen → normale Zahl
+      if (!/^[-+*/().,\d]+$/.test(t)) return null
+      const norm = t.replace(/\d[\d.,]*/g, z => {
+        const n = ieZahl(z)
+        return n === null ? 'NaN' : String(n)
+      })
+      let n = null
+      try { n = Function('"use strict";return (' + norm + ')')() } catch (e) { return null }
+      return (typeof n === 'number' && isFinite(n)) ? Math.round(n * 100) / 100 : null
+    }
+
     // ════════════════════════════════════════
     // ADMINISTRATIV
     // Zahlungen, die zu keiner einzelnen Immobilie gehören. Sie liegen in
@@ -1208,11 +1232,8 @@
       const roh = cell.value.trim()
       if (!roh) delete overview.administrativ[key][m]
       else {
-        let t = roh.replace(/[\s€]/g, '')
-        if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.')
-        else if (/^-?\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '')
-        const n = parseFloat(t)
-        if (isNaN(n)) delete overview.administrativ[key][m]
+        const n = ieRechnen(roh) ?? ieZahl(roh)
+        if (n === null) delete overview.administrativ[key][m]
         else overview.administrativ[key][m] = key === 'ausgaben' ? -Math.abs(n) : n
       }
       const w = overview.administrativ[key][m]
@@ -2328,6 +2349,7 @@
         renderLiquiditaet()
         liqPropsKopfzeilen()
         renderUebersicht()
+        renderBuchungsstatus()   // Haken in der Planung wirkt sofort oben
       }
     })
 
@@ -2612,7 +2634,10 @@
         art.key === 'hausgeld' ? Math.abs(t.hausgeld) > 0.004 :
                                  Math.abs(t.bankrate) > 0.004)
       const ic = lq.importedCells || {}
-      const auto = art.zeilen.some(z => ic[z + '|' + monat])
+      // Gebucht ist eine Zeile, wenn sie aus dem Kontoauszug kommt ODER in der
+      // Liquiditätsplanung von Hand mit dem Haken als gebucht markiert wurde.
+      const mk = lq.marken || {}
+      const auto = art.zeilen.some(z => ic[z + '|' + monat] || mk[z + '|' + monat] === 'ok')
       const hand = lq.gebucht && lq.gebucht[monat] ? lq.gebucht[monat][art.key] : undefined
       const gebucht = hand !== undefined ? !!hand : auto
 
