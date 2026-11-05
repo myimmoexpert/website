@@ -256,6 +256,10 @@
     .liq-modal-box h4 { font-size: 1.05rem; margin-bottom: 10px; }
     .liq-modal-box p { color: var(--muted); font-size: 0.84rem; line-height: 1.55; }
     .liq-drop { border: 2px dashed rgba(211,172,95,0.4); border-radius: var(--radius); padding: 44px 20px; margin: 20px 0; cursor: pointer; color: var(--muted); font-size: 0.9rem; transition: background 0.2s, border-color 0.2s; }
+    .liq-imp-dar { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 18px; }
+    .liq-imp-dar label { font-size: 0.78rem; font-weight: 600; color: var(--muted); }
+    .liq-imp-dar select { background: var(--navy3); border: 1px solid rgba(255,255,255,0.125); border-radius: 8px;
+                          color: var(--white); padding: 7px 10px; font-size: 0.86rem; font-family: inherit; }
     .liq-start-box { text-align: left; width: min(540px, 94vw); }
     .liq-start-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; margin: 22px 0 16px; }
     .liq-start-grid label { display: flex; flex-direction: column; gap: 6px; }
@@ -983,6 +987,10 @@
         <div class="liq-modal-box">
           <h4>Tilgungsplan importieren</h4>
           <p>PDF deiner Bank hierher ziehen oder klicken zum Auswählen.<br />Zins und Tilgung werden automatisch erkannt und nach Bestätigung übernommen.<br /><strong>Scans müssen OCR-Scans sein</strong>, also durchsuchbare PDFs, in denen sich der Text markieren lässt.</p>
+          <div class="liq-imp-dar" id="liqImportDarlehenWrap" hidden>
+            <label for="liqImportDarlehen">Für welches Darlehen?</label>
+            <select id="liqImportDarlehen"></select>
+          </div>
           <div class="liq-drop" id="liqDrop" onclick="document.getElementById('liqPdfInput').click()">
             <span id="liqDropText">📄 PDF hier ablegen oder klicken</span>
           </div>
@@ -2209,6 +2217,14 @@
     function liqOpenImport() {
       document.getElementById('liqImportModal').classList.add('open')
       document.getElementById('liqDropText').textContent = '📄 PDF hier ablegen oder klicken'
+      // Bei mehreren Darlehen fragen, in welches der Plan geschrieben wird
+      const anz = liqDarlehenAnzahl()
+      const wrap = document.getElementById('liqImportDarlehenWrap')
+      const sel = document.getElementById('liqImportDarlehen')
+      sel.innerHTML = Array.from({ length: anz }, (_, i) =>
+        '<option value="' + (i + 1) + '">Darlehen ' + (i + 1) + '</option>').join('')
+      sel.value = '1'
+      wrap.hidden = anz < 2
       const drop = document.getElementById('liqDrop')
       if (drop.dataset.wired) return
       drop.dataset.wired = '1'
@@ -3175,6 +3191,10 @@
           alert('Es konnte kein Tilgungsplan erkannt werden.\n\nBitte prüfen, ob das PDF eine Tabelle mit den Spalten „Zins“ und „Tilgung“ enthält. Bei einem Scan muss es ein OCR-Scan sein, in dem sich der Text markieren lässt.')
           return
         }
+        // Ziel-Darlehen merken, bevor das Fenster zugeht
+        const dn = Math.min(liqDarlehenAnzahl(),
+          Math.max(1, Number((document.getElementById('liqImportDarlehen') || {}).value) || 1))
+        const zinsKey = dK('zins', dn), tilgKey = dK('tilgung', dn)
         liqCloseImport()
         entries.sort((a, b) => a.month < b.month ? -1 : 1)
         const first = entries[0], last = entries[entries.length - 1]
@@ -3186,12 +3206,13 @@
         if (luecken > 0) warn += `\n⚠ ${luecken} Monat(e) im Zeitraum wurden nicht erkannt und bleiben leer.`
         if (skipped > 0) warn += `\n⚠ ${skipped} Zeile(n) konnten nicht zugeordnet werden.`
         if (warn) warn += '\n'
-        if (!confirm(`${entries.length} Monatsraten erkannt (${fmtM(first.month)} bis ${fmtM(last.month)}).${warn}\nErste Rate ${fmtM(first.month)}: Zins ${liqFmt(first.zins)} €, Tilgung ${liqFmt(first.tilgung)} €\nLetzte Rate ${fmtM(last.month)}: Zins ${liqFmt(last.zins)} €, Tilgung ${liqFmt(last.tilgung)} €\n\nZins und Tilgung übernehmen? Bestehende Werte dieser Monate werden überschrieben.`)) return
-        if (!liqData.cells.zins)    liqData.cells.zins = {}
-        if (!liqData.cells.tilgung) liqData.cells.tilgung = {}
+        const ziel = liqDarlehenAnzahl() > 1 ? ` für Darlehen ${dn}` : ''
+        if (!confirm(`${entries.length} Monatsraten erkannt (${fmtM(first.month)} bis ${fmtM(last.month)}).${warn}\nErste Rate ${fmtM(first.month)}: Zins ${liqFmt(first.zins)} €, Tilgung ${liqFmt(first.tilgung)} €\nLetzte Rate ${fmtM(last.month)}: Zins ${liqFmt(last.zins)} €, Tilgung ${liqFmt(last.tilgung)} €\n\nZins und Tilgung${ziel} übernehmen? Bestehende Werte dieser Monate werden überschrieben.`)) return
+        if (!liqData.cells[zinsKey]) liqData.cells[zinsKey] = {}
+        if (!liqData.cells[tilgKey]) liqData.cells[tilgKey] = {}
         entries.forEach(e => {
-          liqData.cells.zins[e.month]    = -Math.abs(e.zins)
-          liqData.cells.tilgung[e.month] = -Math.abs(e.tilgung)
+          liqData.cells[zinsKey][e.month] = -Math.abs(e.zins)
+          liqData.cells[tilgKey][e.month] = -Math.abs(e.tilgung)
         })
         liqRefreshCells()
         scheduleSave('l')
