@@ -201,6 +201,10 @@
     .jahr-feld { width: 150px; background: var(--navy); border: 1px solid rgba(255,255,255,0.175);
                  border-radius: 7px; padding: 6px 9px; color: var(--white); font: 500 0.84rem 'Inter', sans-serif; text-align: right; }
     .jahr-feld:focus { outline: none; border-color: rgba(211,172,95,0.55); }
+    .jahr-feld.jahr-offen { border-color: rgba(220,90,90,0.8); }
+    .jahr-feld.jahr-offen:focus { border-color: rgba(220,90,90,1); }
+    .jahr-unvoll { color: var(--red); font-size: .68rem; font-weight: 700; letter-spacing: .05em;
+                   text-transform: uppercase; white-space: nowrap; margin-left: 10px; }
     .jahr-einheit { color: var(--muted); font-size: 0.78rem; margin-left: 6px; }
     @media (max-width: 700px) {
       .jahr-tab td { padding: 8px 10px; }
@@ -1628,8 +1632,15 @@
              `<td class="z"${rechen ? ` data-calc="${rechen}"` : ''}>${wert}</td></tr>`
     }
 
+    // Noch nicht ausgefüllte Eingabefelder eines Jahres
+    function jahrOffeneFelder(p, jahr) {
+      const e = jahrWerte(p, jahr)
+      return JAHR_FELDER.filter(k => e[k] === null || e[k] === undefined)
+    }
+
     function jahrFeldHtml(idx, key, wert, einheit, titel) {
-      return `<input class="jahr-feld" data-idx="${idx}" data-key="${key}" inputmode="decimal"` +
+      return `<input class="jahr-feld${wert === null || wert === undefined ? ' jahr-offen' : ''}"` +
+             ` data-idx="${idx}" data-key="${key}" inputmode="decimal"` +
              ` value="${wert === null ? '' : String(wert).replace('.', ',')}"${titel ? ` title="${esc(titel)}"` : ''} />` +
              (einheit ? `<span class="jahr-einheit">${esc(einheit)}</span>` : '')
     }
@@ -1660,7 +1671,8 @@
           <span class="liq-auf-chev">▾</span>
           <span class="liq-auf-titel"><span class="lp-ico">${OBJEKTART_ICONS[p.objektart] || '🏗️'}</span>
             <span class="lp-name">${esc(p.bezeichnung || 'Immobilie')}</span>
-            <span class="lp-adr">${esc(p.adresse || '')}</span></span>
+            <span class="lp-adr">${esc(p.adresse || '')}</span>
+            <span class="jahr-unvoll" data-jahr-unvoll${jahrOffeneFelder(p, jahr).length ? '' : ' hidden'}>Nicht vollständig</span></span>
           <span class="lp-cf" data-calc="euer" style="color:${r.euer < 0 ? 'var(--red)' : 'var(--green)'}">${jahrFmt(r.euer)}</span>
         </summary>
         <div class="lp-frame-wrap"><div class="lp-body">
@@ -1744,6 +1756,13 @@
           }
         })
       })
+      // Offene Felder rot umranden und den Hinweis in der Kopfzeile mitführen
+      const offen = jahrOffeneFelder(p, jahr)
+      det.querySelectorAll('.jahr-feld').forEach(f => {
+        f.classList.toggle('jahr-offen', offen.includes(f.dataset.key))
+      })
+      const hinweis = det.querySelector('[data-jahr-unvoll]')
+      if (hinweis) hinweis.hidden = offen.length === 0
     }
 
     /* Speichern je Immobilie. Ein eigener Timer pro Immobilie, damit sich

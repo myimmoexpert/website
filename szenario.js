@@ -555,7 +555,11 @@
     var w1 = heuteZ.wert - kaufpreis
     var t1 = heuteZ.tilgung
     var c1 = heuteZ.cfKum
-    var s1 = w1 + t1 + c1
+    // Gezahlte Kaufnebenkosten – Zeile „Zahlung Nebenkosten" der Liquiditätsplanung
+    var nk1 = auswahl.reduce(function (s, p) {
+      return s + Math.abs(calc.summeBis(p, 'ausgabe', calc.jetztMonat()) || 0)
+    }, 0)
+    var s1 = w1 + t1 + c1 - nk1
 
     var html = ''
     html += '<div class="sz-titel">Entwicklung von Kauf bis heute</div>'
@@ -567,11 +571,13 @@
       kachel('Finanzierung Anfangssumme', eur(heuteZ.fk), '', '', 'Summe der Zeile „Valutierung Fremdkapital".'),
       kachel('Restschuld heute', eur(heuteZ.restschuld)),
       kachel('Tilgung gesamt', eur(t1), t1 > 0 ? 'green' : '', '', 'Anfangssumme abzüglich heutiger Restschuld – entspricht der Summe aller Tilgungszeilen.'))
-    html += '<div class="sz-kpis sz-kpis-2">' +
+    html += '<div class="sz-kpis sz-kpis-3">' +
       kachel('Cashflow insgesamt bisher', eur(c1), c1 < 0 ? 'red' : 'green', '',
         'Summe aller monatlichen Cashflows seit der Übernahme.') +
+      kachel('Nebenkosten', eur(-nk1), nk1 ? 'red' : '', '',
+        'Summe der Zeile „Zahlung Nebenkosten" aus der Liquiditätsplanung – die beim Kauf gezahlten Nebenkosten.') +
       kachel('Summe Wertzuwachs bisher', eur(s1), s1 < 0 ? 'red' : 'gold', '',
-        'Wertsteigerung + Tilgung + Cashflow. Das eingesetzte Eigenkapital ist nicht enthalten, Kaufnebenkosten ebenfalls nicht.', true) +
+        'Wertsteigerung + Tilgung + Cashflow, abzüglich der gezahlten Nebenkosten. Das eingesetzte Eigenkapital ist nicht enthalten.', true) +
     '</div>'
 
     html += '<div class="pc-grid sz-charts">' +
@@ -582,7 +588,7 @@
         info: 'Aufsummierter Cashflow seit der Übernahme.',
         legende: [{ c: Kc.farben.TEAL, t: 'Cashflow kumuliert' }] }) +
       Kc.karte({ id: 'szHistZuwachs', titel: 'Woher der Wertzuwachs kommt',
-        info: 'Wertsteigerung, Tilgung und Cashflow – zusammen ergeben sie die Summe Wertzuwachs.',
+        info: 'Wertsteigerung, Tilgung und Cashflow – abzüglich der gezahlten Nebenkosten ergeben sie die Summe Wertzuwachs.',
         legende: [{ c: Kc.farben.GOLD, t: 'Wertsteigerung' }, { c: Kc.farben.BLAU, t: 'Tilgung' }, { c: Kc.farben.TEAL, t: 'Cashflow' }] }) +
     '</div>'
 
