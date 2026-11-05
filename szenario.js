@@ -336,6 +336,11 @@
       '.sz-tab tr.sz-exit td { border-top:2px solid rgba(211,172,95,0.35); background:rgba(211,172,95,0.06); font-weight:600; }',
       '.sz-titel { display:flex; align-items:center; gap:9px; font-size:0.76rem; font-weight:700; text-transform:uppercase; letter-spacing:0.7px; margin:6px 0 12px; }',
       '.sz-titel::before { content:""; width:3px; height:13px; border-radius:2px; background:var(--gold); }',
+      /* Jeder Zeitraum als eigener Block, damit die Bereiche klar getrennt sind */
+      '.sz-bereich { background:rgba(255,255,255,0.026); border:1px solid rgba(255,255,255,0.14); border-radius:16px; padding:16px 16px 0; margin-bottom:28px; }',
+      '.sz-bereich > .sz-titel { font-size:0.84rem; margin:0 0 14px; padding-bottom:11px; border-bottom:1px solid rgba(255,255,255,0.08); }',
+      '.sz-bereich > .sz-titel::before { height:15px; }',
+      '@media (max-width: 700px) { .sz-bereich { padding:12px 12px 0; border-radius:12px; margin-bottom:20px; } }',
       '.sz-disclaimer { font-size:0.74rem; color:rgba(155,150,140,0.8); margin-top:14px; line-height:1.5; }',
       '@media (max-width: 980px) { .sz-layout { grid-template-columns:minmax(0,1fr); } .sz-select { min-width:0; width:100%; } .sz-panel { position:static; } .sz-vorlagen { margin-left:0; } }'
     ].join('\n')
@@ -562,6 +567,7 @@
     var s1 = w1 + t1 + c1 - nk1
 
     var html = ''
+    html += '<section class="sz-bereich">'
     html += '<div class="sz-titel">Entwicklung von Kauf bis heute</div>'
     html += dreier(
       kachel('Kaufpreis', eur(kaufpreis), '', '', 'Summe der Zeile „Zahlung Kaufpreis" aus der Liquiditätsplanung.'),
@@ -591,14 +597,16 @@
         info: 'Wertsteigerung, Tilgung und Cashflow – abzüglich der gezahlten Nebenkosten ergeben sie die Summe Wertzuwachs.',
         legende: [{ c: Kc.farben.GOLD, t: 'Wertsteigerung' }, { c: Kc.farben.BLAU, t: 'Tilgung' }, { c: Kc.farben.TEAL, t: 'Cashflow' }] }) +
     '</div>'
+    html += '</section>'
 
     /* ── Bereich 2: von Kauf bis Exit ────────────────────── */
     var w2 = r.wertExit - kaufpreis
     var t2 = Math.max(0, heuteZ.fk - r.restschuldExit)
     var c2 = c1 + r.kumCf
-    var s2 = w2 + t2 + c2
+    var s2 = w2 + t2 + c2 - nk1
     var s2netto = s2 - r.verkaufskosten
 
+    html += '<section class="sz-bereich">'
     html += '<div class="sz-titel">Entwicklung von Kauf bis Exit ' + esc(exitJahr) +
       ' (Verkauf nach ' + par.jahre + ' ' + (par.jahre === 1 ? 'Jahr' : 'Jahren') + ')</div>'
     html += dreier(
@@ -610,11 +618,13 @@
       kachel('Finanzierung Anfangssumme', eur(heuteZ.fk)),
       kachel('Restschuld beim Exit', eur(r.restschuldExit)),
       kachel('Tilgung gesamt', eur(t2), t2 > 0 ? 'green' : '', '', 'Anfangssumme abzüglich Restschuld beim Exit, inklusive Sondertilgungen.'))
-    html += '<div class="sz-kpis sz-kpis-2">' +
+    html += '<div class="sz-kpis sz-kpis-3">' +
       kachel('Cashflow insgesamt bis Exit', eur(c2), c2 < 0 ? 'red' : 'green', '',
         'Cashflow seit der Übernahme bis heute zuzüglich der fortgeschriebenen Jahre bis zum Verkauf.') +
+      kachel('Nebenkosten', eur(-nk1), nk1 ? 'red' : '', '',
+        'Summe der Zeile „Zahlung Nebenkosten" aus der Liquiditätsplanung – die beim Kauf gezahlten Nebenkosten.') +
       kachel('Summe Wertzuwachs bis Exit', eur(s2), s2 < 0 ? 'red' : 'gold', '',
-        'Wertsteigerung + Tilgung + Cashflow, gerechnet vom Kauf bis zum Verkauf.', true) +
+        'Wertsteigerung + Tilgung + Cashflow, abzüglich der gezahlten Nebenkosten, gerechnet vom Kauf bis zum Verkauf.', true) +
     '</div>'
     html += '<div class="sz-kpis sz-kpis-2">' +
       kachel('Verkaufskosten', eur(-r.verkaufskosten), 'red', '',
@@ -630,8 +640,10 @@
         info: 'Aufsummierter Cashflow vom Kauf bis zum Verkauf.',
         legende: [{ c: Kc.farben.TEAL, t: 'Cashflow kumuliert' }] }) +
       Kc.karte({ id: 'szExitZuwachs', titel: 'Woher der Wertzuwachs bis zum Exit kommt',
+        info: 'Wertsteigerung, Tilgung und Cashflow – abzüglich der gezahlten Nebenkosten ergeben sie die Summe Wertzuwachs.',
         legende: [{ c: Kc.farben.GOLD, t: 'Wertsteigerung' }, { c: Kc.farben.BLAU, t: 'Tilgung' }, { c: Kc.farben.TEAL, t: 'Cashflow' }] }) +
     '</div>'
+    html += '</section>'
 
     // Hinweise: Spekulationsfrist und Datenlücken
     var hinweise = []
