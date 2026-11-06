@@ -33,13 +33,11 @@
       info: 'Sollzins nach Ende der Zinsbindung.' },
     { key: 'sonder',      gruppe: 'Finanzierung', label: 'Sondertilgung',                  einheit: '€ / Jahr', min: 0, max: 1000000, step: 500,
       info: 'Zahlung zusätzlich zur Bankrate, jeweils am Ende eines Jahres. Senkt den Cashflow und die Restschuld. Beim Gesamtportfolio je Immobilie.' },
-    { key: 'verkauf',     gruppe: 'Ausgaben & Verkauf', label: 'Verkaufskosten',            einheit: '% vom Wert', min: 0, max: 20, step: 0.5,
-      info: 'Makler, Notar, Vorfälligkeitsentschädigung o. ä. – wird beim Exit vom Verkaufspreis abgezogen.' },
   ]
 
   var VORLAGEN = {
-    basis:        { label: 'Basis',        werte: { wert: 2, miete: 2, kosten: 2, ausfall: 0, zinsbindung: 0, anschluss: 4, sonder: 0, verkauf: 3, faktor: 25 } },
-    optimistisch: { label: 'Optimistisch', werte: { wert: 3, miete: 3, kosten: 1.5, ausfall: 0, zinsbindung: 0, anschluss: 3, sonder: 0, verkauf: 3, faktor: 28 } },
+    basis:        { label: 'Basis',        werte: { wert: 2, miete: 2, kosten: 2, ausfall: 0, zinsbindung: 0, anschluss: 4, sonder: 0, faktor: 25 } },
+    optimistisch: { label: 'Optimistisch', werte: { wert: 3, miete: 3, kosten: 1.5, ausfall: 0, zinsbindung: 0, anschluss: 3, sonder: 0, faktor: 28 } },
   }
 
   // Exit ab heute oder ab Übernahme; Verkaufspreis über Wertentwicklung oder Faktor
@@ -196,7 +194,7 @@
     var wertExit = state.modus === 'faktor'
       ? (letzte ? letzte.wert : 0)
       : W0 * Math.pow(1 + par.wert / 100, N / 12)
-    var verkaufskosten = wertExit * par.verkauf / 100
+    var verkaufskosten = 0        // Verkaufskosten werden im Rechner nicht mehr angesetzt
     var erloes = wertExit - verkaufskosten - RS
 
     // Zehnjahresfrist (§ 23 EStG) ab dem Übernahmestichtag, tagesgenau
@@ -323,6 +321,19 @@
       '.sz-kpi-val.gold { color:var(--gold); } .sz-kpi-val.green { color:var(--green); } .sz-kpi-val.red { color:var(--red); }',
       '.sz-kpi-sub { font-size:0.74rem; color:var(--muted); margin-top:4px; }',
       '.sz-kpi-sub b { font-weight:600; } .sz-kpi-sub .up { color:var(--green); } .sz-kpi-sub .down { color:var(--red); }',
+      /* Aufstellung, die beim Überfahren der Kachel aufklappt */
+      '.sz-kpi { outline:none; }',
+      '.sz-kpi.hat-auf { position:relative; cursor:default; }',
+      '.sz-auf { position:absolute; left:10px; right:10px; top:calc(100% - 8px); z-index:40; text-align:left;',
+      '  background:var(--navy3,#111a2d); border:1px solid rgba(255,255,255,0.18); border-radius:10px; padding:10px 12px;',
+      '  box-shadow:0 16px 36px rgba(0,0,0,0.5); opacity:0; visibility:hidden; transform:translateY(-5px); transition:opacity .15s, transform .15s; }',
+      '.sz-kpi.hat-auf:hover .sz-auf, .sz-kpi.hat-auf:focus .sz-auf, .sz-kpi.hat-auf:focus-within .sz-auf { opacity:1; visibility:visible; transform:translateY(0); }',
+      '.sz-auf-t { font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; color:var(--muted); margin-bottom:6px; }',
+      '.sz-auf-z { display:flex; justify-content:space-between; gap:16px; font-size:0.8rem; padding:3px 0; color:var(--muted); }',
+      '.sz-auf-z b { color:#fff; font-weight:600; white-space:nowrap; }',
+      '.sz-auf-z.summe { border-top:1px solid rgba(255,255,255,0.14); margin-top:5px; padding-top:7px; }',
+      '@media (max-width: 700px) { .sz-auf { position:static; left:auto; right:auto; opacity:1; visibility:visible;',
+      '  transform:none; margin-top:10px; box-shadow:none; background:rgba(255,255,255,0.03); } }',
       '.sz-hinweise { margin:0 0 18px; display:grid; gap:8px; }',
       '.sz-hinweis { font-size:0.8rem; color:var(--muted); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-left:3px solid var(--gold); border-radius:8px; padding:10px 14px; line-height:1.5; }',
       '.sz-hinweis b { color:var(--white); font-weight:600; }',
@@ -481,9 +492,49 @@
   }
 
   /* ── Ergebnis ─────────────────────────────────────────────── */
-  function kachel (label, wert, klasse, sub, infoText, haupt) {
-    return '<div class="sz-kpi' + (haupt ? ' haupt' : '') + '"><div class="sz-kpi-lab">' + esc(label) + (infoText ? info(infoText) : '') + '</div>' +
-      '<div class="sz-kpi-val ' + (klasse || '') + '">' + wert + '</div>' + (sub || '') + '</div>'
+  function kachel (label, wert, klasse, sub, infoText, haupt, auf) {
+    return '<div class="sz-kpi' + (haupt ? ' haupt' : '') + (auf ? ' hat-auf' : '') + '" tabindex="' + (auf ? '0' : '-1') + '">' +
+      '<div class="sz-kpi-lab">' + esc(label) + (infoText ? info(infoText) : '') + '</div>' +
+      '<div class="sz-kpi-val ' + (klasse || '') + '">' + wert + '</div>' + (sub || '') + (auf || '') + '</div>'
+  }
+
+  // Aufstellung, die beim Überfahren einer Kachel aufklappt
+  function aufstellung (titel, zeilen) {
+    return '<div class="sz-auf"><div class="sz-auf-t">' + esc(titel) + '</div>' +
+      zeilen.map(function (z) {
+        return '<div class="sz-auf-z' + (z[2] ? ' summe' : '') + '"><span>' + esc(z[0]) + '</span><b>' + z[1] + '</b></div>'
+      }).join('') + '</div>'
+  }
+
+  /* ── Eigenkapital-Zeile der Liquiditätsplanung ────────────
+     Positive Beträge sind Einzahlungen, negative Auszahlungen
+     (Dividende) aus der Immobilie. */
+  function ekTeile (props, bis) {
+    var ein = 0, aus = 0
+    props.forEach(function (p) {
+      var c = (p.liquiditaet && p.liquiditaet.cells && p.liquiditaet.cells.einzahlungEk) || {}
+      for (var m in c) {
+        if (!/^\d{4}-\d{2}$/.test(m) || (bis && m > bis)) continue
+        var v = Number(c[m]) || 0
+        if (v > 0) ein += v
+        else aus += -v
+      }
+    })
+    return { ein: ein, aus: aus }
+  }
+
+  // Summe aller Monate mit negativem Cashflow – das, was zugeschossen werden musste
+  function negativerCf (props, bis) {
+    var calc = C(), s = 0
+    props.forEach(function (p) {
+      var ab = calc.bestandAb ? calc.bestandAb(p) : calc.uebernahme(p)
+      if (!ab || ab > bis) return
+      for (var m = ab, i = 0; m <= bis && i < 1200; m = calc.monatPlus(m, 1), i++) {
+        var cf = calc.cfTeile(p, m).cf
+        if (cf < 0) s += -cf
+      }
+    })
+    return s
   }
 
   /* ── Geschichte aus der Liquiditätsplanung ────────────────
@@ -559,12 +610,24 @@
     /* ── Bereich 1: von Kauf bis heute ───────────────────── */
     var w1 = heuteZ.wert - kaufpreis
     var t1 = heuteZ.tilgung
-    var c1 = heuteZ.cfKum
     // Gezahlte Kaufnebenkosten – Zeile „Zahlung Nebenkosten" der Liquiditätsplanung
     var nk1 = auswahl.reduce(function (s, p) {
       return s + Math.abs(calc.summeBis(p, 'ausgabe', calc.jetztMonat()) || 0)
     }, 0)
-    var s1 = w1 + t1 + c1 - nk1
+    // Eigenkapital: Einzahlungen, Auszahlungen (Dividende) und wofür es gebraucht wurde
+    var ek = ekTeile(auswahl, calc.jetztMonat())
+    var negCf = negativerCf(auswahl, calc.jetztMonat())
+    var ekWeitere = ek.ein - nk1 - negCf
+    var aufEk = aufstellung('Wofür eingezahlt wurde', [
+      ['Kaufnebenkosten', eur(nk1)],
+      ['Negativer Cashflow', eur(negCf)],
+      ['Weitere Ausgaben', eur(ekWeitere)],
+      ['Summe', eur(ek.ein), true],
+    ])
+    var ekInfo = 'Summe aller Einzahlungen in der Zeile „Einzahlung Eigenkapital" der Liquiditätsplanung.'
+    var divInfo = 'Summe aller negativen Beträge in der Zeile „Einzahlung Eigenkapital" – also Auszahlungen aus der Immobilie.'
+
+    var s1 = w1 + t1 - ek.ein + ek.aus
 
     var html = ''
     html += '<section class="sz-bereich">'
@@ -578,12 +641,10 @@
       kachel('Restschuld heute', eur(heuteZ.restschuld)),
       kachel('Tilgung gesamt', eur(t1), t1 > 0 ? 'green' : '', '', 'Anfangssumme abzüglich heutiger Restschuld – entspricht der Summe aller Tilgungszeilen.'))
     html += '<div class="sz-kpis sz-kpis-3">' +
-      kachel('Cashflow insgesamt bisher', eur(c1), c1 < 0 ? 'red' : 'green', '',
-        'Summe aller monatlichen Cashflows seit der Übernahme.') +
-      kachel('Nebenkosten', eur(-nk1), nk1 ? 'red' : '', '',
-        'Summe der Zeile „Zahlung Nebenkosten" aus der Liquiditätsplanung – die beim Kauf gezahlten Nebenkosten.') +
+      kachel('Eingezahltes Eigenkapital', eur(-ek.ein), 'red', '', ekInfo, false, aufEk) +
+      kachel('Ausgezahlte Dividende', eur(ek.aus), 'green', '', divInfo) +
       kachel('Summe Wertzuwachs bisher', eur(s1), s1 < 0 ? 'red' : 'gold', '',
-        'Wertsteigerung + Tilgung + Cashflow, abzüglich der gezahlten Nebenkosten. Das eingesetzte Eigenkapital ist nicht enthalten.', true) +
+        'Wertsteigerung + Tilgung gesamt − eingezahltes Eigenkapital + ausgezahlte Dividende.', true) +
     '</div>'
 
     html += '<div class="pc-grid sz-charts">' +
@@ -594,7 +655,7 @@
         info: 'Aufsummierter Cashflow seit der Übernahme.',
         legende: [{ c: Kc.farben.TEAL, t: 'Cashflow kumuliert' }] }) +
       Kc.karte({ id: 'szHistZuwachs', titel: 'Woher der Wertzuwachs kommt',
-        info: 'Wertsteigerung, Tilgung und Cashflow – abzüglich der gezahlten Nebenkosten ergeben sie die Summe Wertzuwachs.',
+        info: 'Wertsteigerung, Tilgung und Cashflow je Jahr – so entsteht der Zuwachs im Zeitverlauf.',
         legende: [{ c: Kc.farben.GOLD, t: 'Wertsteigerung' }, { c: Kc.farben.BLAU, t: 'Tilgung' }, { c: Kc.farben.TEAL, t: 'Cashflow' }] }) +
     '</div>'
     html += '</section>'
@@ -602,9 +663,7 @@
     /* ── Bereich 2: von Kauf bis Exit ────────────────────── */
     var w2 = r.wertExit - kaufpreis
     var t2 = Math.max(0, heuteZ.fk - r.restschuldExit)
-    var c2 = c1 + r.kumCf
-    var s2 = w2 + t2 + c2 - nk1
-    var s2netto = s2 - r.verkaufskosten
+    var s2 = w2 + t2 - ek.ein + ek.aus
 
     html += '<section class="sz-bereich">'
     html += '<div class="sz-titel">Entwicklung von Kauf bis Exit ' + esc(exitJahr) +
@@ -619,17 +678,10 @@
       kachel('Restschuld beim Exit', eur(r.restschuldExit)),
       kachel('Tilgung gesamt', eur(t2), t2 > 0 ? 'green' : '', '', 'Anfangssumme abzüglich Restschuld beim Exit, inklusive Sondertilgungen.'))
     html += '<div class="sz-kpis sz-kpis-3">' +
-      kachel('Cashflow insgesamt bis Exit', eur(c2), c2 < 0 ? 'red' : 'green', '',
-        'Cashflow seit der Übernahme bis heute zuzüglich der fortgeschriebenen Jahre bis zum Verkauf.') +
-      kachel('Nebenkosten', eur(-nk1), nk1 ? 'red' : '', '',
-        'Summe der Zeile „Zahlung Nebenkosten" aus der Liquiditätsplanung – die beim Kauf gezahlten Nebenkosten.') +
+      kachel('Eingezahltes Eigenkapital', eur(-ek.ein), 'red', '', ekInfo, false, aufEk) +
+      kachel('Ausgezahlte Dividende', eur(ek.aus), 'green', '', divInfo) +
       kachel('Summe Wertzuwachs bis Exit', eur(s2), s2 < 0 ? 'red' : 'gold', '',
-        'Wertsteigerung + Tilgung + Cashflow, abzüglich der gezahlten Nebenkosten, gerechnet vom Kauf bis zum Verkauf.', true) +
-    '</div>'
-    html += '<div class="sz-kpis sz-kpis-2">' +
-      kachel('Verkaufskosten', eur(-r.verkaufskosten), 'red', '',
-        pct(par.verkauf) + ' vom Wert beim Exit.') +
-      kachel('Wertzuwachs nach Verkaufskosten', eur(s2netto), s2netto < 0 ? 'red' : 'gold') +
+        'Wertsteigerung + Tilgung gesamt − eingezahltes Eigenkapital + ausgezahlte Dividende, gerechnet vom Kauf bis zum Verkauf.', true) +
     '</div>'
 
     html += '<div class="pc-grid sz-charts">' +
@@ -640,7 +692,7 @@
         info: 'Aufsummierter Cashflow vom Kauf bis zum Verkauf.',
         legende: [{ c: Kc.farben.TEAL, t: 'Cashflow kumuliert' }] }) +
       Kc.karte({ id: 'szExitZuwachs', titel: 'Woher der Wertzuwachs bis zum Exit kommt',
-        info: 'Wertsteigerung, Tilgung und Cashflow – abzüglich der gezahlten Nebenkosten ergeben sie die Summe Wertzuwachs.',
+        info: 'Wertsteigerung, Tilgung und Cashflow je Jahr – so entsteht der Zuwachs im Zeitverlauf.',
         legende: [{ c: Kc.farben.GOLD, t: 'Wertsteigerung' }, { c: Kc.farben.BLAU, t: 'Tilgung' }, { c: Kc.farben.TEAL, t: 'Cashflow' }] }) +
     '</div>'
     html += '</section>'
